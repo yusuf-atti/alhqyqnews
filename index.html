@@ -1,0 +1,670 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>صحيفة الحقيقة | منصة الأخبار الذكية</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+    
+    <!-- Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    
+    <!-- Markdown Parser -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Tajawal', 'sans-serif'],
+                    },
+                    colors: {
+                        navy: {
+                            900: '#050510',
+                            800: '#0a0a15',
+                            700: '#151525',
+                        },
+                        gold: {
+                            400: '#D4AF37',
+                            500: '#C5A028',
+                        }
+                    },
+                    animation: {
+                        'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body { background-color: #050510; color: #f3f4f6; }
+        .glass-nav { background: rgba(5, 5, 16, 0.85); backdrop-filter: blur(12px); border-bottom: 1px solid rgba(255,255,255,0.05); }
+        .hero-gradient { background: linear-gradient(to top, #050510 0%, rgba(5,5,16,0.8) 50%, transparent 100%); }
+        .news-card:hover .img-scale { transform: scale(1.05); }
+        .scrollbar-hide::-webkit-scrollbar { display: none; }
+        .tab-active { color: #D4AF37; border-bottom: 2px solid #D4AF37; }
+        .line-clamp-2 { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+        
+        /* Loading Animation */
+        .loader { border: 4px solid rgba(255,255,255,0.1); width: 36px; height: 36px; border-radius: 50%; border-left-color: #D4AF37; animation: spin 1s ease infinite; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        /* AI Gradient Text */
+        .ai-text {
+            background: linear-gradient(to right, #D4AF37, #fef08a);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        /* Markdown Styles */
+        .prose p { margin-bottom: 0.5em; }
+        .prose strong { color: #D4AF37; }
+        .prose ul { list-style-type: disc; padding-right: 1.5em; margin-bottom: 0.5em; }
+    </style>
+</head>
+<body class="antialiased selection:bg-gold-400 selection:text-black">
+
+    <!-- Navbar -->
+    <nav class="fixed w-full z-50 glass-nav transition-all duration-300">
+        <div class="container mx-auto px-6 h-20 flex justify-between items-center">
+            <div class="flex items-center gap-4">
+                <div class="text-3xl font-black tracking-tighter text-white cursor-pointer" onclick="window.location.reload()">
+                    الـحقيقة <span class="text-gold-400 text-4xl">.</span>
+                </div>
+                <div class="hidden md:flex h-6 w-px bg-gray-700 mx-2"></div>
+                <span class="hidden md:block text-xs text-gray-400 tracking-widest">صوت الواقع</span>
+            </div>
+            <div class="hidden md:flex gap-8 text-sm font-medium text-gray-300">
+                <a href="/" class="hover:text-gold-400 transition-colors">الرئيسية</a>
+                <a href="/news/l/2" class="hover:text-gold-400">أخبار محلية</a>
+                <a href="/news/l/9" class="hover:text-gold-400 transition-colors">تقارير</a>
+                <a href="/news/l/30" class="hover:text-gold-400 transition-colors">رياضة</a>
+                <div class="relative group">
+                    <button onclick="openSettings()" class="text-gold-400 flex items-center gap-1 hover:text-white transition-colors">
+                        <i data-lucide="cpu" class="w-4 h-4"></i> إعدادات AI
+                    </button>
+                </div>
+            </div>
+            <div class="flex items-center gap-4">
+                <button class="p-2 hover:bg-white/5 rounded-full transition-colors"><i data-lucide="search" class="w-5 h-5 text-gray-400"></i></button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Breaking News Ticker -->
+    <div class="fixed top-20 w-full z-40 bg-navy-800 border-b border-white/5 py-2 overflow-hidden">
+        <div class="container mx-auto px-6 flex items-center">
+            <span class="text-gold-400 text-xs font-bold ml-4 whitespace-nowrap px-2 border-l border-gray-700">عاجل</span>
+            <div class="w-full overflow-hidden relative h-5">
+                <div class="absolute whitespace-nowrap animate-[marquee_20s_linear_infinite] text-xs text-gray-300" id="ticker-content">
+                    جاري تحميل آخر الأخبار العاجلة من صحيفة الحقيقة...
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content Wrapper -->
+    <main class="pt-36 pb-20 container mx-auto px-6">
+        
+        <!-- Hero Section (Dynamic) -->
+        <section class="grid grid-cols-1 lg:grid-cols-12 gap-8 mb-16 h-auto lg:h-[500px]" id="hero-section">
+            <div class="lg:col-span-12 flex items-center justify-center h-96">
+                <div class="loader"></div>
+            </div>
+        </section>
+
+        <!-- Dynamic Content Section -->
+        <section class="grid grid-cols-1 lg:grid-cols-12 gap-12">
+            
+            <!-- Right Column: Latest News List -->
+            <div class="lg:col-span-8">
+                <div class="flex items-center justify-between mb-8 border-b border-white/10 pb-4">
+                    <h2 class="text-2xl font-bold text-white flex items-center gap-2">
+                        <span class="w-2 h-8 bg-gold-400 rounded-full"></span>
+                        آخر المستجدات
+                    </h2>
+                    <a href="/news/l/2" class="text-sm text-gray-500 hover:text-white">عرض المزيد ←</a>
+                </div>
+
+                <div class="space-y-6" id="news-container">
+                    <div class="flex justify-center py-10"><div class="loader"></div></div>
+                </div>
+            </div>
+
+            <!-- Left Column: Sidebar -->
+            <div class="lg:col-span-4">
+                <div class="sticky top-32 bg-navy-800/50 p-6 rounded-2xl border border-white/5 backdrop-blur-sm">
+                    <div class="flex gap-6 mb-6 border-b border-white/10 pb-2 overflow-x-auto scrollbar-hide">
+                        <button class="tab-btn tab-active pb-2 text-sm font-bold whitespace-nowrap text-gold-400">الأكثر قراءة</button>
+                    </div>
+                    <!-- Sidebar Content -->
+                    <div id="sidebar-content" class="space-y-5 min-h-[400px]">
+                        <div class="flex justify-center py-10"><div class="loader"></div></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- AI Chatbot Widget -->
+    <div class="fixed bottom-6 left-6 z-50 flex flex-col items-end gap-4">
+        
+        <!-- Chat Window -->
+        <div id="ai-chat-window" class="hidden w-80 md:w-96 bg-navy-800 border border-gold-400/30 rounded-2xl shadow-2xl overflow-hidden transition-all duration-300 transform scale-95 opacity-0 origin-bottom-left">
+            <div class="bg-navy-900 p-4 border-b border-white/5 flex justify-between items-center">
+                <div class="flex items-center gap-2">
+                    <div class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
+                    <span class="font-bold text-gold-400 text-sm">مساعد الحقيقة AI</span>
+                </div>
+                <button onclick="toggleChat()" class="text-gray-400 hover:text-white"><i data-lucide="x" class="w-4 h-4"></i></button>
+            </div>
+            <div id="chat-messages" class="h-80 overflow-y-auto p-4 space-y-3 bg-navy-800/95 text-sm">
+                <div class="bg-white/5 p-3 rounded-tr-xl rounded-bl-xl rounded-br-xl text-gray-300 self-start max-w-[90%]">
+                    مرحباً بك! أنا مساعد الذكاء الاصطناعي لصحيفة الحقيقة. كيف يمكنني مساعدتك في فهم الأخبار اليوم؟
+                </div>
+            </div>
+            <div class="p-3 bg-navy-900 border-t border-white/5">
+                <div class="relative">
+                    <input type="text" id="chat-input" placeholder="اكتب سؤالك هنا..." class="w-full bg-black/30 border border-white/10 rounded-full py-2 px-4 pr-10 text-white text-sm focus:outline-none focus:border-gold-400/50 transition-colors">
+                    <button onclick="sendMessage()" class="absolute left-2 top-1.5 p-1 text-gold-400 hover:text-white transition-colors">
+                        <i data-lucide="send" class="w-4 h-4"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Chat Button -->
+        <button onclick="toggleChat()" class="w-14 h-14 bg-gradient-to-br from-gold-400 to-gold-500 rounded-full shadow-lg shadow-gold-400/20 flex items-center justify-center text-black hover:scale-110 transition-transform group">
+            <i data-lucide="sparkles" class="w-6 h-6 group-hover:rotate-12 transition-transform"></i>
+        </button>
+    </div>
+
+    <!-- AI Analysis Modal -->
+    <div id="analysis-modal" class="fixed inset-0 z-[60] bg-black/80 backdrop-blur-sm hidden items-center justify-center p-4">
+        <div class="bg-navy-800 w-full max-w-2xl rounded-2xl border border-gold-400/30 shadow-2xl overflow-hidden transform transition-all scale-95 opacity-0" id="analysis-modal-content">
+            <div class="p-6 border-b border-white/5 flex justify-between items-start">
+                <div>
+                    <h3 class="text-xl font-bold text-white mb-1 flex items-center gap-2">
+                        <i data-lucide="brain-circuit" class="w-5 h-5 text-gold-400"></i>
+                        تحليل الذكاء الاصطناعي
+                    </h3>
+                    <p class="text-xs text-gray-400">مدعوم بواسطة Gemini Pro</p>
+                </div>
+                <button onclick="closeAnalysis()" class="p-1 hover:bg-white/10 rounded-full text-gray-400 hover:text-white transition-colors">
+                    <i data-lucide="x" class="w-6 h-6"></i>
+                </button>
+            </div>
+            <div class="p-6 overflow-y-auto max-h-[60vh]">
+                <div id="analysis-loader" class="flex flex-col items-center justify-center py-8">
+                    <div class="loader mb-4"></div>
+                    <p class="text-gold-400 text-sm animate-pulse">جاري تحليل الخبر واستخراج السياق...</p>
+                </div>
+                <div id="analysis-result" class="hidden prose prose-invert prose-sm max-w-none text-gray-300 leading-relaxed">
+                    <!-- Content will be injected here -->
+                </div>
+            </div>
+            <div class="p-4 bg-navy-900 border-t border-white/5 flex justify-end">
+                <button onclick="closeAnalysis()" class="px-4 py-2 bg-white/5 hover:bg-white/10 rounded-lg text-sm text-white transition-colors">إغلاق</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quiz Modal -->
+    <div id="quiz-modal" class="fixed inset-0 z-[65] bg-black/80 backdrop-blur-sm hidden items-center justify-center p-4">
+        <div class="bg-navy-800 w-full max-w-lg rounded-2xl border border-gold-400/30 shadow-2xl overflow-hidden transform transition-all scale-95 opacity-0" id="quiz-modal-content">
+            <div class="p-6 border-b border-white/5 flex justify-between items-start">
+                <div>
+                    <h3 class="text-xl font-bold text-white mb-1 flex items-center gap-2">
+                        <i data-lucide="file-question" class="w-5 h-5 text-gold-400"></i>
+                        اختبر معلوماتك
+                    </h3>
+                    <p class="text-xs text-gray-400">أسئلة مولدة تلقائياً عن الخبر</p>
+                </div>
+                <button onclick="closeQuiz()" class="p-1 hover:bg-white/10 rounded-full text-gray-400 hover:text-white transition-colors">
+                    <i data-lucide="x" class="w-6 h-6"></i>
+                </button>
+            </div>
+            <div class="p-6">
+                <div id="quiz-loader" class="flex flex-col items-center justify-center py-8">
+                    <div class="loader mb-4"></div>
+                    <p class="text-gold-400 text-sm animate-pulse">Gemini يقوم بصياغة الأسئلة...</p>
+                </div>
+                <div id="quiz-container" class="hidden space-y-6">
+                    <!-- Quiz questions will be injected here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Settings Modal (API Key) -->
+    <div id="settings-modal" class="fixed inset-0 z-[70] bg-black/90 hidden items-center justify-center p-4">
+        <div class="bg-navy-800 w-full max-w-md rounded-xl border border-white/10 p-6">
+            <h3 class="text-lg font-bold text-white mb-4">إعدادات الذكاء الاصطناعي</h3>
+            <p class="text-sm text-gray-400 mb-4">لتفعيل ميزات AI، يرجى إدخال مفتاح Gemini API الخاص بك (يتم حفظه محلياً فقط).</p>
+            <input type="password" id="api-key-input" placeholder="Paste Gemini API Key here" class="w-full bg-black/50 border border-white/10 rounded-lg p-3 text-white mb-4 focus:border-gold-400 outline-none">
+            <div class="flex justify-end gap-3">
+                <button onclick="document.getElementById('settings-modal').classList.add('hidden')" class="px-4 py-2 text-gray-400 hover:text-white">إلغاء</button>
+                <button onclick="saveApiKey()" class="px-6 py-2 bg-gold-400 text-black font-bold rounded-lg hover:bg-gold-500">حفظ</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Hidden Audio Player -->
+    <audio id="tts-player" class="hidden"></audio>
+
+    <!-- Footer -->
+    <footer class="bg-navy-800 border-t border-white/5 pt-16 pb-8">
+        <div class="container mx-auto px-6 text-center">
+            <h2 class="text-3xl font-black text-white mb-6">الـحقيقة</h2>
+            <p class="text-gray-400 text-sm mb-8">صحيفة إلكترونية سعودية شاملة.</p>
+            <div class="text-gray-600 text-xs">© 2025 جميع الحقوق محفوظة.</div>
+        </div>
+    </footer>
+
+    <script>
+        lucide.createIcons();
+
+        let userApiKey = localStorage.getItem('gemini_api_key') || "";
+        const apiKey = ""; 
+        const RSS_URL = "https://alhqyq.com/rss-action-feed-m-news-id-0-feed-rss20.xml";
+        let fetchedNewsData = [];
+
+        // --- UI FUNCTIONS ---
+        function openSettings() {
+            document.getElementById('settings-modal').classList.remove('hidden');
+            document.getElementById('api-key-input').value = userApiKey;
+        }
+
+        function saveApiKey() {
+            const key = document.getElementById('api-key-input').value.trim();
+            if (key) {
+                userApiKey = key;
+                localStorage.setItem('gemini_api_key', key);
+                document.getElementById('settings-modal').classList.add('hidden');
+                alert("تم حفظ المفتاح بنجاح! جميع الميزات مفعلة الآن.");
+            }
+        }
+
+        function toggleChat() {
+            const chatWindow = document.getElementById('ai-chat-window');
+            if (chatWindow.classList.contains('hidden')) {
+                chatWindow.classList.remove('hidden');
+                setTimeout(() => {
+                    chatWindow.classList.remove('opacity-0', 'scale-95');
+                    chatWindow.classList.add('opacity-100', 'scale-100');
+                }, 10);
+                document.getElementById('chat-input').focus();
+            } else {
+                chatWindow.classList.remove('opacity-100', 'scale-100');
+                chatWindow.classList.add('opacity-0', 'scale-95');
+                setTimeout(() => {
+                    chatWindow.classList.add('hidden');
+                }, 300);
+            }
+        }
+
+        function closeAnalysis() {
+            const modal = document.getElementById('analysis-modal');
+            const content = document.getElementById('analysis-modal-content');
+            content.classList.remove('opacity-100', 'scale-100');
+            content.classList.add('opacity-0', 'scale-95');
+            setTimeout(() => { modal.classList.add('hidden'); modal.classList.remove('flex'); }, 300);
+        }
+
+        function closeQuiz() {
+            const modal = document.getElementById('quiz-modal');
+            const content = document.getElementById('quiz-modal-content');
+            content.classList.remove('opacity-100', 'scale-100');
+            content.classList.add('opacity-0', 'scale-95');
+            setTimeout(() => { modal.classList.add('hidden'); modal.classList.remove('flex'); }, 300);
+        }
+
+        // --- HELPER: WAV CONVERTER ---
+        // Converts PCM16 audio data to WAV for browser playback
+        function pcmToWav(pcmData, sampleRate = 24000) {
+            const binaryString = window.atob(pcmData);
+            const len = binaryString.length;
+            const bytes = new Uint8Array(len);
+            for (let i = 0; i < len; i++) {
+                bytes[i] = binaryString.charCodeAt(i);
+            }
+            const wavHeader = new ArrayBuffer(44);
+            const view = new DataView(wavHeader);
+            const writeString = (view, offset, string) => {
+                for (let i = 0; i < string.length; i++) view.setUint8(offset + i, string.charCodeAt(i));
+            };
+            writeString(view, 0, 'RIFF');
+            view.setUint32(4, 36 + bytes.length, true);
+            writeString(view, 8, 'WAVE');
+            writeString(view, 12, 'fmt ');
+            view.setUint32(16, 16, true);
+            view.setUint16(20, 1, true);
+            view.setUint16(22, 1, true);
+            view.setUint32(24, sampleRate, true);
+            view.setUint32(28, sampleRate * 2, true);
+            view.setUint16(32, 2, true);
+            view.setUint16(34, 16, true);
+            writeString(view, 36, 'data');
+            view.setUint32(40, bytes.length, true);
+            const wavBytes = new Uint8Array(wavHeader.byteLength + bytes.length);
+            wavBytes.set(new Uint8Array(wavHeader), 0);
+            wavBytes.set(bytes, wavHeader.byteLength);
+            return new Blob([wavBytes], { type: 'audio/wav' });
+        }
+
+        // --- GEMINI API CALLS ---
+
+        const getKey = () => {
+            const k = userApiKey || apiKey;
+            if (!k) { openSettings(); throw new Error("No API Key"); }
+            return k;
+        }
+
+        // 1. Text Generation (Analysis & Chat & Quiz)
+        async function generateText(prompt, systemPrompt = "", jsonMode = false) {
+            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${getKey()}`;
+            const payload = {
+                contents: [{ parts: [{ text: prompt }] }],
+                systemInstruction: { parts: [{ text: systemPrompt }] },
+                generationConfig: jsonMode ? { responseMimeType: "application/json" } : {}
+            };
+            
+            const response = await fetch(url, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(payload) });
+            if (!response.ok) throw new Error("API Error");
+            const data = await response.json();
+            return data.candidates?.[0]?.content?.parts?.[0]?.text;
+        }
+
+        // 2. TTS Generation
+        async function generateSpeech(text) {
+            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-tts:generateContent?key=${getKey()}`;
+            const payload = {
+                contents: [{ parts: [{ text: text }] }],
+                generationConfig: {
+                    responseModalities: ["AUDIO"],
+                    speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName: "Kore" } } }
+                }
+            };
+            const response = await fetch(url, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(payload) });
+            if (!response.ok) throw new Error("TTS Error");
+            const data = await response.json();
+            return data.candidates?.[0]?.content?.parts?.[0]?.inlineData?.data; // Base64 PCM
+        }
+
+
+        // --- FEATURES ---
+
+        // Feature 1: Analyze
+        async function analyzeNews(title, desc) {
+            const modal = document.getElementById('analysis-modal');
+            modal.classList.remove('hidden'); modal.classList.add('flex');
+            setTimeout(() => { document.getElementById('analysis-modal-content').classList.remove('opacity-0', 'scale-95'); document.getElementById('analysis-modal-content').classList.add('opacity-100', 'scale-100'); }, 10);
+            
+            const loader = document.getElementById('analysis-loader');
+            const resultDiv = document.getElementById('analysis-result');
+            loader.classList.remove('hidden'); resultDiv.classList.add('hidden');
+
+            try {
+                const analysis = await generateText(
+                    `الخبر: ${title}\nالتفاصيل: ${desc}\nالمطلوب: شرح السياق، الأهمية، والتوقعات المستقبلية في نقاط Markdown.`,
+                    "أنت محلل إخباري لصحيفة الحقيقة."
+                );
+                loader.classList.add('hidden');
+                resultDiv.classList.remove('hidden');
+                resultDiv.innerHTML = marked.parse(analysis);
+            } catch (e) {
+                closeAnalysis();
+            }
+        }
+
+        // Feature 2: Chat
+        async function sendMessage() {
+            const input = document.getElementById('chat-input');
+            const message = input.value.trim();
+            if (!message) return;
+            
+            const chatMessages = document.getElementById('chat-messages');
+            chatMessages.innerHTML += `<div class="bg-gold-400 text-black p-3 rounded-tl-xl rounded-tr-xl rounded-bl-xl self-end max-w-[90%] font-medium">${message}</div>`;
+            input.value = ''; chatMessages.scrollTop = chatMessages.scrollHeight;
+
+            const newsContext = fetchedNewsData.slice(0, 5).map(n => `- ${n.title}`).join('\n');
+            const loadingId = 'loading-' + Date.now();
+            chatMessages.innerHTML += `<div id="${loadingId}" class="bg-white/5 p-3 self-start flex gap-1"><div class="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div></div>`;
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+
+            try {
+                const reply = await generateText(message, `أنت مساعد ذكي لصحيفة الحقيقة. أحدث الأخبار:\n${newsContext}`);
+                document.getElementById(loadingId).remove();
+                chatMessages.innerHTML += `<div class="bg-white/5 p-3 rounded-tr-xl rounded-bl-xl rounded-br-xl text-gray-300 self-start max-w-[90%]">${marked.parse(reply)}</div>`;
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+            } catch (e) {
+                document.getElementById(loadingId).remove();
+            }
+        }
+
+        // Feature 3: TTS (Smart Broadcaster)
+        async function speakNews(title, desc, btnId) {
+            const btn = document.getElementById(btnId);
+            const originalIcon = btn.innerHTML;
+            btn.innerHTML = `<div class="w-3 h-3 border-2 border-current border-t-transparent rounded-full animate-spin"></div>`;
+            btn.disabled = true;
+
+            try {
+                // Summarize first for better audio experience
+                const script = await generateText(`لخص هذا الخبر في جملتين قصيرتين مشوقتين للبث الإذاعي: ${title} - ${desc}`, "أنت مذيع أخبار محترف.");
+                const pcmData = await generateSpeech(script);
+                
+                if (pcmData) {
+                    const blob = pcmToWav(pcmData);
+                    const url = URL.createObjectURL(blob);
+                    const audio = document.getElementById('tts-player');
+                    audio.src = url;
+                    audio.play();
+                    
+                    btn.innerHTML = `<i data-lucide="volume-2" class="w-3 h-3 text-green-400 animate-pulse"></i>`;
+                    audio.onended = () => { 
+                        btn.innerHTML = originalIcon; 
+                        btn.disabled = false;
+                        lucide.createIcons();
+                    };
+                }
+            } catch (e) {
+                btn.innerHTML = originalIcon;
+                btn.disabled = false;
+                console.error(e);
+            }
+        }
+
+        // Feature 4: Quiz
+        async function startQuiz(title, desc) {
+            const modal = document.getElementById('quiz-modal');
+            modal.classList.remove('hidden'); modal.classList.add('flex');
+            setTimeout(() => { document.getElementById('quiz-modal-content').classList.remove('opacity-0', 'scale-95'); document.getElementById('quiz-modal-content').classList.add('opacity-100', 'scale-100'); }, 10);
+
+            const loader = document.getElementById('quiz-loader');
+            const container = document.getElementById('quiz-container');
+            loader.classList.remove('hidden'); container.classList.add('hidden'); container.innerHTML = '';
+
+            try {
+                const jsonStr = await generateText(
+                    `Generate 1 multiple choice question based on: "${title}: ${desc}". Format: JSON array with objects {question, options:[], correctIndex (0-3)}. Arabic language.`,
+                    "", true
+                );
+                const questions = JSON.parse(jsonStr);
+                const q = questions[0];
+
+                loader.classList.add('hidden');
+                container.classList.remove('hidden');
+                
+                let html = `
+                    <h4 class="text-white text-lg font-bold mb-4">${q.question}</h4>
+                    <div class="space-y-3">
+                `;
+                q.options.forEach((opt, idx) => {
+                    html += `
+                        <button onclick="checkAnswer(this, ${idx === q.correctIndex})" class="w-full text-right p-3 rounded-lg bg-white/5 border border-white/10 hover:bg-white/10 transition-all text-gray-300">
+                            ${opt}
+                        </button>
+                    `;
+                });
+                html += `</div><div id="quiz-feedback" class="mt-4 text-center font-bold h-6"></div>`;
+                container.innerHTML = html;
+
+            } catch (e) {
+                closeQuiz();
+            }
+        }
+
+        function checkAnswer(btn, isCorrect) {
+            const feedback = document.getElementById('quiz-feedback');
+            if (isCorrect) {
+                btn.classList.add('bg-green-500/20', 'border-green-500', 'text-green-400');
+                feedback.textContent = "إجابة صحيحة! أحسنت 🎉";
+                feedback.className = "mt-4 text-center font-bold h-6 text-green-400";
+            } else {
+                btn.classList.add('bg-red-500/20', 'border-red-500', 'text-red-400');
+                feedback.textContent = "إجابة خاطئة، حاول مرة أخرى.";
+                feedback.className = "mt-4 text-center font-bold h-6 text-red-400";
+            }
+        }
+
+
+        // --- RENDER LOGIC ---
+
+        function renderMockData() {
+            const mockNews = [
+                { title: "وزير البيئة يبحث تطوير مشاريع الخرج", img: "https://alhqyq.com/contents/newsth/17729_0.jpg", date: "29 نوفمبر", desc: "بحث وزير البيئة والمياه والزراعة سبل تطوير المشاريع التنموية في محافظة الخرج...", link: "#" },
+                { title: "برنامج رافد الحرمين يطلق خطة موسم الحج", img: "https://alhqyq.com/contents/newsth/17726_0.jpg", date: "29 نوفمبر", desc: "أعلن البرنامج عن جاهزية الكوادر البشرية لخدمة ضيوف الرحمن...", link: "#" },
+                { title: "تحديثات عاجلة لطائرات A320 في السعودية", img: "https://alhqyq.com/contents/newsth/17725_0.jpg", date: "29 نوفمبر", desc: "توجيهات جديدة بخصوص صيانة الطائرات لضمان أعلى معايير السلامة...", link: "#" },
+                { title: "الأهلي يبلغ نصف النهائي بعد فوز مثير", img: "https://alhqyq.com/contents/newsth/17727_0.jpg", date: "29 نوفمبر", desc: "مباراة حماسية انتهت بتفوق الأهلي وصعوده للدور القادم...", link: "#" },
+                { title: "غرفة جازان تعزّز تمكين مستفيدي صندوق الشهداء", img: "https://alhqyq.com/contents/newsth/17716_0.jpg", date: "28 نوفمبر", desc: "مبادرات نوعية لدعم أسر الشهداء وتوفير فرص العمل...", link: "#" }
+            ];
+            fetchedNewsData = mockNews;
+            renderSite(mockNews);
+            const myName = " • مرحبًا بك في صحيفة يوسف الإلكترونية";
+            document.getElementById('ticker-content').textContent = myName + "          " + mockNews.map(n => `• ${n.title}`).join('          ');
+        }
+
+        function renderSite(news) {
+            if (news.length === 0) return;
+            const safeStr = (str) => str.replace(/'/g, "\\'").replace(/"/g, '&quot;');
+            
+            // Hero
+            const heroMain = news[0];
+            const heroHTML = `
+                <article class="lg:col-span-8 relative group rounded-2xl overflow-hidden shadow-2xl shadow-black/50 h-[400px] lg:h-full">
+                    <img src="${heroMain.img}" class="w-full h-full object-cover img-scale transition-transform duration-700" onerror="this.src='https://alhqyq.com/contents/datastore/layouts/41/logos/logo.jpg'">
+                    <div class="absolute inset-0 hero-gradient"></div>
+                    <div class="absolute top-4 right-4 z-20 flex gap-2">
+                        <button onclick="speakNews('${safeStr(heroMain.title)}', '${safeStr(heroMain.desc)}', 'hero-tts-btn')" id="hero-tts-btn" class="bg-black/50 backdrop-blur border border-white/20 text-white p-2 rounded-full hover:bg-white hover:text-black transition-all" title="استمع للخبر">
+                            <i data-lucide="headphones" class="w-4 h-4"></i>
+                        </button>
+                        <button onclick="analyzeNews('${safeStr(heroMain.title)}', '${safeStr(heroMain.desc)}')" class="bg-black/50 backdrop-blur border border-gold-400/50 text-gold-400 px-3 py-1.5 rounded-full text-xs font-bold flex items-center gap-1 hover:bg-gold-400 hover:text-black transition-all">
+                            <i data-lucide="sparkles" class="w-3 h-3"></i> تحليل AI
+                        </button>
+                    </div>
+                    <div class="absolute bottom-0 p-8 w-full cursor-pointer" onclick="window.location='${heroMain.link}'">
+                        <span class="bg-gold-400 text-black text-xs font-bold px-3 py-1 rounded-full mb-3 inline-block">خبر رئيسي</span>
+                        <h1 class="text-2xl md:text-4xl font-bold leading-tight mb-3 group-hover:text-gold-400 transition-colors">${heroMain.title}</h1>
+                        <div class="flex items-center gap-4 text-gray-400 text-sm">
+                            <span class="flex items-center gap-1"><i data-lucide="calendar" class="w-3 h-3"></i> ${heroMain.date}</span>
+                        </div>
+                    </div>
+                </article>
+                <div class="lg:col-span-4 flex flex-col gap-4 h-[400px] lg:h-full">
+                    ${news.slice(1, 3).map(item => `
+                    <article class="flex-1 relative group rounded-xl overflow-hidden">
+                        <img src="${item.img}" class="w-full h-full object-cover img-scale transition-transform duration-700 opacity-60 group-hover:opacity-40" onerror="this.src='https://alhqyq.com/contents/datastore/layouts/41/logos/logo.jpg'">
+                        <div class="absolute inset-0 bg-gradient-to-t from-navy-900 via-transparent to-transparent"></div>
+                        <div class="absolute top-3 right-3 z-20 opacity-0 group-hover:opacity-100 transition-opacity flex gap-2">
+                             <button onclick="startQuiz('${safeStr(item.title)}', '${safeStr(item.desc)}')" class="bg-black/60 text-white p-1.5 rounded-full hover:bg-white hover:text-black" title="اختبر معلوماتك">
+                                <i data-lucide="help-circle" class="w-3 h-3"></i>
+                            </button>
+                        </div>
+                        <div class="absolute bottom-0 p-5 cursor-pointer" onclick="window.location='${item.link}'">
+                            <h3 class="text-lg font-bold leading-snug mb-1 group-hover:text-gold-400">${item.title}</h3>
+                        </div>
+                    </article>
+                    `).join('')}
+                </div>
+            `;
+            document.getElementById('hero-section').innerHTML = heroHTML;
+
+            // News Feed
+            const feedContainer = document.getElementById('news-container');
+            feedContainer.innerHTML = '';
+            news.slice(3, 10).forEach((item, idx) => {
+                const ttsBtnId = `tts-btn-${idx}`;
+                feedContainer.innerHTML += `
+                    <article class="flex gap-4 group bg-white/5 p-4 rounded-xl border border-white/5 hover:border-gold-400/30 transition-all relative">
+                        <div class="w-24 h-24 md:w-48 md:h-32 flex-shrink-0 overflow-hidden rounded-lg cursor-pointer" onclick="window.location='${item.link}'">
+                            <img src="${item.img}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" onerror="this.src='https://alhqyq.com/contents/datastore/layouts/41/logos/logo.jpg'">
+                        </div>
+                        <div class="flex flex-col justify-center flex-grow">
+                            <h3 class="text-base md:text-lg font-bold text-gray-200 group-hover:text-white leading-snug line-clamp-2 cursor-pointer" onclick="window.location='${item.link}'">${item.title}</h3>
+                            <p class="text-xs text-gray-500 mt-2 line-clamp-2">${item.desc}</p>
+                            <div class="mt-3 flex items-center justify-between">
+                                <div class="text-xs text-gray-400 flex items-center gap-2"><i data-lucide="clock" class="w-3 h-3"></i> ${item.date}</div>
+                                <div class="flex gap-2">
+                                    <button onclick="speakNews('${safeStr(item.title)}', '${safeStr(item.desc)}', '${ttsBtnId}')" id="${ttsBtnId}" class="text-xs text-gray-400 border border-white/10 px-2 py-1 rounded hover:bg-white hover:text-black transition-colors flex items-center gap-1" title="استماع">
+                                        <i data-lucide="headphones" class="w-3 h-3"></i>
+                                    </button>
+                                    <button onclick="startQuiz('${safeStr(item.title)}', '${safeStr(item.desc)}')" class="text-xs text-gray-400 border border-white/10 px-2 py-1 rounded hover:bg-white hover:text-black transition-colors flex items-center gap-1" title="اختبار">
+                                        <i data-lucide="help-circle" class="w-3 h-3"></i>
+                                    </button>
+                                    <button onclick="analyzeNews('${safeStr(item.title)}', '${safeStr(item.desc)}')" class="text-xs text-gold-400 border border-gold-400/30 px-2 py-1 rounded hover:bg-gold-400 hover:text-black transition-colors flex items-center gap-1">
+                                        <i data-lucide="sparkles" class="w-3 h-3"></i> تحليل
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </article>
+                `;
+            });
+            lucide.createIcons();
+        }
+
+        async function fetchNews() {
+            try {
+                const response = await fetch(RSS_URL);
+                if (!response.ok) throw new Error('Network error');
+                const str = await response.text();
+                const data = new window.DOMParser().parseFromString(str, "text/xml");
+                const items = data.querySelectorAll("item");
+                const getVal = (item, tag) => { const el = item.querySelector(tag); return el ? el.textContent : ""; };
+                const getImg = (item) => {
+                    const enc = item.querySelector("enclosure"); if(enc) return enc.getAttribute("url");
+                    const desc = getVal(item, "description"); const match = desc.match(/src="([^"]+)"/);
+                    return match ? match[1] : "https://alhqyq.com/contents/datastore/layouts/41/logos/logo.jpg";
+                };
+                fetchedNewsData = [];
+                items.forEach(item => {
+                    fetchedNewsData.push({
+                        title: getVal(item, "title"),
+                        link: getVal(item, "link"),
+                        date: new Date(getVal(item, "pubDate")).toLocaleDateString('ar-SA'),
+                        img: getImg(item),
+                        desc: getVal(item, "description").replace(/<[^>]*>?/gm, '').substring(0, 100) + "..."
+                    });
+                });
+                renderSite(fetchedNewsData);
+                const myName = " • مرحبًا بك في صحيفة يوسف الإلكترونية";
+                document.getElementById('ticker-content').textContent = myName + "          " + fetchedNewsData.map(n => `• ${n.title}`).join('          ');
+            } catch (error) {
+                renderMockData();
+            }
+        }
+
+        fetchNews();
+        document.getElementById('chat-input').addEventListener('keypress', function (e) { if (e.key === 'Enter') sendMessage(); });
+    </script>
+</body>
+</html>
