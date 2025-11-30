@@ -33,10 +33,12 @@
             <div class="text-3xl font-black text-white cursor-pointer" onclick="window.location.reload()">
                 الـحقيقة <span class="text-gold-400">.</span>
             </div>
-            <div class="hidden md:flex gap-8 text-sm font-medium text-gray-300">
+            <div class="hidden md:flex gap-6 text-sm font-medium text-gray-300 items-center">
                 <a href="#" class="hover:text-gold-400">الرئيسية</a>
-                <a href="#" class="hover:text-gold-400">أخبار محلية</a>
-                <button onclick="openSettings()" class="text-gold-400 flex items-center gap-1"><i data-lucide="cpu" class="w-4 h-4"></i> إعدادات AI</button>
+                <button onclick="generateBriefing()" class="flex items-center gap-1 hover:text-gold-400 text-white bg-white/5 px-3 py-1.5 rounded-full border border-white/10 transition-all hover:border-gold-400">
+                    <i data-lucide="file-text" class="w-4 h-4"></i> الموجز اليومي
+                </button>
+                <button onclick="openSettings()" class="text-gold-400 flex items-center gap-1 hover:text-white transition-colors"><i data-lucide="cpu" class="w-4 h-4"></i> إعدادات AI</button>
                 <a href="analytics.html" class="text-white bg-white/10 px-3 py-1 rounded hover:bg-white/20 transition">لوحة الإدارة</a>
             </div>
         </div>
@@ -90,6 +92,21 @@
         <div class="bg-navy-800 w-full max-w-2xl rounded-2xl border border-gold-400/30 p-6">
             <div class="flex justify-between mb-4"><h3 class="text-white font-bold">تحليل AI</h3><button onclick="closeAnalysis()" class="text-gray-400"><i data-lucide="x"></i></button></div>
             <div id="analysis-result" class="text-gray-300 prose prose-invert max-h-[60vh] overflow-y-auto"></div>
+        </div>
+    </div>
+
+    <!-- Briefing Modal -->
+    <div id="briefing-modal" class="fixed inset-0 z-[60] bg-black/80 hidden items-center justify-center p-4">
+        <div class="bg-navy-800 w-full max-w-2xl rounded-2xl border border-gold-400/30 p-6 relative">
+            <div class="absolute -top-10 left-0 w-full flex justify-center"><div class="bg-gold-400 text-black px-4 py-1 rounded-t-lg font-bold text-sm">الموجز اليومي</div></div>
+            <div class="flex justify-between mb-4 border-b border-white/10 pb-2">
+                <h3 class="text-white font-bold flex items-center gap-2"><i data-lucide="file-text" class="text-gold-400 w-5 h-5"></i> ملخص أهم الأحداث</h3>
+                <button onclick="document.getElementById('briefing-modal').classList.add('hidden')" class="text-gray-400 hover:text-white"><i data-lucide="x"></i></button>
+            </div>
+            <div id="briefing-content" class="text-gray-300 prose prose-invert max-h-[60vh] overflow-y-auto leading-relaxed">
+                <div class="loader mx-auto"></div>
+                <p class="text-center text-sm text-gray-500 mt-4">جاري تجميع الأخبار وصياغة الملخص...</p>
+            </div>
         </div>
     </div>
 
@@ -251,6 +268,56 @@
         }
         function closeQuiz() { document.getElementById('quiz-modal').classList.add('hidden'); document.getElementById('quiz-modal').classList.remove('flex'); }
 
+        // --- Feature 4: Daily Briefing ---
+        async function generateBriefing() {
+            const modal = document.getElementById('briefing-modal');
+            modal.classList.remove('hidden'); 
+            
+            const titles = fetchedNewsData.slice(0, 10).map(n => `- ${n.title}`).join('\n');
+            const prompt = `بناءً على عناوين الأخبار التالية، اكتب "موجزاً إخبارياً يومياً" متماسكاً وجذاباً للقارئ، يلخص أهم الأحداث في فقرتين:\n${titles}`;
+            
+            const summary = await callGeminiText(prompt, "أنت رئيس تحرير صحيفة محترف.");
+            
+            document.getElementById('briefing-content').innerHTML = marked.parse(summary || "تعذر إنشاء الموجز، يرجى التحقق من المفتاح.");
+        }
+
+        // --- Feature 5: Translation ---
+        async function translateNews(index) {
+            const newsItem = fetchedNewsData[index];
+            const btn = document.getElementById(`translate-btn-${index}`);
+            const originalText = btn.innerHTML;
+            btn.innerHTML = `<div class="w-3 h-3 border-2 border-current border-t-transparent rounded-full animate-spin"></div>`;
+            
+            const json = await callGeminiText(
+                `Translate the following to English. Return JSON {title, desc}.\nTitle: ${newsItem.title}\nDesc: ${newsItem.desc}`,
+                "", true
+            );
+
+            if(json) {
+                const trans = JSON.parse(json);
+                const cardTitle = document.getElementById(`title-${index}`);
+                const cardDesc = document.getElementById(`desc-${index}`);
+                
+                // Flip Logic (Toggle)
+                if(btn.getAttribute('data-translated') === 'true') {
+                    cardTitle.innerText = newsItem.title;
+                    cardDesc.innerText = newsItem.desc;
+                    btn.innerHTML = `<i data-lucide="languages" class="w-3 h-3"></i> English`;
+                    btn.setAttribute('data-translated', 'false');
+                    cardTitle.parentElement.dir = "rtl";
+                } else {
+                    cardTitle.innerText = trans.title;
+                    cardDesc.innerText = trans.desc;
+                    btn.innerHTML = `<i data-lucide="rotate-ccw" class="w-3 h-3"></i> الأصل`;
+                    btn.setAttribute('data-translated', 'true');
+                    cardTitle.parentElement.dir = "ltr";
+                }
+            } else {
+                btn.innerHTML = originalText;
+            }
+            lucide.createIcons();
+        }
+
         // --- Chat ---
         function toggleChat() { document.getElementById('ai-chat-window').classList.toggle('hidden'); }
         async function sendMessage() {
@@ -293,11 +360,12 @@
             document.getElementById('news-container').innerHTML = news.slice(3).map((n, idx) => `
                 <div class="flex gap-4 mb-6 bg-white/5 p-4 rounded-xl border border-white/5">
                     <img src="${n.img}" class="w-32 h-24 object-cover rounded-lg">
-                    <div class="flex-1">
-                        <h3 class="text-white font-bold text-lg mb-2 line-clamp-1">${n.title}</h3>
-                        <p class="text-gray-400 text-xs line-clamp-2 mb-3">${n.desc}</p>
-                        <div class="flex gap-2">
+                    <div class="flex-1" dir="rtl">
+                        <h3 id="title-${idx+3}" class="text-white font-bold text-lg mb-2 line-clamp-1">${n.title}</h3>
+                        <p id="desc-${idx+3}" class="text-gray-400 text-xs line-clamp-2 mb-3">${n.desc}</p>
+                        <div class="flex gap-2 flex-wrap">
                             <button onclick="analyzeNews('${safe(n.title)}', '${safe(n.desc)}')" class="text-gold-400 text-xs border border-gold-400/30 px-2 py-1 rounded hover:bg-gold-400 hover:text-black transition">تحليل</button>
+                            <button id="translate-btn-${idx+3}" onclick="translateNews(${idx+3})" class="text-blue-400 text-xs border border-blue-400/30 px-2 py-1 rounded hover:bg-blue-400 hover:text-black transition flex items-center gap-1" data-translated="false"><i data-lucide="languages" class="w-3 h-3"></i> English</button>
                             <button id="tts-${idx}" onclick="speakNews('${safe(n.title)}', '${safe(n.desc)}', 'tts-${idx}')" class="text-gray-400 text-xs border border-white/10 px-2 py-1 rounded hover:bg-white hover:text-black transition" title="استماع"><i data-lucide="headphones" class="w-3 h-3"></i></button>
                             <button onclick="startQuiz('${safe(n.title)}', '${safe(n.desc)}')" class="text-gray-400 text-xs border border-white/10 px-2 py-1 rounded hover:bg-white hover:text-black transition" title="اختبار"><i data-lucide="help-circle" class="w-3 h-3"></i></button>
                         </div>
