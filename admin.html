@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>غرفة عمليات الحقيقة | Admin</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Tajawal', 'sans-serif'] },
+                    colors: { navy: { 950: '#020205', 900: '#050510', 800: '#0a0a15', 700: '#151525' }, gold: { 400: '#D4AF37', 500: '#C5A028' } },
+                    animation: { 'pulse-slow': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite' }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { background-color: #020205; color: #e5e7eb; }
+        .glass-panel { background: rgba(21, 21, 37, 0.7); backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.05); }
+        .input-field { background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); transition: all 0.3s; }
+        .input-field:focus { border-color: #D4AF37; box-shadow: 0 0 15px rgba(212, 175, 55, 0.1); outline: none; }
+        /* Editor Styles */
+        .editor-area:empty:before { content: attr(placeholder); color: #6b7280; }
+        .loader { border: 3px solid rgba(255,255,255,0.1); width: 24px; height: 24px; border-radius: 50%; border-left-color: #D4AF37; animation: spin 1s ease infinite; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    </style>
+</head>
+<body class="h-screen overflow-hidden flex selection:bg-gold-400 selection:text-black">
+
+    <!-- LOGIN OVERLAY (Shows if not logged in) -->
+    <div id="login-screen" class="fixed inset-0 z-50 bg-[#020205] flex items-center justify-center">
+        <div class="absolute inset-0 overflow-hidden">
+            <div class="absolute -top-[20%] -left-[10%] w-[50%] h-[50%] bg-gold-400/5 rounded-full blur-[120px]"></div>
+            <div class="absolute bottom-[10%] right-[10%] w-[30%] h-[30%] bg-blue-900/10 rounded-full blur-[100px]"></div>
+        </div>
+        
+        <div class="glass-panel p-10 rounded-2xl w-full max-w-md relative z-10 text-center border-gold-400/20 shadow-2xl shadow-gold-400/5">
+            <div class="mb-8">
+                <h1 class="text-4xl font-black text-white mb-2">الـحقيقة <span class="text-gold-400">.</span></h1>
+                <p class="text-gray-500 text-sm tracking-widest uppercase">نظام إدارة المحتوى الذكي</p>
+            </div>
+            
+            <form onsubmit="handleLogin(event)" class="space-y-5 text-right">
+                <div>
+                    <label class="text-xs text-gold-400 font-bold mb-2 block">معرف الدخول</label>
+                    <div class="relative">
+                        <input type="text" id="username" class="input-field w-full rounded-lg p-3 pr-10 text-white" placeholder="admin">
+                        <i data-lucide="user" class="absolute left-3 top-3.5 w-5 h-5 text-gray-500"></i>
+                    </div>
+                </div>
+                <div>
+                    <label class="text-xs text-gold-400 font-bold mb-2 block">كلمة المرور</label>
+                    <div class="relative">
+                        <input type="password" id="password" class="input-field w-full rounded-lg p-3 pr-10 text-white" placeholder="••••••••">
+                        <i data-lucide="lock" class="absolute left-3 top-3.5 w-5 h-5 text-gray-500"></i>
+                    </div>
+                </div>
+                <button type="submit" class="w-full bg-gradient-to-r from-gold-400 to-yellow-600 text-black font-bold py-3 rounded-lg hover:shadow-lg hover:shadow-gold-400/20 transition-all transform hover:scale-[1.02]">
+                    تسجيل الدخول للنظام
+                </button>
+            </form>
+            <p class="mt-6 text-xs text-gray-600">v2.5.0 | Secured by Gemini AI Core</p>
+        </div>
+    </div>
+
+    <!-- MAIN DASHBOARD (Hidden by default) -->
+    <div id="dashboard-ui" class="hidden w-full h-full flex">
+        
+        <!-- Sidebar -->
+        <aside class="w-20 lg:w-64 bg-navy-900 border-l border-white/5 flex flex-col justify-between transition-all duration-300">
+            <div>
+                <div class="h-20 flex items-center justify-center lg:justify-start lg:px-6 border-b border-white/5">
+                    <span class="text-2xl font-black text-white lg:hidden">ح</span>
+                    <span class="text-2xl font-black text-white hidden lg:block">الـحقيقة <span class="text-gold-400">.</span></span>
+                </div>
+                
+                <nav class="p-4 space-y-2">
+                    <button onclick="switchTab('publish')" id="nav-publish" class="nav-item w-full flex items-center gap-3 p-3 rounded-lg bg-gold-400 text-black font-bold shadow-lg shadow-gold-400/10 transition-all">
+                        <i data-lucide="pen-tool" class="w-5 h-5"></i>
+                        <span class="hidden lg:block">استوديو النشر</span>
+                    </button>
+                    <button onclick="switchTab('members')" id="nav-members" class="nav-item w-full flex items-center gap-3 p-3 rounded-lg text-gray-400 hover:text-white hover:bg-white/5 transition-all">
+                        <i data-lucide="users" class="w-5 h-5"></i>
+                        <span class="hidden lg:block">سجل الأعضاء</span>
+                    </button>
+                    <button onclick="switchTab('analytics')" id="nav-analytics" class="nav-item w-full flex items-center gap-3 p-3 rounded-lg text-gray-400 hover:text-white hover:bg-white/5 transition-all">
+                        <i data-lucide="bar-chart-2" class="w-5 h-5"></i>
+                        <span class="hidden lg:block">التحليلات</span>
+                    </button>
+                    <button onclick="openSettings()" class="nav-item w-full flex items-center gap-3 p-3 rounded-lg text-gold-400 hover:bg-gold-400/10 transition-all">
+                        <i data-lucide="cpu" class="w-5 h-5"></i>
+                        <span class="hidden lg:block">إعدادات AI</span>
+                    </button>
+                </nav>
+            </div>
+            
+            <div class="p-4 border-t border-white/5">
+                <button onclick="logout()" class="w-full flex items-center gap-3 p-3 rounded-lg text-red-400 hover:bg-red-400/10 transition-all">
+                    <i data-lucide="log-out" class="w-5 h-5"></i>
+                    <span class="hidden lg:block">خروج</span>
+                </button>
+            </div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="flex-1 bg-[#050510] relative overflow-hidden flex flex-col">
+            <!-- Header -->
+            <header class="h-20 border-b border-white/5 flex items-center justify-between px-8 bg-navy-900/50 backdrop-blur-md">
+                <h2 id="page-title" class="text-xl font-bold text-white flex items-center gap-2">
+                    <span class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
+                    غرفة التحرير المباشرة
+                </h2>
+                <div class="flex items-center gap-4">
+                    <div class="text-left hidden md:block">
+                        <p class="text-white text-sm font-bold">رئيس التحرير</p>
+                        <p class="text-gold-400 text-xs">متصل الآن</p>
+                    </div>
+                    <div class="w-10 h-10 rounded-full bg-gradient-to-tr from-gold-400 to-yellow-700 p-0.5">
+                        <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Editor" class="w-full h-full rounded-full bg-black">
+                    </div>
+                </div>
+            </header>
+
+            <!-- Content Views -->
+            <div class="flex-1 overflow-y-auto p-8 relative">
+                
+                <!-- 1. PUBLISH STUDIO -->
+                <div id="view-publish" class="max-w-4xl mx-auto animate-fade-in">
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                        <!-- Editor Column -->
+                        <div class="lg:col-span-2 space-y-6">
+                            <!-- Title Input -->
+                            <input type="text" id="news-title" placeholder="اكتب عنواناً جذاباً هنا..." class="w-full bg-transparent text-3xl font-black text-white placeholder-gray-600 border-none focus:ring-0 px-0 leading-tight">
+                            
+                            <!-- AI Tools Bar -->
+                            <div class="flex gap-2 py-2 overflow-x-auto scrollbar-hide">
+                                <button onclick="aiGenerate('title')" class="flex items-center gap-1 text-xs bg-navy-700 text-gold-400 px-3 py-1.5 rounded-full border border-gold-400/20 hover:bg-gold-400 hover:text-black transition">
+                                    <i data-lucide="sparkles" class="w-3 h-3"></i> اقترح عنواناً
+                                </button>
+                                <button onclick="aiGenerate('body')" class="flex items-center gap-1 text-xs bg-navy-700 text-blue-400 px-3 py-1.5 rounded-full border border-blue-400/20 hover:bg-blue-400 hover:text-black transition">
+                                    <i data-lucide="pen-line" class="w-3 h-3"></i> أكمل الكتابة
+                                </button>
+                                <button onclick="aiGenerate('grammar')" class="flex items-center gap-1 text-xs bg-navy-700 text-green-400 px-3 py-1.5 rounded-full border border-green-400/20 hover:bg-green-400 hover:text-black transition">
+                                    <i data-lucide="check-circle" class="w-3 h-3"></i> تدقيق لغوي
+                                </button>
+                            </div>
+
+                            <!-- Rich Text Area -->
+                            <div id="editor" contenteditable="true" class="editor-area min-h-[400px] text-gray-300 text-lg leading-loose outline-none" placeholder="ابدأ كتابة تفاصيل الخبر..."></div>
+                        </div>
+
+                        <!-- Sidebar Settings -->
+                        <div class="space-y-6">
+                            <div class="glass-panel p-5 rounded-xl space-y-4">
+                                <div>
+                                    <label class="text-gray-400 text-xs font-bold block mb-2">صورة الغلاف</label>
+                                    <div class="aspect-video rounded-lg bg-black/50 border-2 border-dashed border-gray-700 flex flex-col items-center justify-center cursor-pointer hover:border-gold-400 transition-colors group relative overflow-hidden" onclick="document.getElementById('img-upload').click()">
+                                        <img id="preview-img" class="absolute inset-0 w-full h-full object-cover hidden">
+                                        <i data-lucide="image-plus" class="w-8 h-8 text-gray-600 group-hover:text-gold-400 mb-2"></i>
+                                        <span class="text-xs text-gray-500">اضغط للرفع</span>
+                                        <input type="file" id="img-upload" class="hidden" onchange="previewImage(this)">
+                                    </div>
+                                </div>
+                                
+                                <div>
+                                    <label class="text-gray-400 text-xs font-bold block mb-2">القسم</label>
+                                    <select class="w-full bg-navy-950 border border-gray-700 rounded-lg p-2 text-sm text-white focus:border-gold-400 outline-none">
+                                        <option>أخبار محلية</option>
+                                        <option>اقتصاد</option>
+                                        <option>رياضة</option>
+                                        <option>تقارير خاصة</option>
+                                    </select>
+                                </div>
+
+                                <div>
+                                    <label class="text-gray-400 text-xs font-bold block mb-2">حالة النشر</label>
+                                    <div class="flex items-center justify-between bg-navy-950 p-2 rounded-lg border border-gray-700">
+                                        <span class="text-sm text-green-400 flex items-center gap-2"><div class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div> مباشر</span>
+                                        <button class="text-xs text-gray-400 hover:text-white">جدولة؟</button>
+                                    </div>
+                                </div>
+
+                                <button onclick="publishNow()" class="w-full bg-gold-400 text-black font-bold py-3 rounded-lg hover:bg-white transition-colors flex justify-center items-center gap-2">
+                                    <span id="pub-text">نشر الخبر</span>
+                                    <i data-lucide="send" class="w-4 h-4"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 2. MEMBERS HUB -->
+                <div id="view-members" class="hidden max-w-5xl mx-auto animate-fade-in">
+                    <div class="glass-panel rounded-xl overflow-hidden">
+                        <div class="p-6 border-b border-white/5 flex justify-between items-center">
+                            <h3 class="text-xl font-bold text-white">الأعضاء المسجلين</h3>
+                            <div class="flex gap-2">
+                                <input type="text" placeholder="بحث..." class="bg-navy-950 border border-gray-700 rounded-lg px-3 py-1 text-sm text-white focus:border-gold-400 outline-none">
+                                <button class="bg-gold-400 text-black px-3 py-1 rounded-lg text-sm font-bold hover:bg-white transition">+ عضو جديد</button>
+                            </div>
+                        </div>
+                        <table class="w-full text-right text-gray-400">
+                            <thead class="bg-white/5 text-xs uppercase font-bold text-gray-300">
+                                <tr>
+                                    <th class="p-4">العضو</th>
+                                    <th class="p-4">الدور</th>
+                                    <th class="p-4">الحالة</th>
+                                    <th class="p-4">الإجراءات</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-white/5 text-sm" id="members-list">
+                                <!-- JS will populate this -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+            </div>
+        </main>
+    </div>
+
+    <!-- AI Settings Modal -->
+    <div id="settings-modal" class="fixed inset-0 z-[100] bg-black/90 hidden items-center justify-center p-4">
+        <div class="bg-navy-800 w-full max-w-md rounded-xl border border-gold-400/30 p-6">
+            <h3 class="text-white font-bold mb-4">إعدادات مساعد التحرير (Gemini)</h3>
+            <p class="text-gray-400 text-sm mb-4">أدخل مفتاح API لتفعيل ميزات الاقتراح والتدقيق اللغوي.</p>
+            <input type="password" id="api-key-input" placeholder="Gemini API Key" class="w-full bg-black/50 border border-white/10 p-3 rounded-lg text-white mb-4 focus:border-gold-400 outline-none">
+            <div class="flex justify-end gap-3">
+                <button onclick="document.getElementById('settings-modal').classList.add('hidden')" class="px-4 py-2 text-gray-400">إلغاء</button>
+                <button onclick="saveApiKey()" class="px-6 py-2 bg-gold-400 text-black font-bold rounded-lg">حفظ وتفعيل</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        lucide.createIcons();
+        
+        // --- AUTH LOGIC ---
+        function handleLogin(e) {
+            e.preventDefault();
+            // Simulation
+            const btn = e.target.querySelector('button');
+            const originalText = btn.innerText;
+            btn.innerText = "جاري التحقق...";
+            setTimeout(() => {
+                document.getElementById('login-screen').classList.add('hidden');
+                document.getElementById('dashboard-ui').classList.remove('hidden');
+                initMembers(); // Load members data
+            }, 1000);
+        }
+
+        function logout() {
+            window.location.reload();
+        }
+
+        // --- TABS LOGIC ---
+        function switchTab(tab) {
+            // Hide all views
+            ['publish', 'members', 'analytics'].forEach(t => {
+                const view = document.getElementById(`view-${t}`);
+                if(view) view.classList.add('hidden');
+                
+                const nav = document.getElementById(`nav-${t}`);
+                if(nav) {
+                    nav.classList.remove('bg-gold-400', 'text-black', 'font-bold', 'shadow-lg');
+                    nav.classList.add('text-gray-400');
+                }
+            });
+
+            // Show active view
+            const activeView = document.getElementById(`view-${tab}`);
+            if(activeView) activeView.classList.remove('hidden');
+
+            const activeNav = document.getElementById(`nav-${tab}`);
+            if(activeNav) {
+                activeNav.classList.remove('text-gray-400');
+                activeNav.classList.add('bg-gold-400', 'text-black', 'font-bold', 'shadow-lg');
+            }
+
+            // Update Title
+            const titles = { 'publish': 'غرفة التحرير', 'members': 'إدارة الأعضاء', 'analytics': 'تحليلات البيانات' };
+            document.getElementById('page-title').innerHTML = `<span class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span> ${titles[tab] || 'الرئيسية'}`;
+        }
+
+        // --- PUBLISH LOGIC ---
+        function previewImage(input) {
+            if (input.files && input.files[0]) {
+                var reader = new FileReader();
+                reader.onload = function(e) {
+                    const img = document.getElementById('preview-img');
+                    img.src = e.target.result;
+                    img.classList.remove('hidden');
+                }
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+
+        function publishNow() {
+            const btn = document.querySelector('button[onclick="publishNow()"]');
+            btn.innerHTML = '<div class="loader"></div>';
+            setTimeout(() => {
+                btn.innerHTML = 'تم النشر بنجاح! ✓';
+                btn.classList.replace('bg-gold-400', 'bg-green-500');
+                setTimeout(() => {
+                    btn.innerHTML = '<span id="pub-text">نشر الخبر</span><i data-lucide="send" class="w-4 h-4"></i>';
+                    btn.classList.replace('bg-green-500', 'bg-gold-400');
+                    document.getElementById('news-title').value = '';
+                    document.getElementById('editor').innerText = '';
+                    document.getElementById('preview-img').classList.add('hidden');
+                }, 2000);
+            }, 1500);
+        }
+
+        // --- AI LOGIC (Simulated Integration) ---
+        let userApiKey = localStorage.getItem('gemini_api_key') || "";
+        function openSettings() { document.getElementById('settings-modal').classList.remove('hidden'); }
+        function saveApiKey() { 
+            const key = document.getElementById('api-key-input').value;
+            if(key) { localStorage.setItem('gemini_api_key', key); userApiKey = key; document.getElementById('settings-modal').classList.add('hidden'); alert("تم تفعيل الذكاء الاصطناعي"); }
+        }
+
+        async function aiGenerate(type) {
+            if(!userApiKey) { openSettings(); return; }
+            const editor = document.getElementById('editor');
+            const titleInput = document.getElementById('news-title');
+            
+            // Show loading
+            editor.focus();
+            
+            // Actual API Call
+            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${userApiKey}`;
+            let prompt = "";
+            
+            if(type === 'title') prompt = `اقترح 3 عناوين صحفية جذابة وقوية لخبر عن: ${editor.innerText || "موضوع عام"}`;
+            if(type === 'body') prompt = `أكمل كتابة الخبر الصحفي التالي بأسلوب احترافي: ${editor.innerText}`;
+            if(type === 'grammar') prompt = `قم بتدقيق النص التالي لغوياً وصحح الأخطاء: ${editor.innerText}`;
+
+            try {
+                const res = await fetch(url, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] }) });
+                const data = await res.json();
+                const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
+                
+                if(type === 'title') alert("اقتراحات العناوين:\n" + text);
+                else editor.innerText += "\n" + text; // Append for body
+                
+            } catch(e) {
+                alert("خطأ في الاتصال بـ Gemini");
+            }
+        }
+
+        // --- MEMBERS LOGIC ---
+        function initMembers() {
+            const members = [
+                { name: "أحمد محمد", email: "ahmed@hqyq.com", role: "محرر", status: "نشط", img: "Felix" },
+                { name: "سارة علي", email: "sara@hqyq.com", role: "كاتب", status: "نشط", img: "Aneka" },
+                { name: "خالد عمر", email: "khaled@hqyq.com", role: "مراسل", status: "معلق", img: "Zack" },
+            ];
+            
+            const list = document.getElementById('members-list');
+            list.innerHTML = members.map(m => `
+                <tr class="group hover:bg-white/5 transition-colors">
+                    <td class="p-4 flex items-center gap-3">
+                        <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=${m.img}" class="w-8 h-8 rounded-full bg-gray-700">
+                        <div>
+                            <div class="text-white font-bold">${m.name}</div>
+                            <div class="text-xs text-gray-500">${m.email}</div>
+                        </div>
+                    </td>
+                    <td class="p-4"><span class="bg-blue-500/10 text-blue-400 px-2 py-1 rounded text-xs border border-blue-500/20">${m.role}</span></td>
+                    <td class="p-4">
+                        <span class="${m.status === 'نشط' ? 'text-green-400' : 'text-red-400'} flex items-center gap-1 text-xs">
+                            <span class="w-1.5 h-1.5 rounded-full ${m.status === 'نشط' ? 'bg-green-400' : 'bg-red-400'}"></span> ${m.status}
+                        </span>
+                    </td>
+                    <td class="p-4">
+                        <button class="text-gray-400 hover:text-white p-1"><i data-lucide="more-horizontal" class="w-4 h-4"></i></button>
+                    </td>
+                </tr>
+            `).join('');
+            lucide.createIcons();
+        }
+
+    </script>
+</body>
+</html>
