@@ -435,7 +435,7 @@
         ];
 
         let usersDB = [
-            { name: "يوسف عاتي", role: "رئيس التحرير", status: "online", seed: "Yousef" },
+            { name: "يوسف عطية", role: "رئيس التحرير", status: "online", seed: "Yousef" },
             { name: "سارة علي", role: "كاتب محتوى", status: "offline", seed: "Sara" },
             { name: "خالد عمر", role: "مراسل رياضي", status: "online", seed: "Khaled" }
         ];
@@ -470,7 +470,7 @@
         // --- GEMINI & PUBLISH LOGIC ---
         let userApiKey = localStorage.getItem('gemini_api_key') || "";
         async function callGemini(prompt, sys) {
-            if(!userApiKey) { showNotification("yoUsifAtti10349@API"); openSettings(); return null; }
+            if(!userApiKey) { showNotification("يرجى إدخال مفتاح API"); openSettings(); return null; }
             const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${userApiKey}`;
             try {
                 const res = await fetch(url, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }], systemInstruction: { parts: [{ text: sys }] } }) });
