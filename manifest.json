@@ -1,0 +1,21 @@
+{
+  "name": "صحيفة الحقيقة",
+  "short_name": "الحقيقة",
+  "start_url": "index.html",
+  "display": "standalone",
+  "background_color": "#050510",
+  "theme_color": "#D4AF37",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "https://alhqyq.com/contents/datastore/layouts/41/logos/logo.jpg",
+      "sizes": "192x192",
+      "type": "image/jpeg"
+    },
+    {
+      "src": "https://alhqyq.com/contents/datastore/layouts/41/logos/logo.jpg",
+      "sizes": "512x512",
+      "type": "image/jpeg"
+    }
+  ]
+}
