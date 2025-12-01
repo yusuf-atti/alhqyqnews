@@ -49,14 +49,8 @@
     <style>
         body {
             background-color: #050510;
-<nav>    <!-- شريط التنقل الرئيسي -->
-<div class="hidden md:flex items-center gap-6 ml-6">
-    <a href="index.html" class="text-white hover:text-gold-400 text-sm font-medium transition">🏠 الرئيسية</a>
-    <a href="news.html" class="text-white hover:text-gold-400 text-sm font-medium transition">📰 الأخبار</a>
-    <a href="categories.html" class="text-white hover:text-gold-400 text-sm font-medium transition">📂 الأقسام</a>
-    <a href="about.html" class="text-white hover:text-gold-400 text-sm font-medium transition">ℹ️ عنا</a>
-    <a href="contact.html" class="text-white hover:text-gold-400 text-sm font-medium transition">📞 اتصل</a>
-</div>        -webkit-tap-highlight-color: transparent;
+            color: #f3f4f6;
+            -webkit-tap-highlight-color: transparent;
         }
         .glass-nav {
             background: rgba(5, 5, 16, 0.9);
@@ -102,6 +96,15 @@
                 <div class="text-3xl font-black text-gold-400 cursor-pointer flex items-center gap-2 tracking-tighter"
                      onclick="window.location.reload()">
                     الـحقيقة<span class="text-white">.</span>
+                </div>
+
+                <!-- شريط التنقل الرئيسي -->
+                <div class="hidden md:flex items-center gap-6 ml-6">
+                    <a href="index.html" class="text-white hover:text-gold-400 text-sm font-medium transition">🏠 الرئيسية</a>
+                    <a href="news.html" class="text-white hover:text-gold-400 text-sm font-medium transition">📰 الأخبار</a>
+                    <a href="categories.html" class="text-white hover:text-gold-400 text-sm font-medium transition">📂 الأقسام</a>
+                    <a href="about.html" class="text-white hover:text-gold-400 text-sm font-medium transition">ℹ️ عنا</a>
+                    <a href="contact.html" class="text-white hover:text-gold-400 text-sm font-medium transition">📞 اتصل</a>
                 </div>
 
                 <!-- Buttons -->
@@ -825,113 +828,3 @@ function renderSite(news) {
 
 /* ---------------------------------------------------------
     10) Article Modal
----------------------------------------------------------*/
-window.openArticle = (id) => {
-    const art = window.newsData.find(n => n.id === id);
-    if (!art) return;
-
-    document.getElementById('modal-img').src = art.img;
-    document.getElementById('modal-cat').innerText = art.category;
-    document.getElementById('modal-title').innerText = art.title;
-    document.getElementById('modal-date').innerText = art.date;
-    document.getElementById('modal-author').innerText = art.author;
-    document.getElementById('modal-body').innerHTML = marked.parse(art.desc);
-
-    document.getElementById('article-modal').classList.remove("hidden");
-};
-
-window.closeArticleModal = () =>
-    document.getElementById('article-modal').classList.add("hidden");
-
-/* ---------------------------------------------------------
-    11) Admin Archive
----------------------------------------------------------*/
-window.loadAdminData = async () => {
-    const local = getLocalNews();
-    let data = [...local];
-
-    if (!isOfflineMode) {
-        try {
-            const snap = await firebase.firestore().collection("news").limit(20).get();
-            data.push(...snap.docs.map(doc => doc.data()));
-        } catch {}
-    }
-
-    document.getElementById('admin-articles-list').innerHTML = data
-        .map(
-            (d) =>
-                `<div class="bg-white/5 p-3 rounded flex justify-between items-center border-b border-white/5">
-                    <span class="text-white font-bold text-sm truncate w-2/3">${d.title}</span>
-                    <span class="text-xs text-gray-500">${d.date}</span>
-                </div>`
-        )
-        .join("");
-};
-
-/* ---------------------------------------------------------
-    12) Offline Mode
----------------------------------------------------------*/
-function enableOfflineMode() {
-    isOfflineMode = true;
-
-    document.getElementById('ticker-content').innerText = " • وضع عدم الاتصال (البيانات محلية)";
-    document.getElementById('status-bar').classList.remove("hidden");
-
-    renderLocalData();
-}
-
-function renderLocalData() {
-    const local = getLocalNews();
-    if (local.length) {
-        window.newsData = local;
-        renderSite(local);
-    } else renderMock("لا يوجد بيانات محلية");
-}
-
-window.forceAdminEnter = () => {
-    isOfflineMode = true;
-    showDashboard();
-    document.getElementById('status-bar').classList.remove("hidden");
-    loadAdminData();
-};
-
-/* ---------------------------------------------------------
-    13) Small Helpers
----------------------------------------------------------*/
-function renderEmptyState() {
-    document.getElementById('hero-section').innerHTML = `
-        <div class="lg:col-span-12 h-64 flex items-center justify-center text-gray-500 border border-dashed border-white/10 rounded-2xl">
-            لا توجد أخبار.
-        </div>`;
-}
-
-function renderMock(msg) {
-    const mock = [
-        {
-            id: "1",
-            title: "انطلاق صحيفة الحقيقة بحلتها الجديدة",
-            category: "أخبار",
-            date: "الآن",
-            img: "https://images.unsplash.com/photo-1504711434969-e33886168f5c",
-            desc: "نعلن اليوم عن إطلاق المنصة الرقمية الجديدة..."
-        }
-    ];
-    renderSite(mock);
-    document.getElementById('ticker-content').innerText = msg;
-}
-
-function showToast(msg) {
-    const toastMsg = document.getElementById('toast-msg');
-    const toast = document.getElementById('toast');
-    
-    toastMsg.innerText = msg;
-    toast.classList.remove("translate-y-24", "opacity-0");
-
-    setTimeout(() => {
-        toast.classList.add("translate-y-24", "opacity-0");
-    }, 3000);
-}
-</script>
-
-</body>
-</html>
