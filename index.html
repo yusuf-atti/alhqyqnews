@@ -37,10 +37,6 @@
         .editor-content:empty:before { content: attr(placeholder); color: #4b5563; }
         .loader { border: 3px solid rgba(255,255,255,0.1); width: 24px; height: 24px; border-radius: 50%; border-left-color: #D4AF37; animation: spin 1s ease infinite; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        
-        /* للتبديل بين الشاشات */
-        .view-section { transition: opacity 0.3s ease; }
-        .sidebar-link.active { background: rgba(212, 175, 55, 0.1); color: #D4AF37; border-right: 3px solid #D4AF37; }
         .view-hidden { display: none; }
         .view-visible { display: block; animation: fadeIn 0.3s ease-in; }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
@@ -98,8 +94,7 @@
 
     <!-- ==================== واجهة الإدارة (Admin Overlay) ==================== -->
     <div id="admin-view" class="hidden fixed inset-0 z-[60] bg-[#020205] overflow-y-auto">
-        
-        <!-- بوابة الدخول (Login Gate) -->
+        <!-- Login Gate -->
         <div id="login-gate" class="min-h-screen flex items-center justify-center p-4">
             <div class="glass-panel p-10 rounded-3xl w-full max-w-md text-center relative border border-gold-400/20">
                 <button onclick="toggleAdminView()" class="absolute top-4 left-4 text-gray-500 hover:text-white"><i data-lucide="x" class="w-6 h-6"></i></button>
@@ -115,7 +110,7 @@
             </div>
         </div>
 
-        <!-- لوحة التحكم (Dashboard UI) -->
+        <!-- Dashboard UI -->
         <div id="dashboard-ui" class="hidden min-h-screen flex flex-col lg:flex-row">
             <!-- Sidebar -->
             <aside class="w-full lg:w-64 bg-navy-900 border-l border-white/5 flex flex-col z-20">
@@ -158,7 +153,6 @@
                         <input type="text" id="news-image" placeholder="رابط الصورة..." class="bg-navy-800 border border-white/10 rounded-lg p-3 text-white focus:border-gold-400 outline-none">
                     </div>
 
-                    <!-- AI Toolbar -->
                     <div class="flex flex-wrap gap-2">
                         <button onclick="triggerAI('title')" class="px-3 py-1.5 rounded-full border border-white/10 text-xs text-gold-400 hover:bg-gold-400 hover:text-black transition flex items-center gap-1"><i data-lucide="sparkles" class="w-3 h-3"></i> اقتراح عناوين</button>
                         <button onclick="triggerAI('grammar')" class="px-3 py-1.5 rounded-full border border-white/10 text-xs text-green-400 hover:bg-green-400 hover:text-black transition flex items-center gap-1"><i data-lucide="check" class="w-3 h-3"></i> تدقيق</button>
@@ -217,10 +211,22 @@
         <span id="toast-msg" class="font-bold">تم</span>
     </div>
 
+    <!-- Settings Modal for AI -->
+    <div id="settings-modal" class="fixed inset-0 z-[80] bg-black/90 hidden items-center justify-center p-4 backdrop-blur-sm">
+        <div class="bg-navy-800 w-full max-w-sm rounded-2xl p-6 border border-gold-400/20 shadow-2xl">
+            <h3 class="text-white font-bold mb-4 text-lg">إعدادات الذكاء الاصطناعي</h3>
+            <input type="password" id="api-key-input" placeholder="Gemini API Key" class="w-full bg-black/50 p-3 rounded-xl text-white mb-4 border border-white/10 focus:border-gold-400 outline-none text-sm">
+            <div class="flex gap-3">
+                <button onclick="saveApiKey()" class="flex-1 bg-gold-400 text-black font-bold py-2 rounded-xl hover:bg-white transition">حفظ</button>
+                <button onclick="document.getElementById('settings-modal').classList.add('hidden')" class="flex-1 bg-white/10 text-white py-2 rounded-xl">إلغاء</button>
+            </div>
+        </div>
+    </div>
+
     <script>
         function initIcons() { if (window.lucide) lucide.createIcons(); }
 
-        // ✅ بياناتك (Firebase) ✅
+        // ✅ بيانات مشروعك ✅
         const firebaseConfig = {
           apiKey: "AIzaSyD7b1PZY26GN6hR2pliqiFRgyMsNyRlWOs",
           authDomain: "alhqyqa-62b0e.firebaseapp.com",
@@ -241,29 +247,38 @@
             auth.onAuthStateChanged((user) => {
                 currentUser = user;
                 if (user && !user.isAnonymous) {
-                    // إذا كان المدير مسجلاً، قم بتحميل بيانات الإدارة
-                    loadAdminData();
+                    loadAdminData(); // تحميل بيانات المدير
                 }
-                // دائماً اجلب الأخبار للعامة
-                fetchNews();
+                fetchNews(); // تحميل الأخبار دائماً
             });
 
-            // تسجيل دخول تلقائي للزوار
+            // تسجيل دخول تلقائي للزوار (مع معالجة الفشل)
             if (!auth.currentUser) {
-                auth.signInAnonymously().catch(err => console.log("Guest login failed"));
+                auth.signInAnonymously().catch(err => {
+                    console.log("Guest Auth Failed, showing mock data.");
+                    renderMock("يرجى تفعيل خدمة الدخول المجهول في Firebase ليعمل الموقع بالكامل.");
+                });
             }
 
             // --- دوال الزوار (Public) ---
             async function fetchNews() {
                 try {
-                    const snapshot = await db.collection("news").orderBy("timestamp", "desc").limit(20).get();
+                    // محاولة جلب البيانات بدون ترتيب معقد (لتجنب أخطاء الفهرسة في البداية)
+                    const snapshot = await db.collection("news").limit(20).get();
+                    
                     if (snapshot.empty) { renderEmptyState(); return; }
+                    
                     let newsData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                    window.newsData = newsData; // Store for modal
+                    
+                    // الترتيب في المتصفح بدلاً من القاعدة
+                    newsData.sort((a, b) => (b.timestamp?.seconds || 0) - (a.timestamp?.seconds || 0));
+                    
+                    window.newsData = newsData; // حفظ للنافذة المنبثقة
                     renderSite(newsData);
                 } catch (error) {
-                    console.error("Error:", error);
-                    renderMockData();
+                    console.error("Data Error:", error);
+                    // في حالة فشل الاتصال، اعرض البيانات الوهمية
+                    renderMock("خطأ في الاتصال بقاعدة البيانات (تأكد من تفعيل Firestore API)");
                 }
             }
 
@@ -313,11 +328,11 @@
             
             window.loadAdminData = async () => {
                  try {
-                    const snapshot = await db.collection("news").orderBy("timestamp", "desc").limit(20).get();
+                    const snapshot = await db.collection("news").limit(20).get(); // نفس استعلام الجلب البسيط
                     const list = document.getElementById('admin-articles-list');
                     list.innerHTML = snapshot.docs.map(doc => {
                         const d = doc.data();
-                        return `<div class="bg-white/5 p-3 rounded flex justify-between items-center border-b border-white/5"><span>${d.title}</span><span class="text-xs text-gray-500">${d.date}</span></div>`;
+                        return `<div class="bg-white/5 p-3 rounded flex justify-between"><span>${d.title}</span><span class="text-xs text-gray-500">${d.date}</span></div>`;
                     }).join('');
                 } catch(e) {}
             }
@@ -330,7 +345,7 @@
                 });
             };
 
-        } catch (e) { console.error(e); renderMockData(); }
+        } catch (e) { console.error(e); renderMock("خطأ في التهيئة"); }
 
         // --- UI Functions ---
         window.toggleAdminView = () => {
@@ -406,6 +421,7 @@
 
         // --- Render & Helpers ---
         function renderSite(news) {
+            if (!news || news.length === 0) { renderEmptyState(); return; }
             const hero = news[0];
             const others = news.slice(1);
             document.getElementById('ticker-content').innerText = " • " + news.map(n => n.title).join(" •       ");
@@ -415,15 +431,14 @@
                     <img src="${hero.img}" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" onerror="this.src='https://via.placeholder.com/800x400'">
                     <div class="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent"></div>
                     <div class="absolute bottom-0 p-6 lg:p-10 w-full z-10">
-                        <span class="bg-gold-400 text-black text-xs font-bold px-3 py-1 rounded-full mb-3 inline-block shadow-lg">${hero.category || 'رئيسي'}</span>
-                        <h1 class="text-2xl md:text-5xl font-black text-white mb-3 leading-tight">${hero.title}</h1>
+                        <h1 class="text-2xl md:text-4xl font-black text-white mb-3 leading-tight">${hero.title}</h1>
                         <p class="text-gray-200 text-sm line-clamp-2 hidden md:block">${hero.desc}</p>
                     </div>
                 </div>`;
 
             document.getElementById('news-container').innerHTML = others.map(n => `
                 <div onclick="openArticle('${n.id}')" class="flex gap-4 mb-4 bg-white/5 p-3 rounded-xl border border-white/5 hover:border-gold-400/30 transition-all group cursor-pointer">
-                    <div class="w-24 h-24 flex-shrink-0 overflow-hidden rounded-lg"><img src="${n.img}" class="w-full h-full object-cover" onerror="this.src='https://via.placeholder.com/150'"></div>
+                    <div class="w-24 h-24 md:w-32 md:h-24 flex-shrink-0 overflow-hidden rounded-lg"><img src="${n.img}" class="w-full h-full object-cover" onerror="this.src='https://via.placeholder.com/150'"></div>
                     <div class="flex flex-col justify-center flex-1">
                         <span class="text-[10px] text-gold-400 font-bold mb-1">${n.category}</span>
                         <h3 class="text-white font-bold text-base leading-snug group-hover:text-gold-400 transition-colors line-clamp-2">${n.title}</h3>
@@ -431,7 +446,8 @@
                 </div>`).join('');
             
             // Sidebar
-            document.getElementById('sidebar-content').innerHTML = news.slice().sort(() => 0.5 - Math.random()).slice(0, 5).map((n, i) => `
+            const randomNews = [...news].sort(() => 0.5 - Math.random()).slice(0, 5);
+            document.getElementById('sidebar-content').innerHTML = randomNews.map((n, i) => `
                 <div onclick="openArticle('${n.id}')" class="flex gap-3 items-center group cursor-pointer border-b border-white/5 pb-2 last:border-0">
                     <span class="text-gold-400 font-black text-lg w-4">${i+1}</span>
                     <h4 class="text-gray-300 text-xs font-medium leading-snug group-hover:text-white transition-colors line-clamp-2">${n.title}</h4>
@@ -441,7 +457,14 @@
         }
         
         function renderEmptyState() { document.getElementById('hero-section').innerHTML = `<div class="lg:col-span-12 h-64 flex items-center justify-center text-gray-500 border border-dashed border-white/10 rounded-2xl">لا توجد أخبار.</div>`; }
-        function renderMockData() { /* Mock */ }
+        
+        function renderMock(reason) {
+            const mock = [
+                { id: '1', title: "انطلاق صحيفة الحقيقة بحلتها الجديدة", category: "أخبار الموقع", date: "الآن", img: "https://images.unsplash.com/photo-1504711434969-e33886168f5c", desc: "نعلن اليوم عن إطلاق المنصة الرقمية الأحدث..." }
+            ];
+            renderSite(mock);
+            document.getElementById('ticker-content').innerText = `تنبيه النظام: ${reason || "يرجى تفعيل Firestore API"}`;
+        }
 
         window.openArticle = (id) => {
             const article = window.newsData.find(n => n.id === id);
