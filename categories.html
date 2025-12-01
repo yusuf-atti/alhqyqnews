@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>الأقسام | صحيفة الحقيقة</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+</head>
+<body class="bg-[#050510] text-white font-['Tajawal']">
+    <!-- التنقل -->
+    <nav class="fixed w-full bg-navy-900/90 p-4 border-b border-white/10 z-50">
+        <div class="container mx-auto flex justify-between items-center">
+            <a href="index.html" class="text-2xl text-gold-400 font-bold">الـحقيقة</a>
+            <div class="flex gap-4 text-sm">
+                <a href="index.html">الرئيسية</a>
+                <a href="news.html">الأخبار</a>
+                <a href="categories.html" class="text-gold-400">الأقسام</a>
+                <a href="about.html">عن الموقع</a>
+                <a href="contact.html">اتصل بنا</a>
+            </div>
+        </div>
+    </nav>
+
+    <main class="pt-24 pb-16 container mx-auto px-4">
+        <h1 class="text-4xl font-black text-gold-400 mb-8">📂 أقسام الصحيفة</h1>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <!-- قسم الأخبار المحلية -->
+            <div class="bg-white/5 rounded-2xl p-6 border border-white/10 hover:border-gold-400/50">
+                <div class="w-12 h-12 bg-gold-400/20 rounded-lg flex items-center justify-center mb-4">
+                    <i data-lucide="home" class="w-6 h-6 text-gold-400"></i>
+                </div>
+                <h3 class="text-xl font-bold mb-3">أخبار محلية</h3>
+                <p class="text-gray-400 mb-4">أهم الأحداث والتطورات في المحافظات والمدن</p>
+                <a href="news.html?category=محلية" class="text-gold-400 text-sm hover:underline">تصفح القسم →</a>
+            </div>
+            
+            <!-- قسم الاقتصاد -->
+            <div class="bg-white/5 rounded-2xl p-6 border border-white/10 hover:border-blue-400/50">
+                <div class="w-12 h-12 bg-blue-400/20 rounded-lg flex items-center justify-center mb-4">
+                    <i data-lucide="trending-up" class="w-6 h-6 text-blue-400"></i>
+                </div>
+                <h3 class="text-xl font-bold mb-3">الاقتصاد</h3>
+                <p class="text-gray-400 mb-4">أسواق المال، الاستثمار، والتطورات الاقتصادية</p>
+                <a href="news.html?category=اقتصاد" class="text-blue-400 text-sm hover:underline">تصفح القسم →</a>
+            </div>
+            
+            <!-- قسم الرياضة -->
+            <div class="bg-white/5 rounded-2xl p-6 border border-white/10 hover:border-green-400/50">
+                <div class="w-12 h-12 bg-green-400/20 rounded-lg flex items-center justify-center mb-4">
+                    <i data-lucide="trophy" class="w-6 h-6 text-green-400"></i>
+                </div>
+                <h3 class="text-xl font-bold mb-3">الرياضة</h3>
+                <p class="text-gray-400 mb-4">أخبار المباريات، البطولات، والمنافسات</p>
+                <a href="news.html?category=رياضة" class="text-green-400 text-sm hover:underline">تصفح القسم →</a>
+            </div>
+            
+            <!-- قسم الثقافة -->
+            <div class="bg-white/5 rounded-2xl p-6 border border-white/10 hover:border-purple-400/50">
+                <div class="w-12 h-12 bg-purple-400/20 rounded-lg flex items-center justify-center mb-4">
+                    <i data-lucide="book-open" class="w-6 h-6 text-purple-400"></i>
+                </div>
+                <h3 class="text-xl font-bold mb-3">الثقافة</h3>
+                <p class="text-gray-400 mb-4">الفنون، الأدب، والفعاليات الثقافية</p>
+                <a href="news.html?category=ثقافة" class="text-purple-400 text-sm hover:underline">تصفح القسم →</a>
+            </div>
+            
+            <!-- قسم التكنولوجيا -->
+            <div class="bg-white/5 rounded-2xl p-6 border border-white/10 hover:border-cyan-400/50">
+                <div class="w-12 h-12 bg-cyan-400/20 rounded-lg flex items-center justify-center mb-4">
+                    <i data-lucide="cpu" class="w-6 h-6 text-cyan-400"></i>
+                </div>
+                <h3 class="text-xl font-bold mb-3">التكنولوجيا</h3>
+                <p class="text-gray-400 mb-4">أحدث الابتكارات والتطورات التقنية</p>
+                <a href="news.html?category=تكنولوجيا" class="text-cyan-400 text-sm hover:underline">تصفح القسم →</a>
+            </div>
+            
+            <!-- قسم الصحة -->
+            <div class="bg-white/5 rounded-2xl p-6 border border-white/10 hover:border-red-400/50">
+                <div class="w-12 h-12 bg-red-400/20 rounded-lg flex items-center justify-center mb-4">
+                    <i data-lucide="heart" class="w-6 h-6 text-red-400"></i>
+                </div>
+                <h3 class="text-xl font-bold mb-3">الصحة</h3>
+                <p class="text-gray-400 mb-4">نصائح طبية، أبحاث، وتطورات صحية</p>
+                <a href="news.html?category=صحة" class="text-red-400 text-sm hover:underline">تصفح القسم →</a>
+            </div>
+        </div>
+        
+        <!-- إحصائيات -->
+        <div class="mt-12 p-6 bg-white/5 rounded-2xl">
+            <h3 class="text-xl font-bold mb-4">📊 إحصائيات الأقسام</h3>
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div class="text-center p-4">
+                    <div class="text-2xl font-bold text-gold-400">6</div>
+                    <div class="text-gray-400 text-sm">أقسام رئيسية</div>
+                </div>
+                <div class="text-center p-4">
+                    <div class="text-2xl font-bold text-gold-400">150+</div>
+                    <div class="text-gray-400 text-sm">مقال منشور</div>
+                </div>
+                <div class="text-center p-4">
+                    <div class="text-2xl font-bold text-gold-400">24/7</div>
+                    <div class="text-gray-400 text-sm">تحديث مستمر</div>
+                </div>
+                <div class="text-center p-4">
+                    <div class="text-2xl font-bold text-gold-400">100%</div>
+                    <div class="text-gray-400 text-sm">دقة وتحقق</div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="border-t border-white/10 py-8 text-center">
+        <div class="container mx-auto px-4">
+            <p class="text-gray-500">© 2025 صحيفة الحقيقة - جميع الأقسام محفوظة</p>
+        </div>
+    </footer>
+
+    <script>lucide.createIcons();</script>
+</body>
+</html>
