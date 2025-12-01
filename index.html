@@ -1,270 +1,322 @@
 <!DOCTYPE html>
+
 <html lang="ar" dir="rtl">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>صحيفة الحقيقة | الرؤية الجديدة</title>
-    
-    <!-- إعدادات التطبيق (PWA) -->
-    <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#050510">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <link rel="apple-touch-icon" href="https://alhqyq.com/contents/datastore/layouts/41/logos/logo.jpg">
-    
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;900&display=swap" rel="stylesheet">
-    
-    <!-- ✅ مكتبة الأيقونات (نسخة UMD المصححة) -->
-    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
-    
-    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-    
-    <!-- مكتبات Firebase -->
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>صحيفة الحقيقة | المصدر الأول</title>
+<script src="https://www.google.com/search?q=https://cdn.tailwindcss.com"></script>
+<link href="https://www.google.com/search?q=https://fonts.googleapis.com/css2%3Ffamily%3DTajawal:wght%40300%3B400%3B500%3B700%3B900%26family%3DAmiri:wght%40400%3B700%26display%3Dswap" rel="stylesheet">
+<script src="https://www.google.com/search?q=https://unpkg.com/lucide%40latest/dist/umd/lucide.js"></script>
+<script src="https://www.google.com/search?q=https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    fontFamily: { sans: ['Tajawal', 'sans-serif'] },
-                    colors: { navy: { 900: '#050510', 800: '#0a0a15' }, gold: { 400: '#D4AF37' } }
+<script>
+    tailwind.config = {
+        theme: {
+            extend: {
+                fontFamily: { 
+                    sans: ['Tajawal', 'sans-serif'],
+                    serif: ['Amiri', 'serif']
+                },
+                colors: { 
+                    navy: { 950: '#020205', 900: '#050510', 800: '#0a0a15' }, 
+                    gold: { 400: '#D4AF37', 500: '#C5A028', 600: '#B49020' } 
+                },
+                animation: {
+                    'ticker': 'ticker 30s linear infinite',
+                    'fade-in': 'fadeIn 1s ease-out'
+                },
+                keyframes: {
+                    ticker: {
+                        '0%': { transform: 'translateX(100%)' },
+                        '100%': { transform: 'translateX(-100%)' }
+                    },
+                    fadeIn: {
+                        '0%': { opacity: '0', transform: 'translateY(20px)' },
+                        '100%': { opacity: '1', transform: 'translateY(0)' }
+                    }
                 }
             }
         }
-    </script>
-    <style>
-        body { background-color: #050510; color: #f3f4f6; -webkit-tap-highlight-color: transparent; }
-        .glass-nav { background: rgba(5, 5, 16, 0.85); backdrop-filter: blur(12px); border-bottom: 1px solid rgba(255,255,255,0.05); }
-        .loader { border: 4px solid rgba(255,255,255,0.1); width: 36px; height: 36px; border-radius: 50%; border-left-color: #D4AF37; animation: spin 1s ease infinite; }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-    </style>
+    }
+</script>
+<style>
+    body { background-color: #020205; color: #e5e7eb; overflow-x: hidden; }
+    .hero-gradient { background: linear-gradient(to top, #020205 0%, rgba(2,2,5,0.8) 50%, transparent 100%); }
+    .glass-nav { background: rgba(5, 5, 16, 0.8); backdrop-filter: blur(12px); border-bottom: 1px solid rgba(212, 175, 55, 0.1); }
+    .article-card:hover .card-overlay { opacity: 1; }
+    ::-webkit-scrollbar { width: 8px; background: #0a0a15; }
+    ::-webkit-scrollbar-thumb { background: #333; border-radius: 4px; }
+    
+    /* Typography for Articles */
+    .prose h1, .prose h2, .prose h3 { color: #fff; margin-top: 1.5em; margin-bottom: 0.5em; font-weight: bold; }
+    .prose p { margin-bottom: 1em; line-height: 1.8; color: #d1d5db; font-family: 'Amiri', serif; font-size: 1.1rem; }
+    .prose blockquote { border-right: 4px solid #D4AF37; padding-right: 1em; color: #D4AF37; font-style: italic; background: rgba(212,175,55,0.05); padding: 1em; margin: 1em 0; }
+    .prose img { border-radius: 0.5rem; margin: 1.5em 0; width: 100%; border: 1px solid rgba(255,255,255,0.1); }
+</style>
+
+
 </head>
-<body class="antialiased selection:bg-gold-400 selection:text-black pb-20 md:pb-0">
+<body class="min-h-screen flex flex-col">
 
-    <!-- القائمة العلوية -->
-    <nav class="fixed w-full z-50 glass-nav top-0">
-        <div class="container mx-auto px-4 h-16 flex justify-between items-center">
-            <div class="text-3xl font-black text-gold-400 cursor-pointer flex items-center gap-2 tracking-tighter" onclick="window.location.reload()">
-                الـحقيقة<span class="text-white">.</span>
-            </div>
-            
-            <div class="flex gap-3 items-center">
-                <button id="install-btn" class="hidden bg-gold-400 text-black text-xs font-bold px-3 py-1.5 rounded-full animate-pulse flex items-center gap-1">
-                    <i data-lucide="download" class="w-3 h-3"></i> تثبيت
-                </button>
-
-                <button onclick="openSettings()" class="text-gold-400 p-2 rounded-full hover:bg-white/10">
-                    <i data-lucide="cpu" class="w-5 h-5"></i>
-                </button>
-                
-                <a href="dashboard.html" class="text-white bg-white/10 p-2 rounded-full hover:bg-gold-400 hover:text-black transition-all">
-                    <i data-lucide="layout-dashboard" class="w-5 h-5"></i>
-                </a>
+<!-- Navbar -->
+<nav class="fixed top-0 w-full z-50 glass-nav transition-all duration-300" id="navbar">
+    <div class="container mx-auto px-6 h-20 flex items-center justify-between">
+        <div class="flex items-center gap-4">
+            <h1 class="text-3xl font-black text-white tracking-tighter cursor-pointer" onclick="window.scrollTo(0,0)">
+                الـحقيقة<span class="text-gold-400 text-4xl">.</span>
+            </h1>
+            <span class="hidden md:block h-6 w-px bg-white/10 mx-2"></span>
+            <div class="hidden md:flex gap-6 text-sm text-gray-400 font-medium">
+                <a href="#" class="hover:text-gold-400 transition-colors">الرئيسية</a>
+                <a href="#" class="hover:text-gold-400 transition-colors">سياسة</a>
+                <a href="#" class="hover:text-gold-400 transition-colors">اقتصاد</a>
+                <a href="#" class="hover:text-gold-400 transition-colors">آراء</a>
             </div>
         </div>
-    </nav>
+        <button class="bg-gold-400/10 text-gold-400 border border-gold-400/30 px-4 py-2 rounded-full text-xs font-bold hover:bg-gold-400 hover:text-black transition-all">
+            اشترك في النشرة
+        </button>
+    </div>
+    
+    <!-- Breaking News Ticker -->
+    <div class="bg-gold-600 text-black text-xs font-bold py-1 overflow-hidden relative border-t border-b border-gold-500">
+        <div class="whitespace-nowrap inline-block animate-ticker" id="ticker-content">
+            جاري الاتصال بمركز البيانات... | النظام يعمل بكفاءة تامة...
+        </div>
+    </div>
+</nav>
 
-    <!-- شريط الأخبار -->
-    <div class="fixed top-16 w-full z-40 bg-navy-900 border-b border-white/5 py-2 overflow-hidden">
-        <div class="container mx-auto px-4 flex items-center">
-            <span class="text-gold-400 text-[10px] font-bold ml-3 border-l border-gray-700 px-2 whitespace-nowrap">عاجل</span>
-            <div class="w-full overflow-hidden relative h-4">
-                <div class="absolute whitespace-nowrap animate-[marquee_20s_linear_infinite] text-[10px] text-gray-300" id="ticker-content">
-                    جاري الاتصال...
+<!-- Main Content -->
+<main class="flex-1 pt-28 pb-20">
+    
+    <!-- Hero Section (Latest Article) -->
+    <header id="hero-section" class="container mx-auto px-6 mb-16 min-h-[60vh] flex items-center justify-center relative rounded-3xl overflow-hidden border border-white/5 animate-fade-in group cursor-pointer">
+        <div class="absolute inset-0 bg-navy-900 animate-pulse-slow z-0"></div> <!-- Placeholder -->
+        <div class="z-10 text-center">
+            <div class="w-12 h-12 border-4 border-gold-400 border-t-transparent rounded-full animate-spin mx-auto"></div>
+            <p class="text-gray-500 mt-4 text-sm tracking-widest">جاري جلب الحقيقة...</p>
+        </div>
+    </header>
+
+    <!-- Articles Grid -->
+    <section class="container mx-auto px-6">
+        <div class="flex items-center gap-4 mb-8">
+            <h2 class="text-2xl font-bold text-white border-r-4 border-gold-400 pr-4">آخر التحديثات</h2>
+            <div class="h-px bg-white/10 flex-1"></div>
+        </div>
+
+        <div id="articles-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <!-- Skeleton Loader -->
+            <div class="h-96 bg-white/5 rounded-2xl animate-pulse"></div>
+            <div class="h-96 bg-white/5 rounded-2xl animate-pulse delay-75"></div>
+            <div class="h-96 bg-white/5 rounded-2xl animate-pulse delay-150"></div>
+        </div>
+    </section>
+
+</main>
+
+<!-- Footer -->
+<footer class="border-t border-white/5 bg-[#050510] py-12">
+    <div class="container mx-auto px-6 text-center">
+        <h2 class="text-2xl font-black text-white mb-4">الـحقيقة<span class="text-gold-400">.</span></h2>
+        <p class="text-gray-500 text-sm max-w-md mx-auto mb-8">نحن لا ننقل الخبر، نحن نصنع الواقع. المصدر الأول للمعلومات الموثقة والدقيقة.</p>
+        <div class="text-gray-600 text-xs">
+            &copy; 2025 جميع الحقوق محفوظة لشبكة الحقيقة الإعلامية.
+        </div>
+    </div>
+</footer>
+
+<!-- Article Reader Modal -->
+<div id="reader-modal" class="fixed inset-0 z-[100] bg-black/95 backdrop-blur-md hidden opacity-0 transition-opacity duration-300">
+    <div class="absolute top-0 w-full h-1 bg-gradient-to-r from-transparent via-gold-400 to-transparent"></div>
+    
+    <!-- Close Button -->
+    <button onclick="closeArticle()" class="fixed top-6 left-6 z-50 bg-white/10 hover:bg-white/20 text-white p-3 rounded-full backdrop-blur transition-all">
+        <i data-lucide="x" class="w-6 h-6"></i>
+    </button>
+
+    <!-- Modal Content -->
+    <div class="w-full h-full overflow-y-auto">
+        <div class="max-w-4xl mx-auto bg-[#0a0a15] min-h-full shadow-2xl relative">
+            <!-- Cover Image -->
+            <div class="h-[60vh] w-full relative">
+                <img id="modal-img" src="" class="w-full h-full object-cover">
+                <div class="absolute inset-0 bg-gradient-to-t from-[#0a0a15] via-[#0a0a15]/50 to-transparent"></div>
+                <div class="absolute bottom-0 right-0 p-8 md:p-12 w-full">
+                    <span id="modal-category" class="bg-gold-400 text-black text-xs font-bold px-3 py-1 rounded mb-4 inline-block"></span>
+                    <h1 id="modal-title" class="text-3xl md:text-5xl font-bold text-white leading-tight mb-4 font-serif"></h1>
+                    <div class="flex items-center gap-4 text-sm text-gray-400">
+                        <div class="flex items-center gap-2">
+                            <i data-lucide="user" class="w-4 h-4"></i>
+                            <span id="modal-author"></span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <i data-lucide="clock" class="w-4 h-4"></i>
+                            <span id="modal-date"></span>
+                        </div>
+                    </div>
                 </div>
+            </div>
+
+            <!-- Body -->
+            <div class="p-8 md:p-12">
+                <div id="modal-body" class="prose prose-invert prose-lg max-w-none text-gray-300"></div>
             </div>
         </div>
     </div>
+</div>
 
-    <!-- المحتوى الرئيسي -->
-    <main class="pt-28 container mx-auto px-4 min-h-screen">
-        <section class="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-10" id="hero-section">
-            <div class="lg:col-span-12 flex flex-col items-center justify-center h-64 gap-4 border border-white/5 rounded-2xl bg-white/5">
-                <div class="loader"></div>
-                <p class="text-gray-500 text-xs">جاري تحميل الأخبار...</p>
-            </div>
-        </section>
+<script type="module">
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js';
+    import { getAuth, signInAnonymously, onAuthStateChanged, signInWithCustomToken } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js';
+    import { getFirestore, collection, onSnapshot, query, orderBy, limit } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js';
 
-        <section class="grid grid-cols-1 lg:grid-cols-12 gap-8">
-            <div class="lg:col-span-8" id="news-container">
-                <div class="space-y-4">
-                    <div class="h-24 bg-white/5 rounded-xl animate-pulse"></div>
-                    <div class="h-24 bg-white/5 rounded-xl animate-pulse"></div>
-                </div>
-            </div>
+    // 1. Init
+    const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+    const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
 
-            <div class="lg:col-span-4 hidden lg:block sticky top-32 h-fit">
-                <div class="bg-navy-800/50 p-6 rounded-2xl border border-white/5">
-                    <h3 class="text-gold-400 font-bold mb-4 flex items-center gap-2">
-                        <i data-lucide="trending-up" class="w-4 h-4"></i> الأكثر قراءة
-                    </h3>
-                    <div id="sidebar-content" class="space-y-4"></div>
-                </div>
-            </div>
-        </section>
-    </main>
-
-    <!-- إعدادات AI Modal -->
-    <div id="settings-modal" class="fixed inset-0 z-[80] bg-black/90 hidden items-center justify-center p-4 backdrop-blur-sm">
-        <div class="bg-navy-800 w-full max-w-sm rounded-2xl p-6 border border-gold-400/20 shadow-2xl">
-            <h3 class="text-white font-bold mb-4 text-lg">إعدادات الذكاء الاصطناعي</h3>
-            <input type="password" id="api-key-input" placeholder="Gemini API Key" class="w-full bg-black/50 p-3 rounded-xl text-white mb-4 border border-white/10 focus:border-gold-400 outline-none text-sm">
-            <div class="flex gap-3">
-                <button onclick="saveApiKey()" class="flex-1 bg-gold-400 text-black font-bold py-2 rounded-xl hover:bg-white transition">حفظ</button>
-                <button onclick="document.getElementById('settings-modal').classList.add('hidden')" class="flex-1 bg-white/10 text-white py-2 rounded-xl">إلغاء</button>
-            </div>
-        </div>
-    </div>
-
-    <script>
-        // دالة آمنة لتحميل الأيقونات
-        function initIcons() {
-            if (window.lucide) {
-                lucide.createIcons();
-            } else {
-                console.warn("Lucide icons not loaded yet.");
-            }
-        }
-
-        // ⚠️⚠️⚠️ منطقة إعدادات FIREBASE ⚠️⚠️⚠️
-        const firebaseConfig = {
-          apiKey: "AIzaSyD7b1PZY26GN6hR2pliqiFRgyMsNyRlWOs",
-          authDomain: "alhqyqa-62b0e.firebaseapp.com",
-          projectId: "alhqyqa-62b0e",
-          storageBucket: "alhqyqa-62b0e.firebasestorage.app",
-          messagingSenderId: "354014970954",
-          appId: "1:354014970954:web:435ca4eb0cbbfcfd1152b3"
-        };
-
-        // PWA Install Logic
-        let deferredPrompt;
-        window.addEventListener('beforeinstallprompt', (e) => {
-            e.preventDefault();
-            deferredPrompt = e;
-            const installBtn = document.getElementById('install-btn');
-            installBtn.classList.remove('hidden');
-            installBtn.addEventListener('click', () => {
-                deferredPrompt.prompt();
-                deferredPrompt.userChoice.then((choiceResult) => {
-                    if (choiceResult.outcome === 'accepted') installBtn.classList.add('hidden');
-                    deferredPrompt = null;
-                });
-            });
-        });
-
-        // تهيئة التطبيق
+    // 2. Auth: Use Custom Token if available (Critical for Permissions), else Anonymous
+    const initAuth = async () => {
         try {
-            if (firebase.apps.length === 0) {
-                firebase.initializeApp(firebaseConfig);
+            if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                await signInWithCustomToken(auth, __initial_auth_token);
+            } else {
+                await signInAnonymously(auth);
             }
-            const auth = firebase.auth();
-            const db = firebase.firestore();
+        } catch (err) {
+            console.error("Auth Error:", err);
+        }
+    };
 
-            // المصادقة وجلب البيانات
-            auth.signInAnonymously().catch(console.error);
-            auth.onAuthStateChanged((user) => { if (user) fetchNews(); });
+    initAuth();
 
-            async function fetchNews() {
-                try {
-                    const snapshot = await db.collection("news").limit(20).get();
-                    if (snapshot.empty) { renderEmptyState(); return; }
-                    
-                    let newsData = snapshot.docs.map(doc => doc.data());
-                    // الترتيب في المتصفح
-                    newsData.sort((a, b) => (b.timestamp?.seconds || 0) - (a.timestamp?.seconds || 0));
-                    renderSite(newsData);
-                } catch (error) {
-                    console.error("Data Error:", error);
-                    renderMockData();
+    // 3. Live Data Listener
+    onAuthStateChanged(auth, (user) => {
+        if (user) {
+            const newsRef = collection(db, 'artifacts', appId, 'public', 'data', 'news');
+            // We use simple query then client-side sort to avoid index errors in simple mode
+            const q = query(newsRef); 
+
+            onSnapshot(q, (snapshot) => {
+                const articles = snapshot.docs.map(doc => ({id: doc.id, ...doc.data()}));
+                
+                // Sort: Newest first
+                articles.sort((a, b) => {
+                    const ta = a.timestamp?.seconds || 0;
+                    const tb = b.timestamp?.seconds || 0;
+                    return tb - ta;
+                });
+
+                renderApp(articles);
+            }, (error) => {
+                console.error("Error fetching news:", error);
+                // Handle Permission Denied gracefully in UI if needed
+                if (error.code === 'permission-denied') {
+                    document.getElementById('ticker-content').innerText = "خطأ في الاتصال: صلاحيات غير كافية.";
                 }
-            }
-        } catch (e) {
-            console.error("Firebase Init Error:", e);
-            renderMockData();
+            });
+        }
+    });
+
+    // 4. Render Logic
+    function renderApp(articles) {
+        const heroSection = document.getElementById('hero-section');
+        const grid = document.getElementById('articles-grid');
+        const ticker = document.getElementById('ticker-content');
+
+        if (articles.length === 0) {
+            heroSection.innerHTML = `<div class="text-center text-gray-500 z-10"><h2 class="text-3xl font-bold mb-2">قريباً</h2><p>لم يتم نشر أي أخبار بعد.</p></div>`;
+            grid.innerHTML = "";
+            return;
         }
 
-        let userApiKey = localStorage.getItem('gemini_api_key') || "";
-        function openSettings() { document.getElementById('settings-modal').classList.remove('hidden'); }
-        function saveApiKey() { 
-            const key = document.getElementById('api-key-input').value;
-            if(key) { localStorage.setItem('gemini_api_key', key); userApiKey = key; document.getElementById('settings-modal').classList.add('hidden'); }
-        }
+        // A. Update Ticker
+        const titles = articles.slice(0, 5).map(a => `<span class="mx-8 text-black/80">🔴 ${a.title}</span>`).join('');
+        ticker.innerHTML = titles + titles; // Duplicate for smooth scroll loop
 
-        function renderSite(news) {
-            const hero = news[0];
-            const others = news.slice(1);
-            
-            document.getElementById('ticker-content').innerText = "• " + news.map(n => n.title).join(" •       ");
+        // B. Hero Section (First Article)
+        const hero = articles[0];
+        heroSection.onclick = () => openArticle(hero);
+        heroSection.innerHTML = `
+            <img src="${hero.img}" class="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" onerror="this.src='https://via.placeholder.com/1200x600'">
+            <div class="absolute inset-0 hero-gradient"></div>
+            <div class="relative z-10 container mx-auto px-6 h-full flex flex-col justify-end pb-12 items-start text-right">
+                <span class="bg-gold-400 text-black px-3 py-1 rounded text-xs font-bold mb-4 animate-fade-in">خبر رئيسي</span>
+                <h2 class="text-4xl md:text-6xl font-black text-white leading-tight mb-4 max-w-4xl drop-shadow-lg">${hero.title}</h2>
+                <p class="text-gray-300 line-clamp-2 max-w-2xl mb-6 text-lg font-serif">${hero.desc.substring(0, 150)}...</p>
+                <div class="flex items-center gap-4 text-sm font-medium text-gray-400">
+                    <span class="text-gold-400">${hero.author}</span>
+                    <span>•</span>
+                    <span>${hero.date}</span>
+                </div>
+            </div>
+        `;
 
-            document.getElementById('hero-section').innerHTML = `
-                <div class="lg:col-span-12 relative group rounded-2xl overflow-hidden h-[300px] lg:h-[450px] cursor-pointer shadow-2xl border border-white/10">
-                    <img src="${hero.img}" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" onerror="this.src='https://via.placeholder.com/800x400?text=News'">
-                    <div class="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent"></div>
-                    <div class="absolute top-4 right-4 bg-gold-400 text-black text-xs font-bold px-3 py-1 rounded-full shadow-lg z-10">
-                        ${hero.category || 'رئيسي'}
-                    </div>
-                    <div class="absolute bottom-0 p-6 lg:p-10 w-full z-10">
-                        <h1 class="text-2xl md:text-5xl font-black text-white mb-3 leading-tight drop-shadow-lg">${hero.title}</h1>
-                        <p class="text-gray-200 text-sm md:text-lg line-clamp-2 mb-4 hidden md:block opacity-90">${hero.desc}</p>
-                        <div class="flex items-center gap-4 text-gray-300 text-xs font-bold">
-                            <span class="flex items-center gap-1 bg-black/30 px-2 py-1 rounded"><i data-lucide="clock" class="w-3 h-3"></i> ${hero.date}</span>
-                        </div>
+        // C. Grid (Rest of articles)
+        const rest = articles.slice(1);
+        grid.innerHTML = rest.map(art => `
+            <article class="article-card group bg-[#0a0a15] rounded-2xl overflow-hidden border border-white/5 hover:border-gold-400/30 transition-all cursor-pointer flex flex-col h-full" onclick='window.currentArticles = ${JSON.stringify(articles)}; window.openArticleById("${art.id}")'>
+                <div class="relative h-48 overflow-hidden">
+                    <img src="${art.img}" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" onerror="this.src='https://via.placeholder.com/400'">
+                    <div class="absolute inset-0 bg-black/20 group-hover:bg-transparent transition-colors"></div>
+                    <span class="absolute top-4 right-4 bg-black/60 backdrop-blur text-white text-xs px-2 py-1 rounded border border-white/10">${art.category}</span>
+                </div>
+                <div class="p-6 flex-1 flex flex-col">
+                    <h3 class="text-xl font-bold text-white mb-3 leading-snug group-hover:text-gold-400 transition-colors line-clamp-2">${art.title}</h3>
+                    <p class="text-gray-500 text-sm line-clamp-3 mb-4 flex-1 font-serif">${art.desc.replace(/[*#]/g, '')}</p>
+                    <div class="flex justify-between items-center text-xs text-gray-600 border-t border-white/5 pt-4 mt-auto">
+                        <span>${art.date}</span>
+                        <span class="group-hover:translate-x-[-5px] transition-transform text-gold-400 font-bold">اقرأ المزيد &larr;</span>
                     </div>
                 </div>
-            `;
-
-            document.getElementById('news-container').innerHTML = others.map(n => `
-                <div class="flex gap-4 mb-4 bg-white/5 p-3 rounded-xl border border-white/5 hover:border-gold-400/30 transition-all group cursor-pointer">
-                    <div class="w-24 h-24 md:w-32 md:h-24 flex-shrink-0 overflow-hidden rounded-lg">
-                        <img src="${n.img}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" onerror="this.src='https://via.placeholder.com/150?text=News'">
-                    </div>
-                    <div class="flex flex-col justify-center flex-1">
-                        <span class="text-[10px] text-gold-400 font-bold mb-1">${n.category}</span>
-                        <h3 class="text-white font-bold text-base md:text-lg mb-1 leading-snug group-hover:text-gold-400 transition-colors line-clamp-2">${n.title}</h3>
-                        <div class="text-[10px] text-gray-500 mt-1 flex gap-2">
-                            <span>${n.date}</span>
-                        </div>
-                    </div>
-                </div>
-            `).join('');
-
-            // Sidebar
-            const randomNews = [...news].sort(() => 0.5 - Math.random()).slice(0, 5);
-            document.getElementById('sidebar-content').innerHTML = randomNews.map((n, i) => `
-                <div class="flex gap-3 items-center group cursor-pointer border-b border-white/5 pb-2 last:border-0">
-                    <span class="text-gold-400 font-black text-lg opacity-50 group-hover:opacity-100 w-4">${i+1}</span>
-                    <h4 class="text-gray-300 text-xs font-medium leading-snug group-hover:text-white transition-colors line-clamp-2">${n.title}</h4>
-                </div>
-            `).join('');
-            
-            initIcons();
-        }
-
-        function renderEmptyState() {
-            document.getElementById('hero-section').innerHTML = `
-                <div class="lg:col-span-12 flex flex-col items-center justify-center h-64 text-center border border-dashed border-white/10 rounded-2xl">
-                    <i data-lucide="newspaper" class="w-12 h-12 text-gray-600 mb-4"></i>
-                    <h2 class="text-xl font-bold text-white mb-2">الصحيفة جاهزة!</h2>
-                    <p class="text-gray-500 text-sm">لم يتم نشر أخبار بعد.</p>
-                </div>
-            `;
-            initIcons();
-        }
-
-        function renderMockData() {
-            const mock = [
-                { title: "الذكاء الاصطناعي يقود مستقبل الصحافة الرقمية", category: "تكنولوجيا", date: "الآن", img: "https://images.unsplash.com/photo-1485827404703-89b55fcc595e", desc: "كيف تغير التقنيات الحديثة طريقة استهلاكنا للأخبار؟" },
-                { title: "افتتاح معرض الكتاب الدولي في الرياض", category: "ثقافة", date: "أمس", img: "https://images.unsplash.com/photo-1524995997946-a1c2e315a42f", desc: "مشاركة واسعة من دور النشر العالمية وحضور جماهيري كثيف." },
-                { title: "ارتفاع مؤشرات الأسهم في تداولات اليوم", category: "اقتصاد", date: "أمس", img: "https://images.unsplash.com/photo-1611974765270-ca12586343bb", desc: "تحليل اقتصادي لأداء السوق المالية." }
-            ];
-            renderSite(mock);
-            document.getElementById('ticker-content').innerText += " (نسخة تجريبية)";
-        }
+            </article>
+        `).join('');
         
-        document.addEventListener('DOMContentLoaded', initIcons);
-    </script>
+        // Expose for onClick mapping (crude but works for generated HTML strings)
+        window.currentArticles = articles;
+    }
+
+    // 5. Modal Logic (Attached to Window)
+    window.openArticleById = (id) => {
+        const art = window.currentArticles.find(a => a.id === id);
+        if(art) openArticle(art);
+    };
+
+    window.openArticle = (art) => {
+        const modal = document.getElementById('reader-modal');
+        document.getElementById('modal-img').src = art.img;
+        document.getElementById('modal-category').innerText = art.category;
+        document.getElementById('modal-title').innerText = art.title;
+        document.getElementById('modal-author').innerText = art.author;
+        document.getElementById('modal-date').innerText = art.date;
+        
+        // Parse Markdown for body
+        document.getElementById('modal-body').innerHTML = marked.parse(art.desc);
+        
+        modal.classList.remove('hidden');
+        // Slight delay for fade in
+        requestAnimationFrame(() => {
+            modal.classList.remove('opacity-0');
+        });
+        document.body.style.overflow = 'hidden';
+    };
+
+    window.closeArticle = () => {
+        const modal = document.getElementById('reader-modal');
+        modal.classList.add('opacity-0');
+        setTimeout(() => {
+            modal.classList.add('hidden');
+            document.body.style.overflow = 'auto';
+        }, 300);
+    };
+
+    if (window.lucide) lucide.createIcons();
+</script>
+
+
 </body>
 </html>
