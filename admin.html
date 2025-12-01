@@ -2,389 +2,399 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>غرفة عمليات الحقيقة | Admin</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>صحيفة الحقيقة | المنصة الموحدة</title>
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#050510">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;900&display=swap" rel="stylesheet">
-    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <!-- Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+
     <script>
         tailwind.config = {
             theme: {
                 extend: {
                     fontFamily: { sans: ['Tajawal', 'sans-serif'] },
-                    colors: { navy: { 950: '#020205', 900: '#050510', 800: '#0a0a15', 700: '#151525' }, gold: { 400: '#D4AF37', 500: '#C5A028' } },
-                    animation: { 'pulse-slow': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite' }
+                    colors: { navy: { 900: '#050510', 800: '#0a0a15' }, gold: { 400: '#D4AF37' } },
+                    animation: { 'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite' }
                 }
             }
         }
     </script>
     <style>
-        body { background-color: #020205; color: #e5e7eb; }
-        .glass-panel { background: rgba(21, 21, 37, 0.7); backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.05); }
-        .input-field { background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); transition: all 0.3s; }
-        .input-field:focus { border-color: #D4AF37; box-shadow: 0 0 15px rgba(212, 175, 55, 0.1); outline: none; }
-        /* Editor Styles */
-        .editor-area:empty:before { content: attr(placeholder); color: #6b7280; }
+        body { background-color: #050510; color: #f3f4f6; -webkit-tap-highlight-color: transparent; }
+        .glass-nav { background: rgba(5, 5, 16, 0.85); backdrop-filter: blur(12px); border-bottom: 1px solid rgba(255,255,255,0.05); }
+        .glass-panel { background: rgba(21, 21, 37, 0.8); backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.05); }
+        .editor-content:empty:before { content: attr(placeholder); color: #4b5563; }
         .loader { border: 3px solid rgba(255,255,255,0.1); width: 24px; height: 24px; border-radius: 50%; border-left-color: #D4AF37; animation: spin 1s ease infinite; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        /* إخفاء العناصر بشكل سلس */
+        .view-hidden { display: none; }
+        .view-visible { display: block; animation: fadeIn 0.3s ease-in; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
     </style>
 </head>
-<body class="h-screen overflow-hidden flex selection:bg-gold-400 selection:text-black">
+<body class="antialiased selection:bg-gold-400 selection:text-black pb-20 md:pb-0">
 
-    <!-- LOGIN OVERLAY (Shows if not logged in) -->
-    <div id="login-screen" class="fixed inset-0 z-50 bg-[#020205] flex items-center justify-center">
-        <div class="absolute inset-0 overflow-hidden">
-            <div class="absolute -top-[20%] -left-[10%] w-[50%] h-[50%] bg-gold-400/5 rounded-full blur-[120px]"></div>
-            <div class="absolute bottom-[10%] right-[10%] w-[30%] h-[30%] bg-blue-900/10 rounded-full blur-[100px]"></div>
+    <!-- ==================== واجهة الزوار (Public View) ==================== -->
+    <div id="public-view" class="view-visible">
+        <nav class="fixed w-full z-50 glass-nav top-0">
+            <div class="container mx-auto px-4 h-16 flex justify-between items-center">
+                <div class="text-2xl font-black text-gold-400 cursor-pointer flex items-center gap-2 tracking-tighter" onclick="window.location.reload()">
+                    الـحقيقة<span class="text-white">.</span>
+                </div>
+                <div class="flex gap-3 items-center">
+                    <button id="install-btn" class="hidden bg-gold-400 text-black text-xs font-bold px-3 py-1.5 rounded-full animate-pulse flex items-center gap-1"><i data-lucide="download" class="w-3 h-3"></i> تثبيت</button>
+                    <button onclick="openSettings()" class="text-gold-400 p-2 rounded-full hover:bg-white/10"><i data-lucide="cpu" class="w-5 h-5"></i></button>
+                    <button onclick="toggleAdminView()" class="text-white bg-white/10 px-4 py-1.5 rounded-full hover:bg-gold-400 hover:text-black transition-all text-xs font-bold flex items-center gap-2">
+                        <i data-lucide="shield" class="w-4 h-4"></i> الإدارة
+                    </button>
+                </div>
+            </div>
+        </nav>
+
+        <div class="fixed top-16 w-full z-40 bg-navy-900 border-b border-white/5 py-2 overflow-hidden">
+            <div class="container mx-auto px-4 flex items-center">
+                <span class="text-gold-400 text-[10px] font-bold ml-3 border-l border-gray-700 px-2 whitespace-nowrap">عاجل</span>
+                <div class="w-full overflow-hidden relative h-4">
+                    <div class="absolute whitespace-nowrap animate-[marquee_20s_linear_infinite] text-[10px] text-gray-300" id="ticker-content">جاري الاتصال...</div>
+                </div>
+            </div>
         </div>
-        
-        <div class="glass-panel p-10 rounded-2xl w-full max-w-md relative z-10 text-center border-gold-400/20 shadow-2xl shadow-gold-400/5">
-            <div class="mb-8">
-                <h1 class="text-4xl font-black text-white mb-2">الـحقيقة <span class="text-gold-400">.</span></h1>
-                <p class="text-gray-500 text-sm tracking-widest uppercase">نظام إدارة المحتوى الذكي</p>
-            </div>
-            
-            <form onsubmit="handleLogin(event)" class="space-y-5 text-right">
-                <div>
-                    <label class="text-xs text-gold-400 font-bold mb-2 block">معرف الدخول</label>
-                    <div class="relative">
-                        <input type="text" id="username" class="input-field w-full rounded-lg p-3 pr-10 text-white" placeholder="admin">
-                        <i data-lucide="user" class="absolute left-3 top-3.5 w-5 h-5 text-gray-500"></i>
+
+        <main class="pt-28 container mx-auto px-4 min-h-screen">
+            <section class="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-10" id="hero-section">
+                <div class="lg:col-span-12 flex flex-col items-center justify-center h-64 gap-4 border border-white/5 rounded-2xl bg-white/5"><div class="loader"></div></div>
+            </section>
+            <section class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+                <div class="lg:col-span-8" id="news-container"></div>
+                <div class="lg:col-span-4 hidden lg:block sticky top-32 h-fit">
+                    <div class="bg-navy-800/50 p-6 rounded-2xl border border-white/5">
+                        <h3 class="text-gold-400 font-bold mb-4 flex items-center gap-2"><i data-lucide="trending-up" class="w-4 h-4"></i> الأكثر قراءة</h3>
+                        <div id="sidebar-content" class="space-y-4"></div>
                     </div>
                 </div>
-                <div>
-                    <label class="text-xs text-gold-400 font-bold mb-2 block">كلمة المرور</label>
-                    <div class="relative">
-                        <input type="password" id="password" class="input-field w-full rounded-lg p-3 pr-10 text-white" placeholder="••••••••">
-                        <i data-lucide="lock" class="absolute left-3 top-3.5 w-5 h-5 text-gray-500"></i>
-                    </div>
-                </div>
-                <button type="submit" class="w-full bg-gradient-to-r from-gold-400 to-yellow-600 text-black font-bold py-3 rounded-lg hover:shadow-lg hover:shadow-gold-400/20 transition-all transform hover:scale-[1.02]">
-                    تسجيل الدخول للنظام
-                </button>
-            </form>
-            <p class="mt-6 text-xs text-gray-600">v2.5.0 | Secured by Gemini AI Core</p>
-        </div>
-    </div>
-
-    <!-- MAIN DASHBOARD (Hidden by default) -->
-    <div id="dashboard-ui" class="hidden w-full h-full flex">
-        
-        <!-- Sidebar -->
-        <aside class="w-20 lg:w-64 bg-navy-900 border-l border-white/5 flex flex-col justify-between transition-all duration-300">
-            <div>
-                <div class="h-20 flex items-center justify-center lg:justify-start lg:px-6 border-b border-white/5">
-                    <span class="text-2xl font-black text-white lg:hidden">ح</span>
-                    <span class="text-2xl font-black text-white hidden lg:block">الـحقيقة <span class="text-gold-400">.</span></span>
-                </div>
-                
-                <nav class="p-4 space-y-2">
-                    <button onclick="switchTab('publish')" id="nav-publish" class="nav-item w-full flex items-center gap-3 p-3 rounded-lg bg-gold-400 text-black font-bold shadow-lg shadow-gold-400/10 transition-all">
-                        <i data-lucide="pen-tool" class="w-5 h-5"></i>
-                        <span class="hidden lg:block">استوديو النشر</span>
-                    </button>
-                    <button onclick="switchTab('members')" id="nav-members" class="nav-item w-full flex items-center gap-3 p-3 rounded-lg text-gray-400 hover:text-white hover:bg-white/5 transition-all">
-                        <i data-lucide="users" class="w-5 h-5"></i>
-                        <span class="hidden lg:block">سجل الأعضاء</span>
-                    </button>
-                    <button onclick="switchTab('analytics')" id="nav-analytics" class="nav-item w-full flex items-center gap-3 p-3 rounded-lg text-gray-400 hover:text-white hover:bg-white/5 transition-all">
-                        <i data-lucide="bar-chart-2" class="w-5 h-5"></i>
-                        <span class="hidden lg:block">التحليلات</span>
-                    </button>
-                    <button onclick="openSettings()" class="nav-item w-full flex items-center gap-3 p-3 rounded-lg text-gold-400 hover:bg-gold-400/10 transition-all">
-                        <i data-lucide="cpu" class="w-5 h-5"></i>
-                        <span class="hidden lg:block">إعدادات AI</span>
-                    </button>
-                </nav>
-            </div>
-            
-            <div class="p-4 border-t border-white/5">
-                <button onclick="logout()" class="w-full flex items-center gap-3 p-3 rounded-lg text-red-400 hover:bg-red-400/10 transition-all">
-                    <i data-lucide="log-out" class="w-5 h-5"></i>
-                    <span class="hidden lg:block">خروج</span>
-                </button>
-            </div>
-        </aside>
-
-        <!-- Main Content Area -->
-        <main class="flex-1 bg-[#050510] relative overflow-hidden flex flex-col">
-            <!-- Header -->
-            <header class="h-20 border-b border-white/5 flex items-center justify-between px-8 bg-navy-900/50 backdrop-blur-md">
-                <h2 id="page-title" class="text-xl font-bold text-white flex items-center gap-2">
-                    <span class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
-                    غرفة التحرير المباشرة
-                </h2>
-                <div class="flex items-center gap-4">
-                    <div class="text-left hidden md:block">
-                        <p class="text-white text-sm font-bold">رئيس التحرير</p>
-                        <p class="text-gold-400 text-xs">متصل الآن</p>
-                    </div>
-                    <div class="w-10 h-10 rounded-full bg-gradient-to-tr from-gold-400 to-yellow-700 p-0.5">
-                        <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Editor" class="w-full h-full rounded-full bg-black">
-                    </div>
-                </div>
-            </header>
-
-            <!-- Content Views -->
-            <div class="flex-1 overflow-y-auto p-8 relative">
-                
-                <!-- 1. PUBLISH STUDIO -->
-                <div id="view-publish" class="max-w-4xl mx-auto animate-fade-in">
-                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                        <!-- Editor Column -->
-                        <div class="lg:col-span-2 space-y-6">
-                            <!-- Title Input -->
-                            <input type="text" id="news-title" placeholder="اكتب عنواناً جذاباً هنا..." class="w-full bg-transparent text-3xl font-black text-white placeholder-gray-600 border-none focus:ring-0 px-0 leading-tight">
-                            
-                            <!-- AI Tools Bar -->
-                            <div class="flex gap-2 py-2 overflow-x-auto scrollbar-hide">
-                                <button onclick="aiGenerate('title')" class="flex items-center gap-1 text-xs bg-navy-700 text-gold-400 px-3 py-1.5 rounded-full border border-gold-400/20 hover:bg-gold-400 hover:text-black transition">
-                                    <i data-lucide="sparkles" class="w-3 h-3"></i> اقترح عنواناً
-                                </button>
-                                <button onclick="aiGenerate('body')" class="flex items-center gap-1 text-xs bg-navy-700 text-blue-400 px-3 py-1.5 rounded-full border border-blue-400/20 hover:bg-blue-400 hover:text-black transition">
-                                    <i data-lucide="pen-line" class="w-3 h-3"></i> أكمل الكتابة
-                                </button>
-                                <button onclick="aiGenerate('grammar')" class="flex items-center gap-1 text-xs bg-navy-700 text-green-400 px-3 py-1.5 rounded-full border border-green-400/20 hover:bg-green-400 hover:text-black transition">
-                                    <i data-lucide="check-circle" class="w-3 h-3"></i> تدقيق لغوي
-                                </button>
-                            </div>
-
-                            <!-- Rich Text Area -->
-                            <div id="editor" contenteditable="true" class="editor-area min-h-[400px] text-gray-300 text-lg leading-loose outline-none" placeholder="ابدأ كتابة تفاصيل الخبر..."></div>
-                        </div>
-
-                        <!-- Sidebar Settings -->
-                        <div class="space-y-6">
-                            <div class="glass-panel p-5 rounded-xl space-y-4">
-                                <div>
-                                    <label class="text-gray-400 text-xs font-bold block mb-2">صورة الغلاف</label>
-                                    <div class="aspect-video rounded-lg bg-black/50 border-2 border-dashed border-gray-700 flex flex-col items-center justify-center cursor-pointer hover:border-gold-400 transition-colors group relative overflow-hidden" onclick="document.getElementById('img-upload').click()">
-                                        <img id="preview-img" class="absolute inset-0 w-full h-full object-cover hidden">
-                                        <i data-lucide="image-plus" class="w-8 h-8 text-gray-600 group-hover:text-gold-400 mb-2"></i>
-                                        <span class="text-xs text-gray-500">اضغط للرفع</span>
-                                        <input type="file" id="img-upload" class="hidden" onchange="previewImage(this)">
-                                    </div>
-                                </div>
-                                
-                                <div>
-                                    <label class="text-gray-400 text-xs font-bold block mb-2">القسم</label>
-                                    <select class="w-full bg-navy-950 border border-gray-700 rounded-lg p-2 text-sm text-white focus:border-gold-400 outline-none">
-                                        <option>أخبار محلية</option>
-                                        <option>اقتصاد</option>
-                                        <option>رياضة</option>
-                                        <option>تقارير خاصة</option>
-                                    </select>
-                                </div>
-
-                                <div>
-                                    <label class="text-gray-400 text-xs font-bold block mb-2">حالة النشر</label>
-                                    <div class="flex items-center justify-between bg-navy-950 p-2 rounded-lg border border-gray-700">
-                                        <span class="text-sm text-green-400 flex items-center gap-2"><div class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div> مباشر</span>
-                                        <button class="text-xs text-gray-400 hover:text-white">جدولة؟</button>
-                                    </div>
-                                </div>
-
-                                <button onclick="publishNow()" class="w-full bg-gold-400 text-black font-bold py-3 rounded-lg hover:bg-white transition-colors flex justify-center items-center gap-2">
-                                    <span id="pub-text">نشر الخبر</span>
-                                    <i data-lucide="send" class="w-4 h-4"></i>
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- 2. MEMBERS HUB -->
-                <div id="view-members" class="hidden max-w-5xl mx-auto animate-fade-in">
-                    <div class="glass-panel rounded-xl overflow-hidden">
-                        <div class="p-6 border-b border-white/5 flex justify-between items-center">
-                            <h3 class="text-xl font-bold text-white">الأعضاء المسجلين</h3>
-                            <div class="flex gap-2">
-                                <input type="text" placeholder="بحث..." class="bg-navy-950 border border-gray-700 rounded-lg px-3 py-1 text-sm text-white focus:border-gold-400 outline-none">
-                                <button class="bg-gold-400 text-black px-3 py-1 rounded-lg text-sm font-bold hover:bg-white transition">+ عضو جديد</button>
-                            </div>
-                        </div>
-                        <table class="w-full text-right text-gray-400">
-                            <thead class="bg-white/5 text-xs uppercase font-bold text-gray-300">
-                                <tr>
-                                    <th class="p-4">العضو</th>
-                                    <th class="p-4">الدور</th>
-                                    <th class="p-4">الحالة</th>
-                                    <th class="p-4">الإجراءات</th>
-                                </tr>
-                            </thead>
-                            <tbody class="divide-y divide-white/5 text-sm" id="members-list">
-                                <!-- JS will populate this -->
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-
-            </div>
+            </section>
         </main>
     </div>
 
-    <!-- AI Settings Modal -->
-    <div id="settings-modal" class="fixed inset-0 z-[100] bg-black/90 hidden items-center justify-center p-4">
-        <div class="bg-navy-800 w-full max-w-md rounded-xl border border-gold-400/30 p-6">
-            <h3 class="text-white font-bold mb-4">إعدادات مساعد التحرير (Gemini)</h3>
-            <p class="text-gray-400 text-sm mb-4">أدخل مفتاح API لتفعيل ميزات الاقتراح والتدقيق اللغوي.</p>
-            <input type="password" id="api-key-input" placeholder="Gemini API Key" class="w-full bg-black/50 border border-white/10 p-3 rounded-lg text-white mb-4 focus:border-gold-400 outline-none">
-            <div class="flex justify-end gap-3">
-                <button onclick="document.getElementById('settings-modal').classList.add('hidden')" class="px-4 py-2 text-gray-400">إلغاء</button>
-                <button onclick="saveApiKey()" class="px-6 py-2 bg-gold-400 text-black font-bold rounded-lg">حفظ وتفعيل</button>
+    <!-- ==================== واجهة الإدارة (Admin View) ==================== -->
+    <div id="admin-view" class="view-hidden fixed inset-0 z-[60] bg-[#020205] overflow-y-auto">
+        
+        <!-- بوابة الدخول -->
+        <div id="login-gate" class="min-h-screen flex items-center justify-center p-4">
+            <div class="glass-panel p-10 rounded-3xl w-full max-w-md text-center relative">
+                <button onclick="toggleAdminView()" class="absolute top-4 left-4 text-gray-500 hover:text-white"><i data-lucide="x" class="w-6 h-6"></i></button>
+                <h1 class="text-4xl font-black text-white mb-2">بوابة<span class="text-gold-400"> القيادة</span></h1>
+                <form onsubmit="handleRealLogin(event)" class="space-y-6 mt-8">
+                    <input type="email" id="login-email" placeholder="البريد الرسمي" class="w-full bg-[#0a0a15] border border-white/10 rounded-xl py-3 px-4 text-white focus:border-gold-400 outline-none">
+                    <input type="password" id="login-password" placeholder="الشفرة" class="w-full bg-[#0a0a15] border border-white/10 rounded-xl py-3 px-4 text-white focus:border-gold-400 outline-none">
+                    <div id="login-error" class="text-red-500 text-xs hidden">بيانات خاطئة</div>
+                    <button id="login-btn" class="w-full bg-gold-400 text-black font-bold py-4 rounded-xl hover:bg-white transition">دخول النظام</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- لوحة التحكم (بعد الدخول) -->
+        <div id="dashboard-ui" class="hidden min-h-screen flex flex-col">
+            <header class="h-20 border-b border-white/5 flex items-center justify-between px-6 bg-navy-900">
+                <h2 class="text-xl font-bold text-white">غرفة العمليات</h2>
+                <div class="flex gap-3">
+                    <button onclick="showSection('editor')" class="text-sm bg-gold-400 text-black px-4 py-2 rounded-lg font-bold">نشر</button>
+                    <button onclick="showSection('articles')" class="text-sm bg-white/10 text-white px-4 py-2 rounded-lg">الأرشيف</button>
+                    <button onclick="logout()" class="text-red-400 px-2"><i data-lucide="log-out" class="w-5 h-5"></i></button>
+                    <button onclick="toggleAdminView()" class="text-gray-400 px-2"><i data-lucide="x" class="w-5 h-5"></i></button>
+                </div>
+            </header>
+
+            <div class="flex-1 p-6 max-w-5xl mx-auto w-full space-y-8">
+                <!-- قسم المحرر -->
+                <div id="sec-editor" class="space-y-6">
+                    <input type="text" id="news-title" placeholder="عنوان الخبر الرئيسي..." class="w-full bg-transparent text-4xl font-black text-white border-none focus:ring-0 px-0 placeholder-gray-700">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <select id="news-category" class="bg-navy-800 border border-white/10 rounded-lg p-3 text-white focus:border-gold-400 outline-none"><option>أخبار محلية</option><option>رياضة</option><option>اقتصاد</option><option>ثقافة</option></select>
+                        <input type="text" id="news-image" placeholder="رابط الصورة..." class="bg-navy-800 border border-white/10 rounded-lg p-3 text-white focus:border-gold-400 outline-none">
+                    </div>
+                    
+                    <!-- أدوات AI -->
+                    <div class="flex flex-wrap gap-2">
+                        <button onclick="triggerAI('title')" class="px-3 py-1.5 rounded-full border border-white/10 text-xs text-gold-400 hover:bg-gold-400 hover:text-black transition flex items-center gap-1"><i data-lucide="sparkles" class="w-3 h-3"></i> اقتراح عناوين</button>
+                        <button onclick="triggerAI('grammar')" class="px-3 py-1.5 rounded-full border border-white/10 text-xs text-green-400 hover:bg-green-400 hover:text-black transition flex items-center gap-1"><i data-lucide="check" class="w-3 h-3"></i> تدقيق</button>
+                        <button onclick="generateImage()" class="px-3 py-1.5 rounded-full border border-white/10 text-xs text-blue-400 hover:bg-blue-400 hover:text-black transition flex items-center gap-1"><i data-lucide="image" class="w-3 h-3"></i> توليد صورة</button>
+                    </div>
+                    <div id="ai-output" class="hidden p-4 bg-white/5 rounded-lg text-sm text-gray-300 border-l-2 border-gold-400"></div>
+
+                    <div id="editor" class="editor-content w-full h-[400px] text-lg text-gray-300 leading-loose border border-white/5 p-4 rounded-xl overflow-y-auto" contenteditable="true" placeholder="اكتب التفاصيل هنا..."></div>
+                    
+                    <button onclick="publishAction()" id="publish-btn" class="w-full bg-gold-400 text-black font-bold py-4 rounded-xl hover:bg-white transition-colors shadow-lg flex justify-center items-center gap-2">
+                        <span>نشر في الموقع فوراً</span> <i data-lucide="send" class="w-5 h-5"></i>
+                    </button>
+                </div>
+
+                <!-- قسم الأرشيف -->
+                <div id="sec-articles" class="hidden space-y-4">
+                    <div class="flex justify-between items-center"><h3 class="text-xl font-bold text-white">أرشيف الأخبار</h3><button onclick="loadRealData()" class="text-gold-400 text-sm">تحديث</button></div>
+                    <div id="admin-articles-list" class="space-y-2"></div>
+                </div>
             </div>
         </div>
     </div>
 
+    <!-- إعدادات الزائر (AI Key) -->
+    <div id="settings-modal" class="fixed inset-0 z-[80] bg-black/90 hidden items-center justify-center p-4 backdrop-blur-sm">
+        <div class="bg-navy-800 w-full max-w-sm rounded-2xl p-6 border border-gold-400/20 shadow-2xl">
+            <h3 class="text-white font-bold mb-4 text-lg">تفعيل الذكاء الاصطناعي</h3>
+            <input type="password" id="api-key-input" placeholder="Gemini API Key" class="w-full bg-black/50 p-3 rounded-xl text-white mb-4 border border-white/10 focus:border-gold-400 outline-none text-sm">
+            <div class="flex gap-3">
+                <button onclick="saveApiKey()" class="flex-1 bg-gold-400 text-black font-bold py-2 rounded-xl">حفظ</button>
+                <button onclick="document.getElementById('settings-modal').classList.add('hidden')" class="flex-1 bg-white/10 text-white py-2 rounded-xl">إلغاء</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast -->
+    <div id="toast" class="fixed bottom-6 left-6 bg-navy-900 border border-gold-400/50 text-white px-6 py-4 rounded-xl shadow-2xl transform translate-y-24 opacity-0 transition-all duration-300 flex items-center gap-3 z-[100]">
+        <i data-lucide="check-circle" class="text-gold-400 w-5 h-5"></i> <span id="toast-msg" class="font-bold">تم</span>
+    </div>
+
     <script>
-        lucide.createIcons();
+        // تهيئة الأيقونات
+        function initIcons() { if (window.lucide) lucide.createIcons(); }
         
-        // --- AUTH LOGIC ---
-        function handleLogin(e) {
-            e.preventDefault();
-            // Simulation
-            const btn = e.target.querySelector('button');
-            const originalText = btn.innerText;
-            btn.innerText = "جاري التحقق...";
-            setTimeout(() => {
-                document.getElementById('login-screen').classList.add('hidden');
-                document.getElementById('dashboard-ui').classList.remove('hidden');
-                initMembers(); // Load members data
-            }, 1000);
-        }
+        // ⚠️⚠️ إعدادات FIREBASE ⚠️⚠️
+        const firebaseConfig = {
+          apiKey: "AIzaSyD7b1PZY26GN6hR2pliqiFRgyMsNyRlWOs",
+          authDomain: "alhaqiqa-news-62b0e.firebaseapp.com",
+          projectId: "alhaqiqa-news-62b0e",
+          storageBucket: "alhaqiqa-news-62b0e.appspot.com",
+          messagingSenderId: "354014970954",
+          appId: "1:354014970954:web:435ca4eb0cbbfcfd1152b3"
+        };
+        
+        const appId = 'default-app-id'; // للمعاينة، يمكنك تغييره لاحقاً
 
-        function logout() {
-            window.location.reload();
-        }
+        // تهيئة النظام
+        try {
+            firebase.initializeApp(firebaseConfig);
+            const auth = firebase.auth();
+            const db = firebase.firestore();
 
-        // --- TABS LOGIC ---
-        function switchTab(tab) {
-            // Hide all views
-            ['publish', 'members', 'analytics'].forEach(t => {
-                const view = document.getElementById(`view-${t}`);
-                if(view) view.classList.add('hidden');
-                
-                const nav = document.getElementById(`nav-${t}`);
-                if(nav) {
-                    nav.classList.remove('bg-gold-400', 'text-black', 'font-bold', 'shadow-lg');
-                    nav.classList.add('text-gray-400');
+            // --- منطق الزوار ---
+            auth.onAuthStateChanged((user) => {
+                if (user) {
+                    // إذا كان المدير، افتح لوحة التحكم
+                    if(!user.isAnonymous) {
+                        document.getElementById('login-gate').classList.add('hidden');
+                        document.getElementById('dashboard-ui').classList.remove('hidden');
+                        loadRealData();
+                    }
+                    fetchNews(); // جلب الأخبار للجميع
+                } else {
+                    auth.signInAnonymously().catch(console.error);
                 }
             });
 
-            // Show active view
-            const activeView = document.getElementById(`view-${tab}`);
-            if(activeView) activeView.classList.remove('hidden');
-
-            const activeNav = document.getElementById(`nav-${tab}`);
-            if(activeNav) {
-                activeNav.classList.remove('text-gray-400');
-                activeNav.classList.add('bg-gold-400', 'text-black', 'font-bold', 'shadow-lg');
-            }
-
-            // Update Title
-            const titles = { 'publish': 'غرفة التحرير', 'members': 'إدارة الأعضاء', 'analytics': 'تحليلات البيانات' };
-            document.getElementById('page-title').innerHTML = `<span class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span> ${titles[tab] || 'الرئيسية'}`;
-        }
-
-        // --- PUBLISH LOGIC ---
-        function previewImage(input) {
-            if (input.files && input.files[0]) {
-                var reader = new FileReader();
-                reader.onload = function(e) {
-                    const img = document.getElementById('preview-img');
-                    img.src = e.target.result;
-                    img.classList.remove('hidden');
+            // --- دوال الإدارة ---
+            window.toggleAdminView = () => {
+                const view = document.getElementById('admin-view');
+                if(view.classList.contains('view-hidden')) {
+                    view.classList.remove('view-hidden');
+                    if(auth.currentUser && !auth.currentUser.isAnonymous) {
+                        document.getElementById('login-gate').classList.add('hidden');
+                        document.getElementById('dashboard-ui').classList.remove('hidden');
+                    } else {
+                        document.getElementById('login-gate').classList.remove('hidden');
+                        document.getElementById('dashboard-ui').classList.add('hidden');
+                    }
+                } else {
+                    view.classList.add('view-hidden');
                 }
-                reader.readAsDataURL(input.files[0]);
-            }
-        }
+            };
 
-        function publishNow() {
-            const btn = document.querySelector('button[onclick="publishNow()"]');
-            btn.innerHTML = '<div class="loader"></div>';
-            setTimeout(() => {
-                btn.innerHTML = 'تم النشر بنجاح! ✓';
-                btn.classList.replace('bg-gold-400', 'bg-green-500');
-                setTimeout(() => {
-                    btn.innerHTML = '<span id="pub-text">نشر الخبر</span><i data-lucide="send" class="w-4 h-4"></i>';
-                    btn.classList.replace('bg-green-500', 'bg-gold-400');
+            window.handleRealLogin = async (e) => {
+                e.preventDefault();
+                const email = document.getElementById('login-email').value;
+                const pass = document.getElementById('login-password').value;
+                const btn = document.getElementById('login-btn');
+                btn.innerText = "جاري التحقق...";
+                
+                try {
+                    await auth.signInWithEmailAndPassword(email, pass);
+                    // Auth listener will handle UI switch
+                } catch (error) {
+                    document.getElementById('login-error').innerText = "بيانات خاطئة";
+                    document.getElementById('login-error').classList.remove('hidden');
+                    btn.innerText = "دخول النظام";
+                }
+            };
+
+            window.logout = () => {
+                auth.signOut().then(() => auth.signInAnonymously()); // العودة كزائر
+                document.getElementById('dashboard-ui').classList.add('hidden');
+                document.getElementById('login-gate').classList.remove('hidden');
+            };
+
+            window.publishAction = async () => {
+                const btn = document.getElementById('publish-btn');
+                const title = document.getElementById('news-title').value;
+                const category = document.getElementById('news-category').value;
+                const image = document.getElementById('news-image').value || "https://via.placeholder.com/800x400";
+                const content = document.getElementById('editor').innerText;
+
+                if(!title || !content) { alert("الرجاء تعبئة البيانات"); return; }
+                btn.innerText = "جاري النشر..."; btn.disabled = true;
+
+                try {
+                    await db.collection("news").add({
+                        title, category, img: image, desc: content,
+                        date: new Date().toLocaleDateString('ar-SA'),
+                        timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                    });
+                    showToast("تم النشر بنجاح ✅");
+                    btn.innerText = "نشر في الموقع فوراً"; btn.disabled = false;
                     document.getElementById('news-title').value = '';
                     document.getElementById('editor').innerText = '';
-                    document.getElementById('preview-img').classList.add('hidden');
-                }, 2000);
-            }, 1500);
-        }
+                    loadRealData();
+                    fetchNews(); // تحديث واجهة الزوار فوراً
+                } catch(e) {
+                    console.error(e);
+                    alert("خطأ: " + e.message);
+                    btn.disabled = false;
+                }
+            };
 
-        // --- AI LOGIC (Simulated Integration) ---
-        let userApiKey = localStorage.getItem('gemini_api_key') || "";
-        function openSettings() { document.getElementById('settings-modal').classList.remove('hidden'); }
-        function saveApiKey() { 
-            const key = document.getElementById('api-key-input').value;
-            if(key) { localStorage.setItem('gemini_api_key', key); userApiKey = key; document.getElementById('settings-modal').classList.add('hidden'); alert("تم تفعيل الذكاء الاصطناعي"); }
-        }
-
-        async function aiGenerate(type) {
-            if(!userApiKey) { openSettings(); return; }
-            const editor = document.getElementById('editor');
-            const titleInput = document.getElementById('news-title');
-            
-            // Show loading
-            editor.focus();
-            
-            // Actual API Call
-            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${userApiKey}`;
-            let prompt = "";
-            
-            if(type === 'title') prompt = `اقترح 3 عناوين صحفية جذابة وقوية لخبر عن: ${editor.innerText || "موضوع عام"}`;
-            if(type === 'body') prompt = `أكمل كتابة الخبر الصحفي التالي بأسلوب احترافي: ${editor.innerText}`;
-            if(type === 'grammar') prompt = `قم بتدقيق النص التالي لغوياً وصحح الأخطاء: ${editor.innerText}`;
-
-            try {
-                const res = await fetch(url, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] }) });
-                const data = await res.json();
-                const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
-                
-                if(type === 'title') alert("اقتراحات العناوين:\n" + text);
-                else editor.innerText += "\n" + text; // Append for body
-                
-            } catch(e) {
-                alert("خطأ في الاتصال بـ Gemini");
+            // --- دوال العرض ---
+            async function fetchNews() {
+                try {
+                    const snapshot = await db.collection("news").limit(20).get(); // Simple query
+                    if(snapshot.empty) { renderEmptyState(); return; }
+                    let docs = snapshot.docs.map(doc => doc.data());
+                    docs.sort((a, b) => (b.timestamp?.seconds || 0) - (a.timestamp?.seconds || 0));
+                    renderSite(docs);
+                    renderAdminList(docs);
+                } catch(e) { console.error(e); renderMockData(); }
             }
-        }
+            window.loadRealData = fetchNews; // Alias
 
-        // --- MEMBERS LOGIC ---
-        function initMembers() {
-            const members = [
-                { name: "أحمد محمد", email: "ahmed@hqyq.com", role: "محرر", status: "نشط", img: "Felix" },
-                { name: "سارة علي", email: "sara@hqyq.com", role: "كاتب", status: "نشط", img: "Aneka" },
-                { name: "خالد عمر", email: "khaled@hqyq.com", role: "مراسل", status: "معلق", img: "Zack" },
-            ];
+            // --- دوال Gemini ---
+            let userApiKey = localStorage.getItem('gemini_api_key') || "";
+            async function callGemini(prompt, sys) {
+                if(!userApiKey) { document.getElementById('settings-modal').classList.remove('hidden'); return null; }
+                try {
+                    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${userApiKey}`;
+                    const res = await fetch(url, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }], systemInstruction: { parts: [{ text: sys }] } }) });
+                    const data = await res.json();
+                    return data.candidates?.[0]?.content?.parts?.[0]?.text;
+                } catch(e) { return null; }
+            }
+
+            window.triggerAI = async (action) => {
+                const output = document.getElementById('ai-output');
+                const editor = document.getElementById('editor');
+                const title = document.getElementById('news-title').value;
+                output.classList.remove('hidden'); output.innerHTML = "جاري المعالجة...";
+                
+                let prompt = "";
+                if(action === 'title') prompt = `اقترح عناوين لـ: ${editor.innerText}`;
+                if(action === 'grammar') prompt = `صحح لغوياً: ${editor.innerText}`;
+                
+                const res = await callGemini(prompt, "مساعد صحفي");
+                if(res) {
+                    if(action === 'grammar') editor.innerText = res;
+                    output.innerHTML = marked.parse(res);
+                }
+            };
+
+            window.generateImage = async () => {
+                 const title = document.getElementById('news-title').value;
+                 if(!userApiKey) { document.getElementById('settings-modal').classList.remove('hidden'); return; }
+                 const prompt = await callGemini(`Describe image for news: "${title}" in English`, "Prompt Engineer");
+                 if(prompt) {
+                     try {
+                         const url = `https://generativelanguage.googleapis.com/v1beta/models/imagen-3.0-generate-001:predict?key=${userApiKey}`;
+                         const res = await fetch(url, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ instances: [{ prompt: prompt }], parameters: { sampleCount: 1 } }) });
+                         const data = await res.json();
+                         const img = `data:image/png;base64,${data.predictions[0].bytesBase64Encoded}`;
+                         document.getElementById('news-image').value = img;
+                         showToast("تم توليد الصورة");
+                     } catch(e) { alert("خطأ في توليد الصورة"); }
+                 }
+            };
+
+        } catch (e) { console.error("Firebase Error:", e); }
+
+        // --- UI Helpers ---
+        function renderSite(news) {
+            const hero = news[0];
+            const others = news.slice(1);
+            document.getElementById('ticker-content').innerText = "• " + news.map(n => n.title).join(" •       ");
             
-            const list = document.getElementById('members-list');
-            list.innerHTML = members.map(m => `
-                <tr class="group hover:bg-white/5 transition-colors">
-                    <td class="p-4 flex items-center gap-3">
-                        <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=${m.img}" class="w-8 h-8 rounded-full bg-gray-700">
-                        <div>
-                            <div class="text-white font-bold">${m.name}</div>
-                            <div class="text-xs text-gray-500">${m.email}</div>
-                        </div>
-                    </td>
-                    <td class="p-4"><span class="bg-blue-500/10 text-blue-400 px-2 py-1 rounded text-xs border border-blue-500/20">${m.role}</span></td>
-                    <td class="p-4">
-                        <span class="${m.status === 'نشط' ? 'text-green-400' : 'text-red-400'} flex items-center gap-1 text-xs">
-                            <span class="w-1.5 h-1.5 rounded-full ${m.status === 'نشط' ? 'bg-green-400' : 'bg-red-400'}"></span> ${m.status}
-                        </span>
-                    </td>
-                    <td class="p-4">
-                        <button class="text-gray-400 hover:text-white p-1"><i data-lucide="more-horizontal" class="w-4 h-4"></i></button>
-                    </td>
-                </tr>
-            `).join('');
-            lucide.createIcons();
+            document.getElementById('hero-section').innerHTML = `
+                <div class="lg:col-span-12 relative group rounded-2xl overflow-hidden h-[300px] lg:h-[450px] cursor-pointer shadow-2xl border border-white/10">
+                    <img src="${hero.img}" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" onerror="this.src='https://via.placeholder.com/800x400'">
+                    <div class="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent"></div>
+                    <div class="absolute bottom-0 p-6 lg:p-10 w-full z-10">
+                        <h1 class="text-2xl md:text-4xl font-black text-white mb-3 leading-tight">${hero.title}</h1>
+                        <p class="text-gray-200 text-sm line-clamp-2 hidden md:block">${hero.desc}</p>
+                    </div>
+                </div>`;
+
+            document.getElementById('news-container').innerHTML = others.map(n => `
+                <div class="flex gap-4 mb-4 bg-white/5 p-3 rounded-xl border border-white/5 hover:border-gold-400/30 transition-all group cursor-pointer">
+                    <div class="w-24 h-24 flex-shrink-0 overflow-hidden rounded-lg"><img src="${n.img}" class="w-full h-full object-cover" onerror="this.src='https://via.placeholder.com/150'"></div>
+                    <div class="flex flex-col justify-center flex-1">
+                        <span class="text-[10px] text-gold-400 font-bold mb-1">${n.category}</span>
+                        <h3 class="text-white font-bold text-base leading-snug group-hover:text-gold-400 transition-colors line-clamp-2">${n.title}</h3>
+                        <span class="text-[10px] text-gray-500 mt-1">${n.date}</span>
+                    </div>
+                </div>`).join('');
+                
+            initIcons();
         }
 
+        function renderAdminList(docs) {
+            document.getElementById('admin-articles-list').innerHTML = docs.map(d => 
+                `<div class="p-3 border-b border-white/10 flex justify-between items-center">
+                    <span class="text-white font-bold text-sm truncate w-2/3">${d.title}</span>
+                    <span class="text-xs text-gray-500">${d.date}</span>
+                </div>`
+            ).join('');
+        }
+
+        function renderEmptyState() {
+            document.getElementById('hero-section').innerHTML = `<div class="lg:col-span-12 h-64 flex items-center justify-center border border-dashed border-white/10 rounded-2xl text-gray-500">لا توجد أخبار</div>`;
+        }
+        function renderMockData() { /* Mock Data Fallback if needed */ }
+        
+        window.showSection = (id) => {
+            document.getElementById('sec-editor').classList.add('hidden');
+            document.getElementById('sec-articles').classList.add('hidden');
+            document.getElementById(`sec-${id}`).classList.remove('hidden');
+        }
+        
+        window.saveApiKey = () => {
+            const key = document.getElementById('api-key-input').value;
+            if(key) { localStorage.setItem('gemini_api_key', key); userApiKey = key; document.getElementById('settings-modal').classList.add('hidden'); }
+        }
+        window.openSettings = () => document.getElementById('settings-modal').classList.remove('hidden');
+        
+        function showToast(msg) {
+            const t = document.getElementById('toast');
+            document.getElementById('toast-msg').innerText = msg;
+            t.classList.remove('translate-y-24', 'opacity-0');
+            setTimeout(() => t.classList.add('translate-y-24', 'opacity-0'), 3000);
+        }
+        
+        document.addEventListener('DOMContentLoaded', initIcons);
     </script>
 </body>
 </html>
