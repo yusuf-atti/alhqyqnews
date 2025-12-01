@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>عن الموقع | صحيفة الحقيقة</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+    <style>
+        body { font-family: 'Tajawal', sans-serif; background: #050510; color: white; }
+        .glass { background: rgba(21, 21, 37, 0.75); backdrop-filter: blur(20px); }
+    </style>
+</head>
+<body>
+    <!-- نفس التنقل -->
+    <nav class="fixed w-full bg-[#050510]/90 p-4 border-b border-white/10 z-50">
+        <div class="container mx-auto flex justify-between items-center">
+            <a href="index.html" class="text-2xl text-gold-400 font-bold">الـحقيقة</a>
+            <div class="flex gap-4 text-sm">
+                <a href="index.html">الرئيسية</a>
+                <a href="news.html">الأخبار</a>
+                <a href="categories.html">الأقسام</a>
+                <a href="about.html" class="text-gold-400">عن الموقع</a>
+                <a href="contact.html">اتصل بنا</a>
+            </div>
+        </div>
+    </nav>
+
+    <main class="pt-24 pb-16 container mx-auto px-4 max-w-4xl">
+        <h1 class="text-4xl font-black text-gold-400 mb-8">عن صحيفة الحقيقة</h1>
+        
+        <div class="glass p-8 rounded-2xl mb-8">
+            <h2 class="text-2xl font-bold mb-4">📰 رؤيتنا</h2>
+            <p class="text-lg leading-loose mb-6">
+                "الحقيقة نيوز" هي منصة رقمية متكاملة تجمع بين دقة الصحافة التقليدية 
+                وتقنيات الذكاء الاصطناعي الحديثة. نؤمن بأن المستقبل الصحفي يعتمد على 
+                الدمج الذكي بين الخبرة البشرية والابتكار التكنولوجي.
+            </p>
+        </div>
+
+        <div class="grid md:grid-cols-2 gap-6 mb-8">
+            <div class="glass p-6 rounded-2xl">
+                <h3 class="text-xl font-bold mb-3 flex items-center gap-2">
+                    <i data-lucide="target" class="w-5 h-5 text-gold-400"></i>
+                    مهمتنا
+                </h3>
+                <ul class="space-y-2 text-gray-300">
+                    <li>• تقديم أخبار دقيقة وموثوقة</li>
+                    <li>• استخدام الذكاء الاصطناعي لتحسين التجربة</li>
+                    <li>• الابتكار في الصحافة الرقمية</li>
+                    <li>• بناء مجتمع قراء واعٍ</li>
+                </ul>
+            </div>
+            
+            <div class="glass p-6 rounded-2xl">
+                <h3 class="text-xl font-bold mb-3 flex items-center gap-2">
+                    <i data-lucide="sparkles" class="w-5 h-5 text-gold-400"></i>
+                    التقنيات
+                </h3>
+                <div class="flex flex-wrap gap-2">
+                    <span class="px-3 py-1 bg-gold-400/20 text-gold-400 rounded-full text-sm">Firebase</span>
+                    <span class="px-3 py-1 bg-blue-400/20 text-blue-400 rounded-full text-sm">Tailwind</span>
+                    <span class="px-3 py-1 bg-green-400/20 text-green-400 rounded-full text-sm">Gemini AI</span>
+                    <span class="px-3 py-1 bg-purple-400/20 text-purple-400 rounded-full text-sm">PWA</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="glass p-8 rounded-2xl">
+            <h2 class="text-2xl font-bold mb-6">فريق العمل</h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="text-center">
+                    <div class="w-20 h-20 bg-gold-400/20 rounded-full mx-auto mb-3 flex items-center justify-center">
+                        <i data-lucide="user" class="w-10 h-10 text-gold-400"></i>
+                    </div>
+                    <h4 class="font-bold">فريق التحرير</h4>
+                    <p class="text-sm text-gray-400">المحتوى والتدقيق</p>
+                </div>
+                <div class="text-center">
+                    <div class="w-20 h-20 bg-blue-400/20 rounded-full mx-auto mb-3 flex items-center justify-center">
+                        <i data-lucide="code" class="w-10 h-10 text-blue-400"></i>
+                    </div>
+                    <h4 class="font-bold">فريق التطوير</h4>
+                    <p class="text-sm text-gray-400">البرمجة والتصميم</p>
+                </div>
+                <div class="text-center">
+                    <div class="w-20 h-20 bg-green-400/20 rounded-full mx-auto mb-3 flex items-center justify-center">
+                        <i data-lucide="brain" class="w-10 h-10 text-green-400"></i>
+                    </div>
+                    <h4 class="font-bold">الذكاء الاصطناعي</h4>
+                    <p class="text-sm text-gray-400">النماذج والتحليل</p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- نفس الفوتر -->
+    <footer class="border-t border-white/10 py-8 text-center">
+        <div class="container mx-auto px-4">
+            <p class="text-gray-500">© 2025 صحيفة الحقيقة - جميع الحقوق محفوظة</p>
+        </div>
+    </footer>
+
+    <script>lucide.createIcons();</script>
+</body>
+</html>
