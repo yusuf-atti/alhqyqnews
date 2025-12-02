@@ -1,0 +1,147 @@
+// ملف: app.js
+
+// ----------------------------------------------------
+// 1. إعدادات Firebase (يجب استبدالها ببيانات مشروعك الحقيقية)
+// ----------------------------------------------------
+const firebaseConfig = {
+    apiKey: "YOUR_API_KEY", // <--- استبدل هنا
+    authDomain: "YOUR_PROJECT_ID.firebaseapp.com", // <--- استبدل هنا
+    projectId: "YOUR_PROJECT_ID", // <--- استبدل هنا
+    storageBucket: "YOUR_PROJECT_ID.appspot.com",
+    messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+    appId: "YOUR_APP_ID"
+};
+
+// ----------------------------------------------------
+// 2. تهيئة Firebase
+// ----------------------------------------------------
+const app = firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+const db = firebase.firestore();
+
+// ----------------------------------------------------
+// 3. الدوال المساعدة
+// ----------------------------------------------------
+// دالة لتحويل كود Markdown إلى HTML (تستخدم مكتبة Marked.js)
+function convertMarkdownToHtml(markdownText) {
+    return marked.parse(markdownText || "");
+}
+
+// دالة لمعالجة النقر على المقال (سيتم تطويرها لاحقاً لفتح صفحة المقال)
+function openArticle(articleId) {
+    console.log("تم النقر على مقال ID:", articleId);
+    // يمكنك تفعيل هذا لاحقاً: window.location.href = `article.html?id=${articleId}`;
+}
+
+// دالة لمعالجة النقر على القسم (التصفية)
+function filterArticles(category, clickedElement) {
+    // 1. إزالة التنسيق النشط (الذهبي) من كل الروابط
+    document.querySelectorAll('.nav-link').forEach(link => {
+        link.classList.remove('text-gold-400', 'border-b-2', 'border-gold-400');
+        link.classList.add('text-gray-300');
+    });
+
+    // 2. إضافة التنسيق النشط للرابط الذي تم النقر عليه
+    clickedElement.classList.remove('text-gray-300');
+    clickedElement.classList.add('text-gold-400', 'border-b-2', 'border-gold-400');
+    
+    // 3. عرض المقالات الجديدة بناءً على القسم
+    renderArticles(category);
+}
+
+// ----------------------------------------------------
+// 4. جلب وعرض المقالات
+// ----------------------------------------------------
+
+// دالة لجلب المقالات من Firestore مع إمكانية التصفية حسب القسم
+async function fetchArticles(category = 'all') { // تقبل category كمعامل
+    try {
+        let articlesRef = db.collection("articles").orderBy("timestamp", "desc");
+        
+        // 💡 منطق التصفية: إذا لم يكن القسم هو "الكل" أو "الأخبار العاجلة"، قم بإضافة شرط التصفية
+        if (category !== 'all' && category !== 'latest') {
+            // هذا هو الشرط الذي يطابق حقل category في Firestore
+            articlesRef = articlesRef.where("category", "==", category); 
+        }
+
+        const snapshot = await articlesRef.get();
+        const articles = [];
+        snapshot.forEach(doc => {
+            articles.push({ id: doc.id, ...doc.data() });
+        });
+        return articles;
+    } catch (error) {
+        console.error("خطأ في جلب المقالات:", error);
+        return [];
+    }
+}
+
+// دالة لبناء بطاقة مقال فردي
+function createArticleCard(article) {
+    // ... (بناء البطاقة) ...
+    const summary = article.content ? article.content.substring(0, 150) + '...' : '';
+    const contentHtml = convertMarkdownToHtml(summary);
+    
+    const articleDate = article.timestamp ? 
+        new Date(article.timestamp.seconds * 1000).toLocaleDateString('ar-EG') : 
+        'غير محدد';
+
+    return `
+        <div class="glass-panel p-6 rounded-xl shadow-lg animate-fade-in mb-8" data-article-id="${article.id}">
+            <div class="flex justify-between items-start">
+                <h2 class="text-2xl font-bold text-white mb-2 hover:text-gold-400 cursor-pointer transition duration-300">
+                    ${article.title}
+                </h2>
+                <span class="text-xs text-gray-400">${articleDate}</span>
+            </div>
+            
+            <p class="text-gray-300 mb-4 leading-relaxed">بواسطة: ${article.author || 'محرر مجهول'}</p>
+            
+            <div class="text-gray-400 text-sm leading-7">
+                ${contentHtml}
+            </div>
+
+            <button class="inline-block mt-4 text-gold-400 hover:text-gold-500 font-medium transition duration-300 read-more-btn" data-id="${article.id}">
+                اقرأ المقال كاملاً →
+            </button>
+        </div>
+    `;
+}
+
+// الدالة الرئيسية لتحميل وعرض المقالات
+async function renderArticles(category = 'all') { // تقبل category كمعامل
+    const container = document.getElementById('app-container');
+    container.innerHTML = `<div class="flex justify-center items-center py-12"><div class="loader"></div></div>`; 
+
+    const articles = await fetchArticles(category); // تمرير القسم لدالة الجلب
+    
+    container.innerHTML = ''; 
+
+    if (articles.length === 0) {
+        container.innerHTML = '<p class="text-center text-gray-400 py-12">لا توجد مقالات لعرضها حالياً في هذا القسم.</p>';
+        return;
+    }
+
+    let htmlContent = '';
+    articles.forEach(article => {
+        htmlContent += createArticleCard(article);
+    });
+
+    container.innerHTML = htmlContent;
+}
+
+// ----------------------------------------------------
+// 5. بدء تشغيل التطبيق
+// ----------------------------------------------------
+document.addEventListener('DOMContentLoaded', () => {
+    // عند تحميل الصفحة، ابدأ بعرض المقالات في قسم "الكل"
+    renderArticles('all'); 
+    
+    // إضافة مستمع للأحداث لزر "اقرأ المزيد"
+    document.getElementById('app-container').addEventListener('click', (e) => {
+        if (e.target.classList.contains('read-more-btn')) {
+            const articleId = e.target.dataset.id;
+            openArticle(articleId);
+        }
+    });
+});
