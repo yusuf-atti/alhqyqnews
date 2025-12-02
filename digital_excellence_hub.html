@@ -1,649 +1,0 @@
-<!DOCTYPE html>
-<html lang="ar" dir="rtl">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>مركز التميز الرقمي | صحيفة الحقيقة</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;900&display=swap" rel="stylesheet">
-    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
-
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    fontFamily: { sans: ['Tajawal', 'sans-serif'] },
-                    colors: {
-                        navy: { 900: '#050510', 800: '#0a0a15', 700: '#151525' },
-                        gold: { 400: '#D4AF37', 500: '#C5A028', 100: '#F9F1D8' }
-                    },
-                    animation: {
-                        'pulse-slow': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
-                    }
-                }
-            }
-        }
-    </script>
-
-    <style>
-        body { background-color: #f8fafc; color: #1e293b; }
-        /* Chart Container Styling */
-        .chart-container {
-            position: relative;
-            width: 100%;
-            max-width: 800px;
-            margin-left: auto;
-            margin-right: auto;
-            height: 300px;
-            max-height: 400px;
-        }
-        @media (min-width: 768px) {
-            .chart-container { height: 350px; }
-        }
-
-        .glass-panel {
-            background: rgba(255, 255, 255, 0.95);
-            border: 1px solid rgba(212, 175, 55, 0.2);
-            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.05);
-        }
-        .feature-card {
-            transition: all 0.3s ease;
-            border-bottom: 3px solid transparent;
-        }
-        .feature-card:hover {
-            transform: translateY(-5px);
-            border-bottom-color: #D4AF37;
-            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
-        }
-        .nav-btn.active {
-            background-color: #050510;
-            color: #D4AF37;
-            border-color: #D4AF37;
-        }
-        /* Custom Scrollbar */
-        ::-webkit-scrollbar { width: 6px; }
-        ::-webkit-scrollbar-track { background: #f1f5f9; }
-        ::-webkit-scrollbar-thumb { background: #D4AF37; border-radius: 4px; }
-        .loader { border: 3px solid #ccc; border-top-color: #D4AF37; border-radius: 50%; width: 20px; height: 20px; animation: spin 1s linear infinite; }
-        @keyframes spin { to { transform: rotate(360deg); } }
-    </style>
-
-    <!-- Chosen Palette: "Royal Innovation" - Dark Navy accents on Clean White background for readability, with Gold highlights for prestige. -->
-    <!-- Application Structure Plan: 
-         1. **Hero Section:** Introduces the "Smart Vision" of Al-Haqiqa based on the 15 features.
-         2. **Innovation Matrix (Features):** Interactive grid categorizing the 15 features into "AI Core", "Strategy", and "User Experience".
-         3. **Contract Simulator:** A digital transformation of the uploaded PDF contract, breaking it down into digestible articles with an "Accept" action and validation logic.
-         4. **Impact Dashboard:** Visualizing the "Impact Meter" and "Predictive Newsroom" concepts using Chart.js.
-    -->
-    <!-- Visualization & Content Choices:
-         - Features Grid: Categorized for clarity, using icons instead of images.
-         - Contract Viewer: Accordion style for legal text readability (Source: Uploaded PDF).
-         - Charts: 
-            1. Radar Chart for Writer Performance (Skill analysis from feature #12).
-            2. Line Chart for Predictive Newsroom (Event probability from feature #4).
-         - CONFIRMATION: NO SVG graphics used directly. Lucide icons used via script. NO Mermaid JS used.
-    -->
-
-</head>
-<body class="antialiased min-h-screen flex flex-col">
-
-    <!-- Header -->
-    <nav class="bg-navy-900 text-white sticky top-0 z-50 border-b border-gold-400 shadow-lg">
-        <div class="container mx-auto px-6 h-20 flex justify-between items-center">
-            <div class="flex items-center gap-3">
-                <div class="text-3xl font-black text-gold-400 tracking-tighter">الـحقيقة<span class="text-white">.</span></div>
-                <div class="hidden md:block h-6 w-px bg-white/20"></div>
-                <span class="hidden md:block text-xs text-gray-400 tracking-widest uppercase">مركز التميز الرقمي</span>
-            </div>
-            <div class="flex gap-4">
-                <button onclick="switchSection('features', this)" id="btn-features" class="nav-btn active px-4 py-2 rounded-lg text-sm font-bold transition-colors border border-transparent">الابتكارات الـ 15</button>
-                <button onclick="showContractViewer()" id="btn-contract" class="nav-btn px-4 py-2 rounded-lg text-sm font-bold text-gray-400 hover:text-white transition-colors border border-transparent">توثيق العقد</button>
-                <button onclick="switchSection('dashboard', this)" id="btn-dashboard" class="nav-btn px-4 py-2 rounded-lg text-sm font-bold text-gray-400 hover:text-white transition-colors border border-transparent">لوحة الأثر</button>
-            </div>
-        </div>
-    </nav>
-
-    <!-- Main Content -->
-    <main class="flex-grow container mx-auto px-4 py-8">
-
-        <!-- SECTION 1: THE 15 INNOVATIONS -->
-        <div id="sec-features" class="space-y-8 animate-fade-in">
-            <div class="text-center max-w-3xl mx-auto mb-12">
-                <h1 class="text-4xl font-black text-navy-900 mb-4">مستقبل الصحافة الذكية</h1>
-                <p class="text-gray-600 text-lg">
-                    يقدم هذا القسم استعراضاً تفاعلياً للـ 15 ميزة التي تميز "الحقيقة" عن غيرها. تم تصنيف الميزات لتسهيل الفهم بين الذكاء التحريري، الاستراتيجية الاستباقية، وتجربة المستخدم المخصصة.
-                </p>
-            </div>
-
-            <!-- Filter Tabs -->
-            <div class="flex justify-center gap-4 mb-8 flex-wrap">
-                <button onclick="filterFeatures('all', this)" class="filter-chip active bg-navy-900 text-gold-400 px-6 py-2 rounded-full font-bold shadow-lg transition-transform hover:scale-105">الكل</button>
-                <button onclick="filterFeatures('ai', this)" class="filter-chip bg-white text-gray-600 border border-gray-200 px-6 py-2 rounded-full font-bold hover:border-gold-400 transition-colors">الذكاء التحريري</button>
-                <button onclick="filterFeatures('strategy', this)" class="filter-chip bg-white text-gray-600 border border-gray-200 px-6 py-2 rounded-full font-bold hover:border-gold-400 transition-colors">الاستباقية والاستراتيجية</button>
-                <button onclick="filterFeatures('user', this)" class="filter-chip bg-white text-gray-600 border border-gray-200 px-6 py-2 rounded-full font-bold hover:border-gold-400 transition-colors">تجربة القارئ</button>
-            </div>
-
-            <!-- Grid -->
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="features-grid">
-                <!-- Content injected via JS -->
-            </div>
-        </div>
-
-        <!-- SECTION 2: DIGITAL CONTRACT -->
-        <div id="sec-contract" class="hidden">
-            <!-- Content moved to modal/viewer -->
-        </div>
-
-        <!-- SECTION 3: IMPACT DASHBOARD -->
-        <div id="sec-dashboard" class="hidden space-y-8">
-            <div class="text-center mb-8">
-                <h2 class="text-3xl font-black text-navy-900 mb-4">لوحة القيادة الاستراتيجية</h2>
-                <p class="text-gray-600 mt-2">تجسيد حي لأفكار "تقرير الأثر" و "غرفة الأخبار التنبؤية".</p>
-            </div>
-
-            <!-- KPI Cards -->
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div class="glass-panel p-6 rounded-xl border-t-4 border-gold-400 relative overflow-hidden">
-                    <h3 class="text-gray-500 text-xs font-bold uppercase relative z-10">مؤشر التنبؤ (Predictive AI)</h3>
-                    <div class="text-3xl font-black text-navy-900 mt-2 relative z-10">85%</div>
-                    <button onclick="explainKPIs('predictive')" class="mt-1 text-xs text-blue-600 hover:underline flex items-center gap-1"><i data-lucide="message-square" class="w-3 h-3"></i> تفسير آلي</button>
-                </div>
-                <div class="glass-panel p-6 rounded-xl border-t-4 border-blue-500 relative overflow-hidden">
-                    <h3 class="text-gray-500 text-xs font-bold uppercase relative z-10">الأثر الاجتماعي (Impact Meter)</h3>
-                    <div class="text-3xl font-black text-navy-900 mt-2 relative z-10">12.5K</div>
-                    <button onclick="explainKPIs('impact')" class="mt-1 text-xs text-blue-600 hover:underline flex items-center gap-1"><i data-lucide="message-square" class="w-3 h-3"></i> تفسير آلي</button>
-                </div>
-                <div class="glass-panel p-6 rounded-xl border-t-4 border-purple-500 relative overflow-hidden">
-                    <h3 class="text-gray-500 text-xs font-bold uppercase relative z-10">كفاءة التحرير الذكي</h3>
-                    <div class="text-3xl font-black text-navy-900 mt-2 relative z-10">1.2 ثانية</div>
-                    <button onclick="explainKPIs('efficiency')" class="mt-1 text-xs text-blue-600 hover:underline flex items-center gap-1"><i data-lucide="message-square" class="w-3 h-3"></i> تفسير آلي</button>
-                </div>
-            </div>
-
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                <!-- Chart 1: Predictive Newsroom -->
-                <div class="glass-panel p-6 rounded-xl">
-                    <h3 class="text-lg font-bold text-navy-900 mb-6 border-b pb-2 flex items-center gap-2">
-                        <i data-lucide="radar" class="w-5 h-5 text-gold-400"></i>
-                        غرفة الأخبار التنبؤية (توقعات الأسبوع)
-                    </h3>
-                    <div class="chart-container">
-                        <canvas id="predictiveChart"></canvas>
-                    </div>
-                    <p class="text-xs text-gray-400 mt-4 text-center">يتوقع الذكاء الاصطناعي صعود هذه المواضيع، مما يوجّه فريق التحرير للاستعداد لها.</p>
-                </div>
-
-                <!-- Chart 2: Writer Performance -->
-                <div class="glass-panel p-6 rounded-xl">
-                    <h3 class="text-lg font-bold text-navy-900 mb-6 border-b pb-2 flex items-center gap-2">
-                         <i data-lucide="activity" class="w-5 h-5 text-blue-500"></i>
-                         لوحة أداء الكاتب (Skill Analysis)
-                    </h3>
-                    <div class="chart-container">
-                        <canvas id="writerChart"></canvas>
-                    </div>
-                    <p class="text-xs text-gray-400 mt-4 text-center">تحليل نقاط القوة والضعف للمحرر لتقديم توصيات تطويرية (فكرة رقم 12).</p>
-                </div>
-            </div>
-        </div>
-
-    </main>
-
-    <footer class="bg-white border-t border-gray-200 py-8 mt-12">
-        <div class="container mx-auto text-center">
-            <p class="text-navy-900 font-bold mb-2">صحيفة الحقيقة الإلكترونية</p>
-            <p class="text-xs text-gray-500">جميع الحقوق محفوظة © 2025 | مرخصة إعلامياً (110674)</p>
-        </div>
-    </footer>
-
-    <!-- MODAL: CONTRACT VIEWER (PRIVATE/ADMIN) -->
-    <div id="contract-viewer-modal" class="fixed inset-0 z-[100] bg-black/95 hidden items-center justify-center p-4 backdrop-blur-sm">
-        <div class="bg-white w-full max-w-4xl rounded-2xl shadow-2xl overflow-hidden relative">
-             <button onclick="closeContractViewer()" class="absolute top-4 right-4 z-10 p-2 bg-red-500 text-white rounded-full hover:bg-red-600 transition"><i data-lucide="x" class="w-6 h-6"></i></button>
-
-            <div class="p-8 sm:p-12">
-                <div class="text-center mb-6">
-                     <h2 class="text-3xl font-black text-navy-900 mb-2">توثيق عقد التعاون الصحفي</h2>
-                     <p class="text-gray-600">هذا المستند محمي وخاص بالمدراء لتوثيق العضويات الجديدة وضمان الالتزام بالشروط والأمان.</p>
-                </div>
-
-                <div class="border-2 border-navy-900 rounded-xl overflow-hidden">
-                    
-                    <!-- Title Header -->
-                    <div class="bg-navy-900 text-white p-4 flex justify-between items-center">
-                        <h3 class="font-bold">بيانات العضوية والأمان</h3>
-                        <p class="text-xs text-yellow-400">فترة التجربة: 90 يوماً</p>
-                    </div>
-
-                    <!-- Input Fields -->
-                    <div class="p-6 bg-gray-50 grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div><label class="block text-xs font-bold text-gray-500 mb-1">الاسم الكامل</label><input type="text" id="contract-name" class="w-full p-2 border border-gray-300 rounded focus:border-gold-400 outline-none" placeholder="الاسم الرباعي"></div>
-                        <div><label class="block text-xs font-bold text-gray-500 mb-1">رقم الهوية (يجب أن يبدأ بـ 1)</label><input type="text" id="contract-id" class="w-full p-2 border border-gray-300 rounded focus:border-gold-400 outline-none" placeholder="1xxxxxxxxx" maxlength="10"></div>
-                        <div class="md:col-span-2"><label class="block text-xs font-bold text-gray-500 mb-1">المنطقة / المكتب</label><select id="contract-region" class="w-full p-2 border border-gray-300 rounded focus:border-gold-400 outline-none"><option value="HQ">المكتب الرئيسي (جازان)</option><option value="Central">المنطقة الوسطى</option><option value="Eastern">المنطقة الشرقية</option><option value="Western">المنطقة الغربية</option><option value="Northern">المنطقة الشمالية</option><option value="Southern">المنطقة الجنوبية</option></select></div>
-                        <p id="id-error" class="text-xs text-red-500 mt-1 md:col-span-2 hidden text-center">خطأ أمني: رقم الهوية يجب أن يتكون من 10 أرقام ويبدأ بـ 1.</p>
-                    </div>
-                    
-                    <!-- Contract Body -->
-                    <div class="p-6 bg-white border-t border-gray-200">
-                        <h3 class="text-lg font-bold text-navy-900 mb-4 flex items-center gap-2"><i data-lucide="scale" class="w-5 h-5"></i> ملخص البنود القانونية</h3>
-                        <div class="space-y-4 mb-8">
-                            <!-- Article 1 -->
-                            <div class="border border-gray-200 rounded-lg overflow-hidden">
-                                <button class="w-full text-right p-4 bg-gray-50 font-bold text-navy-900 flex justify-between items-center hover:bg-gray-100 transition" onclick="toggleAccordion('art1_view')">
-                                    <span>المادة الأولى: موضوع العقد</span>
-                                    <i data-lucide="chevron-down" class="w-5 h-5 text-gold-400 transition-transform"></i>
-                                </button>
-                                <div id="art1_view" class="hidden p-4 text-gray-600 text-sm leading-relaxed border-t border-gray-200 bg-white">يتعلق هذا العقد بتعاون الطرفين في مجال العمل الصحفي من خلال نشر المقالات والتقارير والأخبار على صحيفة الحقيقة الإلكترونية بشكل تطوعي.</div>
-                            </div>
-                            <!-- Article 2 & 3 -->
-                            <div class="border border-gray-200 rounded-lg overflow-hidden">
-                                <button class="w-full text-right p-4 bg-gray-50 font-bold text-navy-900 flex justify-between items-center hover:bg-gray-100 transition" onclick="toggleAccordion('art2_view')">
-                                    <span>المادة الثانية والثالثة: المدة والتجربة</span>
-                                    <i data-lucide="chevron-down" class="w-5 h-5 text-gold-400 transition-transform"></i>
-                                </button>
-                                <div id="art2_view" class="hidden p-4 text-gray-600 text-sm leading-relaxed border-t border-gray-200 bg-white">
-                                    <ul class="list-disc list-inside space-y-2">
-                                        <li><strong>المدة:</strong> سنة واحدة قابلة للتجديد.</li>
-                                        <li><strong>فترة التجربة:</strong> 90 يوماً تبدأ من تاريخ نشر أول مادة.</li>
-                                    </ul>
-                                </div>
-                            </div>
-                            <!-- AI Risk Analysis Button -->
-                            <button onclick="analyzeContractRisks()" class="mt-4 text-xs text-blue-600 hover:underline flex items-center gap-1"><i data-lucide="scan" class="w-3 h-3"></i> تحليل بنود العقد لكشف المخاطر (AI)</button>
-
-                            <div id="risk-analysis-output" class="mt-4 bg-blue-50 p-4 rounded-lg border border-blue-200 hidden">
-                                <h4 class="text-blue-900 font-bold mb-2 flex items-center gap-2"><i data-lucide="eye" class="w-4 h-4"></i> تقرير المخاطر الآلي</h4>
-                                <div id="risk-output-content" class="text-xs text-blue-800 leading-relaxed"></div>
-                            </div>
-
-                        </div>
-                    </div>
-
-                    <!-- Signature Button -->
-                    <div class="bg-navy-900 text-white p-6 flex justify-center items-center">
-                        <div class="flex flex-col items-center gap-2 w-full">
-                            <div class="flex items-center gap-2 mb-2">
-                                <input type="checkbox" id="agree-check" class="w-5 h-5 accent-gold-400 cursor-pointer">
-                                <label for="agree-check" class="text-sm cursor-pointer select-none">أقر بقراءة البنود والالتزام بها</label>
-                            </div>
-                            <button onclick="signContract()" id="sign-btn" class="w-full bg-gold-400 text-black px-10 py-3 rounded-lg font-black hover:bg-white transition-all disabled:opacity-50 disabled:cursor-not-allowed">
-                                توثيق العقد إلكترونياً (بصمة رقمية)
-                            </button>
-                        </div>
-                    </div>
-                    <div id="signature-result" class="hidden mt-4 p-4 bg-green-100 text-green-800 rounded-lg text-center border border-green-300 font-mono text-sm animate-pulse"></div>
-                </div>
-            </div>
-        </div>
-
-        <!-- SECTION 3: IMPACT DASHBOARD -->
-        <div id="sec-dashboard" class="hidden space-y-8">
-            <div class="text-center mb-8">
-                <h2 class="text-3xl font-black text-navy-900 mb-4">لوحة القيادة الاستراتيجية</h2>
-                <p class="text-gray-600 mt-2">تجسيد حي لأفكار "تقرير الأثر" و "غرفة الأخبار التنبؤية".</p>
-            </div>
-
-            <!-- KPI Cards -->
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div class="glass-panel p-6 rounded-xl border-t-4 border-gold-400 relative overflow-hidden">
-                    <h3 class="text-gray-500 text-xs font-bold uppercase relative z-10">مؤشر التنبؤ (Predictive AI)</h3>
-                    <div class="text-3xl font-black text-navy-900 mt-2 relative z-10">85%</div>
-                    <button onclick="explainKPIs('predictive')" class="mt-1 text-xs text-blue-600 hover:underline flex items-center gap-1"><i data-lucide="message-square" class="w-3 h-3"></i> تفسير آلي</button>
-                </div>
-                <div class="glass-panel p-6 rounded-xl border-t-4 border-blue-500 relative overflow-hidden">
-                    <h3 class="text-gray-500 text-xs font-bold uppercase relative z-10">الأثر الاجتماعي (Impact Meter)</h3>
-                    <div class="text-3xl font-black text-navy-900 mt-2 relative z-10">12.5K</div>
-                    <button onclick="explainKPIs('impact')" class="mt-1 text-xs text-blue-600 hover:underline flex items-center gap-1"><i data-lucide="message-square" class="w-3 h-3"></i> تفسير آلي</button>
-                </div>
-                <div class="glass-panel p-6 rounded-xl border-t-4 border-purple-500 relative overflow-hidden">
-                    <h3 class="text-gray-500 text-xs font-bold uppercase relative z-10">كفاءة التحرير الذكي</h3>
-                    <div class="text-3xl font-black text-navy-900 mt-2 relative z-10">1.2 ثانية</div>
-                    <button onclick="explainKPIs('efficiency')" class="mt-1 text-xs text-blue-600 hover:underline flex items-center gap-1"><i data-lucide="message-square" class="w-3 h-3"></i> تفسير آلي</button>
-                </div>
-            </div>
-
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                <!-- Chart 1: Predictive Newsroom -->
-                <div class="glass-panel p-6 rounded-xl">
-                    <h3 class="text-lg font-bold text-navy-900 mb-6 border-b pb-2 flex items-center gap-2">
-                        <i data-lucide="radar" class="w-5 h-5 text-gold-400"></i>
-                        غرفة الأخبار التنبؤية (توقعات الأسبوع)
-                    </h3>
-                    <div class="chart-container">
-                        <canvas id="predictiveChart"></canvas>
-                    </div>
-                    <p class="text-xs text-gray-400 mt-4 text-center">يتوقع الذكاء الاصطناعي صعود هذه المواضيع، مما يوجّه فريق التحرير للاستعداد لها.</p>
-                </div>
-
-                <!-- Chart 2: Writer Performance -->
-                <div class="glass-panel p-6 rounded-xl">
-                    <h3 class="text-lg font-bold text-navy-900 mb-6 border-b pb-2 flex items-center gap-2">
-                         <i data-lucide="activity" class="w-5 h-5 text-blue-500"></i>
-                         لوحة أداء الكاتب (Skill Analysis)
-                    </h3>
-                    <div class="chart-container">
-                        <canvas id="writerChart"></canvas>
-                    </div>
-                    <p class="text-xs text-gray-400 mt-4 text-center">تحليل نقاط القوة والضعف للمحرر لتقديم توصيات تطويرية (فكرة رقم 12).</p>
-                </div>
-            </div>
-        </div>
-
-    </main>
-
-    <footer class="bg-white border-t border-gray-200 py-8 mt-12">
-        <div class="container mx-auto text-center">
-            <p class="text-navy-900 font-bold mb-2">صحيفة الحقيقة الإلكترونية</p>
-            <p class="text-xs text-gray-500">جميع الحقوق محفوظة © 2025 | مرخصة إعلامياً (110674)</p>
-        </div>
-    </footer>
-
-    <!-- MODAL: AI OUTPUT / KPI EXPLANATION -->
-    <div id="ai-output-modal" class="fixed inset-0 z-[200] bg-black/70 hidden items-center justify-center p-4 backdrop-blur-sm">
-        <div class="bg-white w-full max-w-lg rounded-xl p-6 shadow-2xl relative">
-            <button onclick="document.getElementById('ai-output-modal').classList.add('hidden')" class="absolute top-3 right-3 text-red-500 hover:text-red-700"><i data-lucide="x" class="w-5 h-5"></i></button>
-            <h3 class="text-lg font-bold text-navy-900 mb-3" id="ai-modal-title"></h3>
-            <div id="ai-modal-content" class="text-gray-700 text-sm leading-relaxed prose max-w-none"></div>
-        </div>
-    </div>
-
-    <!-- JS Logic -->
-    <script>
-        // --- Data: The 15 Features ---
-        const features = [
-            { id: 1, cat: 'ai', icon: '👻', title: 'المراسل الشبح', desc: 'رصد وتحرير ونشر الأخبار القصيرة آلياً في أقل من 5 ثوانٍ.' },
-            { id: 4, cat: 'strategy', icon: '🔮', title: 'الغرفة التنبؤية', desc: 'تحليل البيانات لتوقع الأحداث والتريندات قبل حدوثها.' },
-            { id: 7, cat: 'ai', icon: '✍️', title: 'المحرر الذاتي', desc: 'تصحيح، تحسين، واقتراح بدائل للنص بضغطة زر.' },
-            { id: 12, cat: 'strategy', icon: '📊', title: 'لوحة الكاتب', desc: 'تحليل أداء المحررين وتقديم توصيات تطويرية لهم.' },
-            { id: 13, cat: 'ai', icon: '✅', title: 'كاشف الحقيقة', desc: 'أداة للتحقق الفوري من صحة الصور والأخبار المتداولة.' },
-            { id: 8, cat: 'user', icon: '👤', title: 'أخبرني الحقيقة', desc: 'نسخة مخصصة من الصحيفة لكل قارئ حسب اهتماماته.' },
-            { id: 5, cat: 'strategy', icon: '📏', title: 'مقياس الأثر', desc: 'نظام لقياس الأثر الاجتماعي الحقيقي للخبر.' },
-            { id: 11, cat: 'user', icon: '📡', title: 'الوضع غير المتصل', desc: 'تصفح آخر 50 خبراً والموجز الصوتي بدون إنترنت.' },
-        ];
-        
-        const MOCK_STATS = {
-             predictive: 85,
-             impact: 12500,
-             efficiency: 1.2,
-             writerSkills: [90, 85, 95, 70, 80],
-        };
-        
-        let predictiveChartInstance = null;
-        let writerChartInstance = null;
-
-
-        // --- Core Functions ---
-        document.addEventListener('DOMContentLoaded', () => {
-            renderFeatures(features);
-            initCharts();
-            lucide.createIcons();
-            
-            // Set initial state
-            document.getElementById('sec-features').classList.remove('hidden');
-            document.getElementById('btn-features').classList.add('active', 'bg-navy-900', 'text-gold-400');
-
-        });
-
-        function switchSection(secId, btnElement) {
-            // Destroy existing charts to prevent reuse error
-            if (predictiveChartInstance) predictiveChartInstance.destroy();
-            if (writerChartInstance) writerChartInstance.destroy();
-
-
-            ['features', 'contract', 'dashboard'].forEach(id => {
-                document.getElementById(`sec-${id}`).classList.add('hidden');
-                document.getElementById(`btn-${id}`).classList.remove('active', 'bg-navy-900', 'text-gold-400', 'shadow-lg');
-                document.getElementById(`btn-${id}`).classList.add('text-gray-400');
-            });
-            document.getElementById(`sec-${secId}`).classList.remove('hidden');
-            
-            const activeBtn = btnElement;
-            activeBtn.classList.remove('text-gray-400');
-            activeBtn.classList.add('active', 'bg-navy-900', 'text-gold-400', 'shadow-lg');
-            
-            if (secId === 'dashboard') {
-                // Re-initialize charts only when needed
-                initCharts(); 
-            }
-        }
-
-        // --- Features Logic (for Section 1) ---
-        function renderFeatures(data) {
-            const grid = document.getElementById('features-grid');
-            grid.innerHTML = data.map(f => `
-                <div class="feature-card bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex flex-col h-full relative overflow-hidden group">
-                    <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-gold-400 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                    <div class="text-4xl mb-4 transform group-hover:scale-110 transition-transform duration-300">${f.icon}</div>
-                    <h3 class="text-xl font-bold text-navy-900 mb-2">${f.title}</h3>
-                    <p class="text-gray-600 text-sm leading-relaxed flex-grow">${f.desc}</p>
-                    <div class="mt-4 pt-4 border-t border-gray-50 flex justify-between items-center">
-                        <span class="text-xs font-bold text-gold-400 uppercase tracking-wider">${getCatName(f.cat)}</span>
-                        <i data-lucide="arrow-left" class="w-4 h-4 text-gray-300 group-hover:text-gold-400 transition-colors"></i>
-                    </div>
-                </div>
-            `).join('');
-            lucide.createIcons();
-        }
-
-        function getCatName(cat) {
-            if(cat === 'ai') return 'الذكاء التحريري';
-            if(cat === 'strategy') return 'الاستراتيجية';
-            return 'تجربة القارئ';
-        }
-
-        function filterFeatures(cat, btn) {
-             document.querySelectorAll('.filter-chip').forEach(el => {
-                el.classList.remove('active', 'bg-navy-900', 'text-gold-400', 'shadow-lg');
-                el.classList.add('bg-white', 'text-gray-600', 'border-gray-200');
-            });
-            btn.classList.remove('bg-white', 'text-gray-600', 'border-gray-200');
-            btn.classList.add('active', 'bg-navy-900', 'text-gold-400', 'shadow-lg');
-
-            const filtered = cat === 'all' ? features : features.filter(f => f.cat === cat);
-            renderFeatures(filtered);
-        }
-
-        // --- Contract Logic ---
-        function toggleAccordion(id) {
-            const el = document.getElementById(id);
-            const icon = event.currentTarget.querySelector('i');
-            if(el.classList.contains('hidden')) {
-                el.classList.remove('hidden');
-                icon.style.transform = 'rotate(180deg)';
-            } else {
-                el.classList.add('hidden');
-                icon.style.transform = 'rotate(0deg)';
-            }
-        }
-
-        // Enable sign button when checkbox is checked
-        document.getElementById('agree-check')?.addEventListener('change', function() {
-            document.getElementById('sign-btn').disabled = !this.checked;
-        });
-
-        function signContract() {
-            const idInput = document.getElementById('contract-id').value;
-            const nameInput = document.getElementById('contract-name').value;
-            const btn = document.getElementById('sign-btn');
-            const result = document.getElementById('signature-result');
-            const idError = document.getElementById('id-error');
-
-            const idRegex = /^1\d{9}$/;
-            if (!idRegex.test(idInput)) {
-                idError.classList.remove('hidden');
-                document.getElementById('contract-id').classList.add('border-red-500');
-                return;
-            } else {
-                idError.classList.add('hidden');
-                document.getElementById('contract-id').classList.remove('border-red-500');
-            }
-
-            if(nameInput.length < 3) { alert("الرجاء إدخال الاسم كاملاً"); return; }
-            
-            btn.innerHTML = "جاري التوثيق البيومتري...";
-            btn.disabled = true;
-
-            // Simulate hashing and contract saving
-            setTimeout(() => {
-                const hash = "SIG-" + Math.random().toString(36).substr(2, 9).toUpperCase() + "-" + Date.now();
-                btn.innerHTML = "تم التوثيق بنجاح ✅";
-                btn.classList.remove('bg-gold-400', 'text-black');
-                btn.classList.add('bg-green-600', 'text-white');
-                
-                result.classList.remove('hidden');
-                result.innerHTML = `<p class="font-bold text-lg text-green-900 mb-1">تم اعتماد العقد</p><p>رمز البصمة الرقمية: <span class="font-mono bg-white px-2 rounded text-navy-900">${hash}</span></p><p class="text-xs mt-1">تم الحفظ في الأرشيف بتاريخ: ${new Date().toLocaleString('ar-SA')}</p>`;
-            }, 1500);
-        }
-        
-        window.showContractViewer = () => {
-            switchSection('contract', document.getElementById('btn-contract'));
-        }
-
-
-        // --- Charts Logic ---
-        function initCharts() {
-            // 1. Predictive Chart
-            const ctx1 = document.getElementById('predictiveChart').getContext('2d');
-            predictiveChartInstance = new Chart(ctx1, {
-                type: 'line',
-                data: {
-                    labels: ['التعليم', 'الرياضة', 'التقنية', 'العقار', 'السياحة'],
-                    datasets: [{
-                        label: 'احتمالية التصدر (Trend Probability)',
-                        data: [85, 60, 92, 45, 78],
-                        borderColor: '#D4AF37',
-                        backgroundColor: 'rgba(212, 175, 55, 0.1)',
-                        fill: true,
-                        tension: 0.4,
-                        pointBackgroundColor: '#050510',
-                        pointBorderColor: '#D4AF37',
-                        pointRadius: 5
-                    }]
-                },
-                options: { 
-                    responsive: true, maintainAspectRatio: false,
-                    plugins: { legend: { labels: { font: { family: 'Tajawal' } } } },
-                    scales: { y: { beginAtZero: true, max: 100 } }
-                }
-            });
-
-            // 2. Writer Performance Radar
-            const ctx2 = document.getElementById('writerChart').getContext('2d');
-            writerChartInstance = new Chart(ctx2, {
-                type: 'radar',
-                data: {
-                    labels: ['جودة العناوين', 'السرعة', 'الدقة', 'التفاعل', 'الابتكار'],
-                    datasets: [{
-                        label: 'أداء المحرر الحالي',
-                        data: MOCK_STATS.writerSkills,
-                        borderColor: '#050510',
-                        backgroundColor: 'rgba(5, 5, 16, 0.2)',
-                        pointBackgroundColor: '#D4AF37'
-                    }]
-                },
-                options: { 
-                    responsive: true, maintainAspectRatio: false,
-                    plugins: { legend: { labels: { font: { family: 'Tajawal' } } } },
-                    scales: { r: { angleLines: { color: '#e2e8f0' }, grid: { color: '#e2e8f0' }, pointLabels: { font: { family: 'Tajawal', size: 12 } } } }
-                }
-            });
-        }
-        
-        // --- AI Features (Interaction Logic) ---
-
-        let apiKey = localStorage.getItem('gemini_api_key') || ""; // Load API Key
-
-        async function callGemini(prompt, system, title) {
-            if (!apiKey) { alert("الرجاء إدخال مفتاح API في الإعدادات."); return null; }
-            
-            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
-            try {
-                const response = await fetch(url, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }], systemInstruction: { parts: [{ text: system }] } })
-                });
-
-                const data = await response.json();
-                if (data.candidates && data.candidates[0] && data.candidates[0].content) {
-                    return data.candidates[0].content.parts[0].text;
-                }
-                return "فشل التحليل: استجابة فارغة.";
-            } catch (error) {
-                console.error("Gemini Error:", error);
-                return "فشل الاتصال بالذكاء الاصطناعي.";
-            }
-        }
-        
-        // Feature 1: Analyze Risks
-        window.analyzeContractRisks = async () => {
-            if (!checkAPIKey()) return;
-            const outputDiv = document.getElementById('risk-analysis-output');
-            const outputContent = document.getElementById('risk-output-content');
-            
-            outputDiv.classList.remove('hidden');
-            outputContent.innerHTML = '<div class="loader mx-auto my-6"></div><p class="text-center text-gray-500">جاري تحليل المخاطر القانونية...</p>';
-
-            const contractContent = document.getElementById('art2_view').innerText + ' ' + document.getElementById('art4_view').innerText + ' ' + document.querySelector('.list-decimal').innerText;
-            const prompt = `حلل البنود القانونية التالية (عقد عمل تطوعي إعلامي) وحدد 3 مخاطر قانونية أو بنود غامضة يجب مراجعتها، واقترح حلاً إدارياً لكل خطر. البنود: ${contractContent}`;
-            
-            const result = await callGemini(prompt, "أنت مستشار قانوني آلي متخصص في العقود الإعلامية.");
-            
-            outputContent.innerHTML = result ? marked.parse(result) : "تعذر التحليل بسبب فشل الاتصال بالخادم.";
-        }
-        
-        // Feature 2: Explain KPIs
-        window.explainKPIs = async (statId) => {
-             if (!checkAPIKey()) return;
-             const currentStats = `مؤشر التنبؤ ${MOCK_STATS.predictive}%, الأثر ${MOCK_STATS.impact}K, كفاءة التحرير ${MOCK_STATS.efficiency} ثانية.`;
-             const targetStat = (statId === 'predictive') ? `مؤشر التنبؤ ${MOCK_STATS.predictive}%` : (statId === 'impact') ? `مؤشر الأثر ${MOCK_STATS.impact}K` : `كفاءة التحرير ${MOCK_STATS.efficiency} ثانية`;
-             
-             const prompt = `فسر البيانات التالية في فقرة واحدة بلغة إدارية مبسطة، مع التركيز على أهمية الرقم: ${targetStat} مقارنة بالبيانات الأخرى ${currentStats}`;
-             const result = await callGemini(prompt, "أنت محلل بيانات إداري.");
-             
-             alert(result || "فشل توليد التفسير.");
-        };
-        
-        // Feature 3: Generate Weekly Strategy
-        window.generateWeeklyStrategy = async () => {
-             if (!checkAPIKey()) return;
-             const btn = document.getElementById('btn-generate-strategy');
-             btn.disabled = true;
-             btn.innerHTML = '<div class="loader inline-block mr-2"></div> جاري صياغة الخطة...';
-
-             const strengths = "جودة عالية في العناوين والدقة (95%)";
-             const weaknesses = "معدل تفاعل ضعيف (70%) ونقص تغطية في مواضيع التقنية.";
-
-             const prompt = `قم بإنشاء خطة عمل تنفيذية أسبوعية من 5 نقاط (Markdown) تهدف إلى زيادة التفاعل ومعالجة نقص التغطية التقنية. نقاط القوة: ${strengths}. نقاط الضعف: ${weaknesses}.`;
-             const result = await callGemini(prompt, "أنت خبير استراتيجيات محتوى.");
-             
-             const outputDiv = document.getElementById('strategy-output');
-             const outputContent = document.getElementById('strategy-content');
-             outputContent.innerHTML = result ? marked.parse(result) : "فشل صياغة الخطة.";
-             outputDiv.classList.remove('hidden');
-
-             btn.innerHTML = '<i data-lucide="zap" class="w-4 h-4"></i> صياغة الخطة الأسبوعية';
-             btn.disabled = false;
-        };
-        
-        function checkAPIKey() {
-            if (!apiKey) {
-                document.getElementById('api-key-modal').classList.remove('hidden');
-                return false;
-            }
-            return true;
-        }
-
-        window.saveApiKey = function() {
-            const key = document.getElementById('api-key-input').value;
-            if (key) {
-                localStorage.setItem('gemini_api_key', key);
-                apiKey = key;
-                document.getElementById('api-key-modal').classList.add('hidden');
-                alert("تم حفظ مفتاح API!");
-            }
-        }
-    </script>
-</body>
-              </html>
