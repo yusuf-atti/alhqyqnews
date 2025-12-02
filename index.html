@@ -3,47 +3,220 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>صحيفة الحقيقة | الصفحة الرئيسية</title>
+    <title>مركز التميز الرقمي | صحيفة الحقيقة</title>
 
+    <!-- Tailwind -->
     <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+
+    <!-- Icons -->
     <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
 
-    <link rel="stylesheet" href="styles.css">
+    <!-- Charts -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+        body { 
+            background-color: #050510;
+            color: #ffffff;
+            font-family: 'Tajawal', sans-serif;
+        }
+        .glass {
+            background: rgba(255,255,255,0.05);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(255,255,255,0.08);
+        }
+        .nav-btn.active {
+            background-color: #D4AF37;
+            color: #050510;
+        }
+        .chart-area { height: 320px; }
+    </style>
 </head>
 
-<body class="bg-[#050510] text-white font-sans antialiased overflow-x-hidden">
+<body>
 
     <!-- Header -->
-    <nav class="fixed top-0 w-full z-40 bg-black/40 backdrop-blur border-b border-white/10">
-        <div class="container mx-auto px-4 h-16 flex justify-between items-center">
-            <div onclick="location.reload()" class="flex items-center gap-3 cursor-pointer">
+    <nav class="bg-black/40 backdrop-blur border-b border-white/10 sticky top-0 z-50">
+        <div class="container mx-auto px-6 h-20 flex justify-between items-center">
+
+            <!-- Logo -->
+            <div onclick="location.href='index.html'" class="flex items-center gap-3 cursor-pointer">
                 <div class="w-8 h-8 border-2 border-yellow-400 rounded-lg flex items-center justify-center rotate-45">
                     <div class="w-4 h-4 bg-yellow-400 rounded-sm"></div>
                 </div>
-                <span class="text-2xl font-black">الـحقيقة<span class="text-yellow-400">.</span></span>
+                <span class="text-3xl font-black text-white tracking-tight">
+                    الـحقيقة<span class="text-yellow-400">.</span>
+                </span>
             </div>
 
-            <div class="flex gap-4">
-                <a href="digital-center.html" class="px-4 py-2 bg-yellow-400 text-black rounded-lg text-sm font-bold hover:bg-white transition">
-                    مركز التميز الرقمي
+            <!-- Navigation -->
+            <div class="flex gap-3">
+
+                <button id="btn-features" onclick="switchSection('features', this)"
+                    class="nav-btn px-4 py-2 rounded-lg border border-white/10 text-sm hover:bg-white/10">
+                    الابتكارات الـ 15
+                </button>
+
+                <button id="btn-contract" onclick="switchSection('contract', this)"
+                    class="nav-btn px-4 py-2 rounded-lg border border-white/10 text-sm hover:bg-white/10">
+                    توثيق العقد
+                </button>
+
+                <button id="btn-dashboard" onclick="switchSection('dashboard', this)"
+                    class="nav-btn px-4 py-2 rounded-lg border border-white/10 text-sm hover:bg-white/10">
+                    لوحة الأثر
+                </button>
+
+                <!-- NEW: ساعة الحقيقة -->
+                <a href="clock.html"
+                   class="px-4 py-2 border border-yellow-400 text-yellow-400 rounded-lg text-sm font-bold hover:bg-yellow-400 hover:text-black transition">
+                    ساعة الحقيقة
                 </a>
+
             </div>
         </div>
     </nav>
 
-    <!-- Main Content -->
-    <main class="pt-28 container mx-auto px-4">
-        
-        <h1 class="text-3xl font-black mb-6">أحدث الأخبار</h1>
+    <main class="container mx-auto px-4 py-10 space-y-10">
 
-        <div id="news-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <!-- يتم ملؤه من engine.js -->
-        </div>
+        <!-- SECTION: FEATURES -->
+        <section id="sec-features" class="hidden space-y-8">
+            <div class="text-center max-w-3xl mx-auto mb-10">
+                <h1 class="text-4xl font-black mb-3">مستقبل الصحافة الذكية</h1>
+                <p class="text-gray-400 text-lg">
+                    هنا تجد الـ 15 ابتكاراً التي تعتمد عليها صحيفة الحقيقة في بناء جيل جديد من الإعلام الذكي.
+                </p>
+            </div>
+
+            <div id="features-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            </div>
+        </section>
+
+        <!-- SECTION: CONTRACT -->
+        <section id="sec-contract" class="hidden space-y-6">
+
+            <h2 class="text-3xl font-bold text-yellow-400">توثيق العقد الإلكتروني</h2>
+
+            <div class="glass p-6 rounded-2xl space-y-4">
+
+                <!-- Fields -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="text-sm text-gray-300">الاسم الكامل</label>
+                        <input id="contract-name" type="text"
+                            class="w-full bg-black/30 border border-white/10 rounded-lg p-2 text-sm">
+                    </div>
+
+                    <div>
+                        <label class="text-sm text-gray-300">رقم الهوية</label>
+                        <input id="contract-id" type="text" maxlength="10"
+                            class="w-full bg-black/30 border border-white/10 rounded-lg p-2 text-sm">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="text-sm text-gray-300">المكتب / المنطقة</label>
+                    <select id="contract-region" class="w-full bg-black/30 border border-white/10 rounded-lg p-2 text-sm">
+                        <option>المكتب الرئيسي (جازان)</option>
+                        <option>الغربية</option>
+                        <option>الوسطى</option>
+                        <option>الشرقية</option>
+                        <option>الشمالية</option>
+                        <option>الجنوبية</option>
+                    </select>
+                </div>
+
+                <button onclick="signContract()"
+                    class="w-full bg-yellow-400 text-black py-3 rounded-xl font-bold hover:bg-white transition">
+                    توثيق العقد إلكترونيًا
+                </button>
+
+                <p id="id-error" class="text-red-400 text-sm hidden">
+                    يجب أن يبدأ رقم الهوية بـ 1 ويتكوّن من 10 أرقام.
+                </p>
+
+                <div id="signature-result"
+                    class="hidden bg-green-600/20 border border-green-600 text-green-300 p-4 rounded-lg"></div>
+
+            </div>
+        </section>
+
+        <!-- SECTION: DASHBOARD -->
+        <section id="sec-dashboard" class="hidden space-y-8">
+
+            <h2 class="text-3xl font-black text-yellow-400 text-center">لوحة الأثر</h2>
+
+            <!-- Boxes -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="glass p-6 rounded-xl text-center">
+                    <p class="text-gray-400 text-sm">مؤشر التنبؤ</p>
+                    <p class="text-4xl font-black text-yellow-400">85%</p>
+                </div>
+
+                <div class="glass p-6 rounded-xl text-center">
+                    <p class="text-gray-400 text-sm">الأثر الاجتماعي</p>
+                    <p class="text-4xl font-black text-yellow-400">12.5K</p>
+                </div>
+
+                <div class="glass p-6 rounded-xl text-center">
+                    <p class="text-gray-400 text-sm">كفاءة التحرير</p>
+                    <p class="text-4xl font-black text-yellow-400">1.2s</p>
+                </div>
+            </div>
+
+            <!-- Charts -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+
+                <div class="glass p-6 rounded-xl">
+                    <h3 class="text-xl font-bold mb-4">غرفة الأخبار التنبؤية</h3>
+                    <canvas id="predictiveChart" class="chart-area"></canvas>
+                </div>
+
+                <div class="glass p-6 rounded-xl">
+                    <h3 class="text-xl font-bold mb-4">تحليل أداء الكاتب</h3>
+                    <canvas id="writerChart" class="chart-area"></canvas>
+                </div>
+
+            </div>
+
+        </section>
 
     </main>
 
-    <script src="ui.js"></script>
-    <script src="engine.js"></script>
+    <script>
+        // Section Switching
+        function switchSection(section, btn) {
+            document.querySelectorAll("section[id^='sec-']").forEach(s => s.classList.add("hidden"));
+            document.getElementById(`sec-${section}`).classList.remove("hidden");
+
+            document.querySelectorAll(".nav-btn").forEach(b => b.classList.remove("active"));
+            btn.classList.add("active");
+        }
+
+        // Contract Validation
+        function signContract() {
+            const name = document.getElementById("contract-name").value;
+            const id = document.getElementById("contract-id").value;
+
+            if (!/^1\d{9}$/.test(id)) {
+                document.getElementById("id-error").classList.remove("hidden");
+                return;
+            }
+
+            document.getElementById("id-error").classList.add("hidden");
+
+            document.getElementById("signature-result").classList.remove("hidden");
+            document.getElementById("signature-result").innerText =
+                `تم توثيق العقد بنجاح للعضو: ${name} (رقم الهوية: ${id})`;
+        }
+
+        // Init
+        switchSection("features", document.getElementById("btn-features"));
+        lucide.createIcons();
+    </script>
+
 </body>
 </html>
