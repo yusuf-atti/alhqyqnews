@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>معاينة منطق توثيق العقود والأمان</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+    <style>
+        body { font-family: 'Tajawal', sans-serif; background-color: #1e293b; color: #e2e8f0; }
+        .code-block { background-color: #0f172a; border-left: 4px solid #D4AF37; }
+        .keyword { color: #f97316; } 
+        .type { color: #22c3e4; } 
+        .comment { color: #64748b; } 
+        .string { color: #4ade80; }
+    </style>
+</head>
+<body class="p-8">
+
+    <div class="max-w-7xl mx-auto space-y-8">
+        
+        <header class="flex justify-between items-center pb-4 border-b border-gray-700">
+            <h1 class="text-3xl font-bold text-yellow-400 flex items-center gap-3">
+                <i data-lucide="shield-half" class="w-7 h-7"></i> تحليل الأمان (منطق توثيق العقود)
+            </h1>
+            <p class="text-sm text-gray-400">للتأكد من الإجراءات القانونية والأمنية</p>
+        </header>
+
+        <!-- Status Dashboard -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div class="bg-gray-700 p-4 rounded-xl shadow-lg border-t-4 border-yellow-400">
+                <p class="text-sm text-gray-300">شرط الهوية الوطنية</p>
+                <div class="text-2xl font-bold mt-1 text-red-400">يجب أن تبدأ بـ '1'</div>
+            </div>
+            <div class="bg-gray-700 p-4 rounded-xl shadow-lg border-t-4 border-blue-500">
+                <p class="text-sm text-gray-300">توثيق العقد</p>
+                <div class="text-2xl font-bold mt-1 text-blue-400">Digital Signature (Hash)</div>
+            </div>
+            <div class="bg-gray-700 p-4 rounded-xl shadow-lg border-t-4 border-green-500">
+                <p class="text-sm text-gray-300">مسار الأرشفة</p>
+                <div class="text-2xl font-bold mt-1 text-green-400">حسب المنطقة الجغرافية</div>
+            </div>
+        </div>
+
+        <!-- Code Viewer -->
+        <div class="code-block p-6 rounded-xl overflow-x-auto">
+            <pre class="whitespace-pre-wrap">
+<span class="comment">// -------------------------------------------------------------</span>
+<span class="comment">// 1. منطق التحقق من الهوية (Custom National ID Validation)</span>
+<span class="comment">// -------------------------------------------------------------</span>
+<span class="keyword">const</span> validateNationalId = (<span class="type">id</span>) => {
+    <span class="comment">// الشرط الأول: 10 أرقام بالضبط</span>
+    <span class="keyword">if</span> (!<span class="type">id</span> || <span class="type">id</span>.length !== 10) {
+        <span class="keyword">return</span> <span class="string">"يجب أن يتكون رقم الهوية من 10 أرقام بالضبط."</span>;
+    }
+    <span class="comment">// الشرط الثاني: يجب أن يبدأ بـ '1' (يمنع التسجيل الذي يبدأ بـ '2')</span>
+    <span class="keyword">if</span> (<span class="type">id</span>[0] !== <span class="string">'1'</span>) {
+        <span class="keyword">return</span> <span class="string">"يجب أن يبدأ رقم الهوية الوطنية السعودية بالرقم '1'."</span>;
+    }
+    <span class="keyword">return</span> <span class="keyword">null</span>;
+};
+
+<span class="comment">// -------------------------------------------------------------</span>
+<span class="comment">// 2. توليد البصمة الرقمية (توثيق التوقيع)</span>
+<span class="comment">// -------------------------------------------------------------</span>
+<span class="keyword">const</span> generateDigitalHash = () => {
+    <span class="comment">// محاكاة لتوليد بصمة فريدة للجهاز بناءً على المتصفح والوقت</span>
+    <span class="keyword">const</span> rawString = <span class="string">`${navigator.userAgent}-${Date.now()}`</span>;
+    <span class="comment">// ... (خوارزمية التشفير) ...</span>
+    <span class="keyword">return</span> <span class="string">"HASH_"</span> + <span class="type">rawString</span>.length.toString(<span class="number">16</span>).toUpperCase();
+};
+
+<span class="comment">// -------------------------------------------------------------</span>
+<span class="comment">// 3. حفظ العقد في مسار المكتب المحدد</span>
+<span class="comment">// -------------------------------------------------------------</span>
+<span class="keyword">await</span> db.collection(<span class="string">`offices`</span>)
+    .doc(<span class="type">officeRegion</span>) <span class="comment">// المكتب (مثال: central)</span>
+    .collection(<span class="string">`members`</span>)
+    .add({
+        <span class="string">name</span>: <span class="type">name</span>,
+        <span class="string">nationalID</span>: <span class="type">nationalId</span>,
+        <span class="string">signatureHash</span>: <span class="type">digitalHash</span>, <span class="comment">// التوقيع النهائي</span>
+        <span class="string">region</span>: <span class="type">officeRegion</span>,
+        <span class="string">contractDate</span>: <span class="type">new Date()</span>,
+        <span class="string">status</span>: <span class="string">'PENDING_90_DAYS'</span> <span class="comment">// فترة استحقاق البطاقة</span>
+    });
+            </pre>
+        </div>
+
+    </div>
+
+    <script>
+        lucide.createIcons();
+    </script>
+</body>
+  </html>
