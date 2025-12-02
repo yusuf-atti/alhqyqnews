@@ -3,623 +3,312 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>نظام الحقيقة المركزي | Dashboard</title>
-    
-    <!-- Tailwind CSS (External) -->
+    <title>صحيفة الحقيقة | المصدر الأول</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    
-    <!-- Fonts & Icons -->
-    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;900&family=Amiri:wght@400;700&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     
     <script>
         tailwind.config = {
             theme: {
                 extend: {
-                    fontFamily: { sans: ['Tajawal', 'sans-serif'] },
-                    colors: { navy: { 950: '#020205', 900: '#050510', 800: '#0a0a15', 700: '#151525' }, gold: { 400: '#D4AF37', 500: '#C5A028' } },
-                    animation: { 'pulse-slow': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite' }
+                    fontFamily: { 
+                        sans: ['Tajawal', 'sans-serif'],
+                        serif: ['Amiri', 'serif']
+                    },
+                    colors: { 
+                        navy: { 950: '#020205', 900: '#050510', 800: '#0a0a15' }, 
+                        gold: { 400: '#D4AF37', 500: '#C5A028', 600: '#B49020' } 
+                    },
+                    animation: {
+                        'ticker': 'ticker 30s linear infinite',
+                        'fade-in': 'fadeIn 1s ease-out'
+                    },
+                    keyframes: {
+                        ticker: {
+                            '0%': { transform: 'translateX(100%)' },
+                            '100%': { transform: 'translateX(-100%)' }
+                        },
+                        fadeIn: {
+                            '0%': { opacity: '0', transform: 'translateY(20px)' },
+                            '100%': { opacity: '1', transform: 'translateY(0)' }
+                        }
+                    }
                 }
             }
         }
     </script>
-    
     <style>
-        /* --- Critical Internal CSS (Fallback) --- */
-        body { background-color: #020205; color: #e5e7eb; margin: 0; font-family: 'Tajawal', sans-serif; overflow: hidden; }
-        
-        /* Ensure hiding works even if Tailwind fails */
-        .hidden { display: none !important; }
-        
-        /* Login Gate Styling Fallback */
-        #login-gate {
-            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
-            background-color: #020205;
-            z-index: 9999;
-            display: flex; align-items: center; justify-content: center;
-        }
-        
-        .glass-panel { 
-            background: rgba(21, 21, 37, 0.8); 
-            backdrop-filter: blur(20px); 
-            border: 1px solid rgba(255,255,255,0.05);
-            padding: 2.5rem;
-            border-radius: 1.5rem;
-            width: 100%;
-            max-width: 28rem;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
-        }
-
-        /* Form Elements Fallback */
-        input.fallback-input {
-            width: 100%;
-            background-color: #0a0a15;
-            border: 1px solid rgba(255,255,255,0.1);
-            border-radius: 0.75rem;
-            padding: 0.75rem 1rem;
-            color: white;
-            margin-bottom: 1rem;
-            display: block;
-            box-sizing: border-box; /* Fix width issues */
-        }
-        input.fallback-input:focus { outline: 2px solid #D4AF37; border-color: transparent; }
-
-        button.fallback-btn {
-            width: 100%;
-            background-color: #D4AF37;
-            color: black;
-            font-weight: bold;
-            padding: 1rem;
-            border-radius: 0.75rem;
-            cursor: pointer;
-            border: none;
-            transition: transform 0.1s;
-        }
-        button.fallback-btn:hover { background-color: #C5A028; }
-        
-        /* Scrollbar */
-        ::-webkit-scrollbar { width: 6px; background: #0a0a15; }
+        body { background-color: #020205; color: #e5e7eb; overflow-x: hidden; }
+        .hero-gradient { background: linear-gradient(to top, #020205 0%, rgba(2,2,5,0.8) 50%, transparent 100%); }
+        .glass-nav { background: rgba(5, 5, 16, 0.8); backdrop-filter: blur(12px); border-bottom: 1px solid rgba(212, 175, 55, 0.1); }
+        .article-card:hover .card-overlay { opacity: 1; }
+        ::-webkit-scrollbar { width: 8px; background: #0a0a15; }
         ::-webkit-scrollbar-thumb { background: #333; border-radius: 4px; }
+        
+        /* Typography for Articles */
+        .prose h1, .prose h2, .prose h3 { color: #fff; margin-top: 1.5em; margin-bottom: 0.5em; font-weight: bold; }
+        .prose p { margin-bottom: 1em; line-height: 1.8; color: #d1d5db; font-family: 'Amiri', serif; font-size: 1.1rem; }
+        .prose blockquote { border-right: 4px solid #D4AF37; padding-right: 1em; color: #D4AF37; font-style: italic; background: rgba(212,175,55,0.05); padding: 1em; margin: 1em 0; }
+        .prose img { border-radius: 0.5rem; margin: 1.5em 0; width: 100%; border: 1px solid rgba(255,255,255,0.1); }
     </style>
 </head>
-<body class="flex h-screen selection:bg-gold-400 selection:text-black">
+<body class="min-h-screen flex flex-col">
 
-    <!-- Login/Register Gate -->
-    <div id="login-gate">
-        <div class="glass-panel relative overflow-hidden">
-            <!-- Decorative Line -->
-            <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-gold-400 to-transparent" style="background: linear-gradient(90deg, transparent, #D4AF37, transparent);"></div>
-            
-            <h1 class="text-5xl font-black text-white mb-2 text-center tracking-tighter" style="font-size: 3rem; text-align: center; margin-bottom: 0.5rem;">الـحقيقة<span class="text-gold-400" style="color: #D4AF37;">.</span></h1>
-            <p class="text-center text-gray-500 text-sm mb-8" style="text-align: center; color: #6b7280; margin-bottom: 2rem;">نظام إدارة المحتوى المركزي</p>
+    <!-- Navbar -->
+    <nav class="fixed top-0 w-full z-50 glass-nav transition-all duration-300" id="navbar">
+        <div class="container mx-auto px-6 h-20 flex items-center justify-between">
+            <div class="flex items-center gap-4">
+                <h1 class="text-3xl font-black text-white tracking-tighter cursor-pointer" onclick="window.scrollTo(0,0)">
+                    الـحقيقة<span class="text-gold-400 text-4xl">.</span>
+                </h1>
+                <span class="hidden md:block h-6 w-px bg-white/10 mx-2"></span>
+                <div class="hidden md:flex gap-6 text-sm text-gray-400 font-medium">
+                    <a href="#" class="hover:text-gold-400 transition-colors">الرئيسية</a>
+                    <a href="#" class="hover:text-gold-400 transition-colors">سياسة</a>
+                    <a href="#" class="hover:text-gold-400 transition-colors">اقتصاد</a>
+                    <a href="#" class="hover:text-gold-400 transition-colors">آراء</a>
+                </div>
+            </div>
+            <button class="bg-gold-400/10 text-gold-400 border border-gold-400/30 px-4 py-2 rounded-full text-xs font-bold hover:bg-gold-400 hover:text-black transition-all">
+                اشترك في النشرة
+            </button>
+        </div>
+        
+        <!-- Breaking News Ticker -->
+        <div class="bg-gold-600 text-black text-xs font-bold py-1 overflow-hidden relative border-t border-b border-gold-500">
+            <div class="whitespace-nowrap inline-block animate-ticker" id="ticker-content">
+                جاري الاتصال بمركز البيانات... | النظام يعمل بكفاءة تامة...
+            </div>
+        </div>
+    </nav>
 
-            <!-- Auth Forms Container -->
-            <div id="auth-forms">
-                <!-- Login Form -->
-                <form id="login-form" onsubmit="handleLogin(event)" class="space-y-5">
-                    <div class="space-y-1">
-                        <label class="text-xs text-gold-400 font-bold mr-1" style="color: #D4AF37; font-size: 0.75rem; font-weight: bold;">البريد الإلكتروني</label>
-                        <input type="email" id="login-email" class="fallback-input" required>
-                    </div>
-                    <div class="space-y-1">
-                        <label class="text-xs text-gold-400 font-bold mr-1" style="color: #D4AF37; font-size: 0.75rem; font-weight: bold;">كلمة المرور</label>
-                        <input type="password" id="login-password" class="fallback-input" required>
-                    </div>
-                    <div id="login-error" class="text-red-500 text-xs text-center hidden bg-red-500/10 py-2 rounded-lg border border-red-500/20 mb-4" style="color: #ef4444; text-align: center; margin-bottom: 1rem;"></div>
-                    <button type="submit" id="login-btn" class="fallback-btn">دخول النظام</button>
-                    <p class="text-center text-xs text-gray-400 mt-4" style="text-align: center; color: #9ca3af; margin-top: 1rem;">ليس لديك حساب؟ <a href="#" onclick="toggleAuthMode('register')" class="text-white underline hover:text-gold-400" style="color: white; text-decoration: underline;">إنشاء حساب جديد</a></p>
-                </form>
+    <!-- Main Content -->
+    <main class="flex-1 pt-28 pb-20">
+        
+        <!-- Hero Section (Latest Article) -->
+        <header id="hero-section" class="container mx-auto px-6 mb-16 min-h-[60vh] flex items-center justify-center relative rounded-3xl overflow-hidden border border-white/5 animate-fade-in group cursor-pointer">
+            <div class="absolute inset-0 bg-navy-900 animate-pulse-slow z-0"></div> <!-- Placeholder -->
+            <div class="z-10 text-center">
+                <div class="w-12 h-12 border-4 border-gold-400 border-t-transparent rounded-full animate-spin mx-auto"></div>
+                <p class="text-gray-500 mt-4 text-sm tracking-widest">جاري جلب الحقيقة...</p>
+            </div>
+        </header>
 
-                <!-- Register Form -->
-                <form id="register-form" onsubmit="handleRegister(event)" class="hidden space-y-5">
-                    <div class="space-y-1">
-                        <label class="text-xs text-gold-400 font-bold mr-1" style="color: #D4AF37; font-size: 0.75rem; font-weight: bold;">الاسم الكامل</label>
-                        <input type="text" id="reg-name" class="fallback-input" required>
+        <!-- Articles Grid -->
+        <section class="container mx-auto px-6">
+            <div class="flex items-center gap-4 mb-8">
+                <h2 class="text-2xl font-bold text-white border-r-4 border-gold-400 pr-4">آخر التحديثات</h2>
+                <div class="h-px bg-white/10 flex-1"></div>
+            </div>
+
+            <div id="articles-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <!-- Skeleton Loader -->
+                <div class="h-96 bg-white/5 rounded-2xl animate-pulse"></div>
+                <div class="h-96 bg-white/5 rounded-2xl animate-pulse delay-75"></div>
+                <div class="h-96 bg-white/5 rounded-2xl animate-pulse delay-150"></div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="border-t border-white/5 bg-[#050510] py-12">
+        <div class="container mx-auto px-6 text-center">
+            <h2 class="text-2xl font-black text-white mb-4">الـحقيقة<span class="text-gold-400">.</span></h2>
+            <p class="text-gray-500 text-sm max-w-md mx-auto mb-8">نحن لا ننقل الخبر، نحن نصنع الواقع. المصدر الأول للمعلومات الموثقة والدقيقة.</p>
+            <div class="text-gray-600 text-xs">
+                &copy; 2025 جميع الحقوق محفوظة لشبكة الحقيقة الإعلامية.
+            </div>
+        </div>
+    </footer>
+
+    <!-- Article Reader Modal -->
+    <div id="reader-modal" class="fixed inset-0 z-[100] bg-black/95 backdrop-blur-md hidden opacity-0 transition-opacity duration-300">
+        <div class="absolute top-0 w-full h-1 bg-gradient-to-r from-transparent via-gold-400 to-transparent"></div>
+        
+        <!-- Close Button -->
+        <button onclick="closeArticle()" class="fixed top-6 left-6 z-50 bg-white/10 hover:bg-white/20 text-white p-3 rounded-full backdrop-blur transition-all">
+            <i data-lucide="x" class="w-6 h-6"></i>
+        </button>
+
+        <!-- Modal Content -->
+        <div class="w-full h-full overflow-y-auto">
+            <div class="max-w-4xl mx-auto bg-[#0a0a15] min-h-full shadow-2xl relative">
+                <!-- Cover Image -->
+                <div class="h-[60vh] w-full relative">
+                    <img id="modal-img" src="" class="w-full h-full object-cover">
+                    <div class="absolute inset-0 bg-gradient-to-t from-[#0a0a15] via-[#0a0a15]/50 to-transparent"></div>
+                    <div class="absolute bottom-0 right-0 p-8 md:p-12 w-full">
+                        <span id="modal-category" class="bg-gold-400 text-black text-xs font-bold px-3 py-1 rounded mb-4 inline-block"></span>
+                        <h1 id="modal-title" class="text-3xl md:text-5xl font-bold text-white leading-tight mb-4 font-serif"></h1>
+                        <div class="flex items-center gap-4 text-sm text-gray-400">
+                            <div class="flex items-center gap-2">
+                                <i data-lucide="user" class="w-4 h-4"></i>
+                                <span id="modal-author"></span>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <i data-lucide="clock" class="w-4 h-4"></i>
+                                <span id="modal-date"></span>
+                            </div>
+                        </div>
                     </div>
-                    <div class="space-y-1">
-                        <label class="text-xs text-gold-400 font-bold mr-1" style="color: #D4AF37; font-size: 0.75rem; font-weight: bold;">البريد الإلكتروني</label>
-                        <input type="email" id="reg-email" class="fallback-input" required>
-                    </div>
-                    <div class="space-y-1">
-                        <label class="text-xs text-gold-400 font-bold mr-1" style="color: #D4AF37; font-size: 0.75rem; font-weight: bold;">كلمة المرور</label>
-                        <input type="password" id="reg-password" class="fallback-input" required>
-                    </div>
-                    <div id="reg-error" class="text-red-500 text-xs text-center hidden bg-red-500/10 py-2 rounded-lg border border-red-500/20 mb-4" style="color: #ef4444; text-align: center; margin-bottom: 1rem;"></div>
-                    <button type="submit" id="reg-btn" class="fallback-btn" style="background-color: white; color: black;">تسجيل حساب</button>
-                    <p class="text-center text-xs text-gray-400 mt-4" style="text-align: center; color: #9ca3af; margin-top: 1rem;">لديك حساب بالفعل؟ <a href="#" onclick="toggleAuthMode('login')" class="text-gold-400 underline hover:text-white" style="color: #D4AF37; text-decoration: underline;">تسجيل الدخول</a></p>
-                </form>
+                </div>
+
+                <!-- Body -->
+                <div class="p-8 md:p-12">
+                    <div id="modal-body" class="prose prose-invert prose-lg max-w-none text-gray-300"></div>
+                </div>
             </div>
         </div>
     </div>
 
-    <!-- Verification Banner -->
-    <div id="verification-banner" class="hidden fixed top-0 left-0 w-full bg-red-600/90 text-white text-xs py-2 px-4 z-[60] flex justify-between items-center backdrop-blur-md" style="position: fixed; top: 0; width: 100%; background: rgba(220, 38, 38, 0.9); z-index: 60; padding: 0.5rem 1rem; color: white;">
-        <span>⚠️ يرجى تأكيد بريدك الإلكتروني لتتمكن من استخدام كافة الميزات.</span>
-        <button onclick="resendVerification()" class="underline hover:text-gray-200 font-bold">إعادة إرسال رابط التفعيل</button>
-    </div>
-
-    <!-- Dashboard UI (Main System) -->
-    <div id="system-ui" class="hidden w-full h-full flex pt-0 transition-all duration-300">
-        <!-- Sidebar -->
-        <aside class="w-72 bg-[#050510] border-l border-white/5 flex flex-col relative z-20 hidden md:flex" style="background-color: #050510; border-left: 1px solid rgba(255,255,255,0.05); width: 18rem; display: flex; flex-direction: column;">
-            <div class="h-24 flex items-center px-8 border-b border-white/5"><h2 class="text-2xl font-black text-white">الـحقيقة <span class="text-gold-400" style="color: #D4AF37;">Hub</span></h2></div>
-            <div class="flex-1 overflow-y-auto py-6 space-y-2 px-4">
-                 <button onclick="switchView('dashboard', this)" class="sidebar-link w-full flex items-center gap-4 px-4 py-3 text-gray-400 hover:bg-white/5 rounded-lg text-sm font-medium active" style="width: 100%; display: flex; align-items: center; gap: 1rem; padding: 0.75rem 1rem; color: #9ca3af; background: transparent; border: none; cursor: pointer; text-align: right;">
-                    <i data-lucide="layout-dashboard" class="w-5 h-5"></i> الرئيسية
-                </button>
-                 <button onclick="switchView('editor', this)" class="sidebar-link w-full flex items-center gap-4 px-4 py-3 text-gray-400 hover:bg-white/5 rounded-lg text-sm font-medium" style="width: 100%; display: flex; align-items: center; gap: 1rem; padding: 0.75rem 1rem; color: #9ca3af; background: transparent; border: none; cursor: pointer; text-align: right;">
-                    <i data-lucide="pen-tool" class="w-5 h-5"></i> المحرر الذكي
-                </button>
-                 <button onclick="switchView('articles', this)" class="sidebar-link w-full flex items-center gap-4 px-4 py-3 text-gray-400 hover:bg-white/5 rounded-lg text-sm font-medium" style="width: 100%; display: flex; align-items: center; gap: 1rem; padding: 0.75rem 1rem; color: #9ca3af; background: transparent; border: none; cursor: pointer; text-align: right;">
-                    <i data-lucide="file-text" class="w-5 h-5"></i> أرشيف المقالات
-                </button>
-                <div class="my-4 border-t border-white/5"></div>
-                 <button onclick="switchView('settings', this)" class="sidebar-link w-full flex items-center gap-4 px-4 py-3 text-gray-400 hover:bg-white/5 rounded-lg text-sm font-medium" style="width: 100%; display: flex; align-items: center; gap: 1rem; padding: 0.75rem 1rem; color: #9ca3af; background: transparent; border: none; cursor: pointer; text-align: right;">
-                    <i data-lucide="settings" class="w-5 h-5"></i> الإعدادات
-                </button>
-            </div>
-             <div class="p-6 border-t border-white/5">
-                <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 rounded-full bg-gray-800 border-2 border-gold-400 flex items-center justify-center text-xl overflow-hidden">
-                        <span id="user-avatar">👤</span>
-                    </div>
-                    <div class="overflow-hidden">
-                        <p class="text-white text-sm font-bold truncate w-32" id="current-user-name">المستخدم</p>
-                        <p class="text-gray-500 text-[10px] truncate w-32" id="current-user-email">email@example.com</p>
-                        <button onclick="logout()" class="text-red-400 text-xs hover:text-red-300 mt-1" style="color: #f87171; border: none; background: none; cursor: pointer; padding: 0;">خروج</button>
-                    </div>
-                </div>
-            </div>
-        </aside>
-
-        <main class="flex-1 bg-[#020205] relative overflow-hidden flex flex-col transition-all" id="main-content" style="flex: 1; background-color: #020205; position: relative; overflow: hidden; display: flex; flex-direction: column;">
-            <header class="h-24 flex items-center justify-between px-10 border-b border-white/5 bg-[#020205]/80 backdrop-blur z-10" style="height: 6rem; display: flex; align-items: center; justify-content: space-between; padding: 0 2.5rem; border-bottom: 1px solid rgba(255,255,255,0.05);">
-                <h1 class="text-2xl font-bold text-white" id="page-title">لوحة التحكم</h1>
-                <div class="flex items-center gap-4">
-                    <div class="w-2 h-2 rounded-full bg-green-500 animate-pulse" style="width: 0.5rem; height: 0.5rem; background-color: #22c55e; border-radius: 9999px;"></div>
-                    <span class="text-xs text-gray-400" style="font-size: 0.75rem; color: #9ca3af;">النظام متصل</span>
-                </div>
-            </header>
-            
-            <div class="flex-1 overflow-y-auto p-10 scroll-smooth relative" style="padding: 2.5rem; overflow-y: auto;">
-                
-                <!-- 1. Dashboard Home View -->
-                <div id="view-dashboard" class="view-section space-y-8 animate-fade-in">
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem;">
-                        <div class="glass-panel p-6 rounded-2xl relative overflow-hidden group" style="background: rgba(21, 21, 37, 0.6); padding: 1.5rem; border-radius: 1rem; border: 1px solid rgba(255,255,255,0.05);">
-                            <h3 class="text-gray-400 text-sm font-medium mb-2">إجمالي المقالات</h3>
-                            <p class="text-4xl font-black text-white" id="stat-total-articles" style="font-size: 2.25rem; font-weight: 900;">0</p>
-                        </div>
-                        <div class="glass-panel p-6 rounded-2xl relative overflow-hidden group" style="background: rgba(21, 21, 37, 0.6); padding: 1.5rem; border-radius: 1rem; border: 1px solid rgba(255,255,255,0.05);">
-                            <h3 class="text-gray-400 text-sm font-medium mb-2">القراءات هذا الشهر</h3>
-                            <p class="text-4xl font-black text-white" style="font-size: 2.25rem; font-weight: 900;">12.5K</p> 
-                        </div>
-                        <div class="glass-panel p-6 rounded-2xl relative overflow-hidden group" style="background: rgba(21, 21, 37, 0.6); padding: 1.5rem; border-radius: 1rem; border: 1px solid rgba(255,255,255,0.05);">
-                            <h3 class="text-gray-400 text-sm font-medium mb-2">الحالة</h3>
-                            <p class="text-4xl font-black text-green-400" style="font-size: 2.25rem; font-weight: 900; color: #4ade80;">نشط</p>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- 2. Editor View -->
-                <div id="view-editor" class="view-section hidden space-y-6">
-                     <div class="flex justify-between items-center mb-2">
-                        <h3 class="text-gold-400 font-bold hidden" id="edit-mode-indicator" style="color: #D4AF37;"> وضع التعديل <button onclick="resetEditor()" class="text-xs text-white bg-red-500/20 px-2 py-1 rounded ml-2">إلغاء</button></h3>
-                     </div>
-                     <input type="hidden" id="edit-article-id">
-                     <input type="text" id="news-title" placeholder="عنوان الخبر..." class="fallback-input" style="font-size: 1.5rem; font-weight: bold; background: transparent; border: none; padding: 0; margin-bottom: 1rem;">
-                     <div class="grid grid-cols-2 gap-4" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
-                         <select id="news-category" class="fallback-input"><option>أخبار محلية</option><option>رياضة</option><option>اقتصاد</option><option>ثقافة</option><option>تكنولوجيا</option></select>
-                         <input type="text" id="news-image" placeholder="رابط الصورة..." class="fallback-input">
-                     </div>
-                     <div class="relative group">
-                        <div id="editor" class="editor-content w-full min-h-[300px] text-lg text-gray-300 leading-loose border border-white/5 p-6 rounded-xl bg-navy-800/50 focus:bg-navy-800 transition-colors outline-none" contenteditable="true" placeholder="ابدأ الكتابة هنا..." style="min-height: 300px; background: rgba(10, 10, 21, 0.5); padding: 1.5rem; border-radius: 0.75rem; border: 1px solid rgba(255,255,255,0.05); color: #d1d5db;"></div>
-                     </div>
-                     <button onclick="publishAction()" id="publish-btn" class="fallback-btn" style="margin-top: 1.5rem;">نشر الآن</button>
-                </div>
-                
-                <!-- 3. Archive View -->
-                <div id="view-articles" class="view-section hidden space-y-6">
-                     <div class="flex justify-between items-center mb-4 gap-4" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
-                         <h3 class="text-white font-bold text-xl whitespace-nowrap">الأرشيف</h3>
-                         <div class="relative flex-1 max-w-md">
-                            <input type="text" id="search-input" onkeyup="filterArticles()" placeholder="بحث في العناوين..." class="fallback-input" style="margin-bottom: 0;">
-                         </div>
-                         <button onclick="loadRealData()" class="text-gold-400 text-sm hover:text-white flex items-center gap-2 whitespace-nowrap" style="background: none; border: none; cursor: pointer; color: #D4AF37;">تحديث ↻</button>
-                     </div>
-                     <div class="glass-panel rounded-2xl overflow-hidden" style="padding: 0; width: 100%; max-width: 100%;">
-                        <div id="articles-list" class="text-gray-300 divide-y divide-white/5">
-                            <div class="p-8 text-center text-gray-500">جاري التحميل...</div>
-                        </div>
-                     </div>
-                </div>
-
-                <!-- 4. Settings View -->
-                <div id="view-settings" class="view-section hidden space-y-8">
-                    <div class="max-w-2xl">
-                        <h3 class="text-white font-bold text-xl mb-6 border-b border-white/10 pb-4">إعدادات الحساب</h3>
-                        
-                        <div class="space-y-6">
-                            <div class="space-y-2">
-                                <label class="text-sm text-gray-400">اسم العرض</label>
-                                <input type="text" id="settings-name" class="fallback-input">
-                            </div>
-                            <div class="space-y-2">
-                                <label class="text-sm text-gray-400">البريد الإلكتروني</label>
-                                <input type="text" id="settings-email" disabled class="fallback-input" style="opacity: 0.5; cursor: not-allowed;">
-                            </div>
-                            <button onclick="updateProfileData()" class="fallback-btn" style="background: rgba(255,255,255,0.1); color: white; width: auto; padding: 0.5rem 1.5rem;">حفظ التغييرات</button>
-                        </div>
-
-                        <h3 class="text-white font-bold text-xl mb-6 mt-12 border-b border-white/10 pb-4 text-red-400" style="margin-top: 3rem; color: #f87171;">منطقة الخطر</h3>
-                        <button onclick="logout()" class="fallback-btn" style="background: rgba(239, 68, 68, 0.1); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.3);">
-                            تسجيل الخروج من كافة الأجهزة
-                        </button>
-                    </div>
-                </div>
-
-            </div>
-        </main>
-    </div>
-
-    <!-- Toast Notification -->
-    <div id="toast" class="fixed bottom-6 left-6 bg-navy-900 border border-gold-400/50 text-white px-6 py-4 rounded-xl shadow-2xl transform translate-y-32 transition-all duration-300 flex items-center gap-3 z-[100]" style="position: fixed; bottom: 1.5rem; left: 1.5rem; background: #0a0a15; border: 1px solid rgba(212, 175, 55, 0.5); color: white; padding: 1rem 1.5rem; border-radius: 0.75rem; transform: translateY(10rem); transition: transform 0.3s; z-index: 100;">
-        <span id="toast-msg" class="font-bold text-sm">تم</span>
-    </div>
-
     <script type="module">
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js';
-        import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged, updateProfile, sendEmailVerification, signInWithCustomToken, signInAnonymously } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js';
-        import { getFirestore, collection, addDoc, getDocs, serverTimestamp, query, orderBy, limit, deleteDoc, doc, updateDoc } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js';
+        import { getAuth, signInAnonymously, onAuthStateChanged, signInWithCustomToken } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js';
+        import { getFirestore, collection, onSnapshot, query, orderBy, limit } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js';
 
+        // 1. Init
         const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
 
-        let currentUser = null;
-        let allArticlesCache = [];
-
-        window.showToast = (msg) => {
-            const t = document.getElementById('toast');
-            document.getElementById('toast-msg').innerText = msg;
-            t.style.transform = 'translateY(0)';
-            setTimeout(() => t.style.transform = 'translateY(10rem)', 3000);
-        };
-
+        // 2. Auth: Use Custom Token if available (Critical for Permissions), else Anonymous
         const initAuth = async () => {
-            if (!auth.currentUser && typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-                 await signInWithCustomToken(auth, __initial_auth_token);
+            try {
+                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                    await signInWithCustomToken(auth, __initial_auth_token);
+                } else {
+                    await signInAnonymously(auth);
+                }
+            } catch (err) {
+                console.error("Auth Error:", err);
             }
         };
+
         initAuth();
 
+        // 3. Live Data Listener
         onAuthStateChanged(auth, (user) => {
-            currentUser = user;
-            const loginGate = document.getElementById('login-gate');
-            const systemUi = document.getElementById('system-ui');
-
             if (user) {
-                loginGate.style.display = 'none';
-                systemUi.classList.remove('hidden');
-                systemUi.style.display = 'flex';
-                
-                document.getElementById('current-user-name').innerText = user.displayName || "مستخدم جديد";
-                document.getElementById('current-user-email').innerText = user.email;
-                document.getElementById('settings-name').value = user.displayName || "";
-                document.getElementById('settings-email').value = user.email || "";
+                const newsRef = collection(db, 'artifacts', appId, 'public', 'data', 'news');
+                // We use simple query then client-side sort to avoid index errors in simple mode
+                const q = query(newsRef); 
 
-                if (!user.emailVerified && !user.isAnonymous) {
-                    document.getElementById('verification-banner').classList.remove('hidden');
-                    document.getElementById('verification-banner').style.display = 'flex';
-                    document.getElementById('main-content').classList.add('pt-8');
-                } else {
-                    document.getElementById('verification-banner').classList.add('hidden');
-                    document.getElementById('verification-banner').style.display = 'none';
-                    document.getElementById('main-content').classList.remove('pt-8');
-                }
-                loadDashboardStats();
-            } else {
-                systemUi.classList.add('hidden');
-                systemUi.style.display = 'none';
-                loginGate.style.display = 'flex';
-                loginGate.classList.remove('hidden', 'opacity-0', 'pointer-events-none');
+                onSnapshot(q, (snapshot) => {
+                    const articles = snapshot.docs.map(doc => ({id: doc.id, ...doc.data()}));
+                    
+                    // Sort: Newest first
+                    articles.sort((a, b) => {
+                        const ta = a.timestamp?.seconds || 0;
+                        const tb = b.timestamp?.seconds || 0;
+                        return tb - ta;
+                    });
+
+                    renderApp(articles);
+                }, (error) => {
+                    console.error("Error fetching news:", error);
+                    // Handle Permission Denied gracefully in UI if needed
+                    if (error.code === 'permission-denied') {
+                        document.getElementById('ticker-content').innerText = "خطأ في الاتصال: صلاحيات غير كافية.";
+                    }
+                });
             }
         });
 
-        window.toggleAuthMode = (mode) => {
-            const loginForm = document.getElementById('login-form');
-            const regForm = document.getElementById('register-form');
-            
-            if (mode === 'register') {
-                loginForm.classList.add('hidden'); // Tailwind/CSS fallback
-                loginForm.style.display = 'none'; // Inline safety
-                regForm.classList.remove('hidden');
-                regForm.style.display = 'block';
-            } else {
-                regForm.classList.add('hidden');
-                regForm.style.display = 'none';
-                loginForm.classList.remove('hidden');
-                loginForm.style.display = 'block';
-            }
-        };
+        // 4. Render Logic
+        function renderApp(articles) {
+            const heroSection = document.getElementById('hero-section');
+            const grid = document.getElementById('articles-grid');
+            const ticker = document.getElementById('ticker-content');
 
-        window.handleLogin = async (e) => {
-            e.preventDefault();
-            const email = document.getElementById('login-email').value;
-            const pass = document.getElementById('login-password').value;
-            const btn = document.getElementById('login-btn');
-            const errDiv = document.getElementById('login-error');
-
-            btn.innerText = "جاري التحقق...";
-            btn.disabled = true;
-            errDiv.style.display = 'none';
-
-            try {
-                await signInWithEmailAndPassword(auth, email, pass);
-            } catch (error) {
-                console.error(error);
-                let msg = "خطأ في تسجيل الدخول";
-                if (error.code === 'auth/invalid-credential') msg = "البريد أو كلمة المرور غير صحيحة";
-                errDiv.innerText = msg;
-                errDiv.classList.remove('hidden');
-                errDiv.style.display = 'block';
-                btn.innerText = "دخول النظام";
-                btn.disabled = false;
-            }
-        };
-
-        window.handleRegister = async (e) => {
-            e.preventDefault();
-            const name = document.getElementById('reg-name').value;
-            const email = document.getElementById('reg-email').value;
-            const pass = document.getElementById('reg-password').value;
-            const btn = document.getElementById('reg-btn');
-            const errDiv = document.getElementById('reg-error');
-
-            btn.innerText = "جاري إنشاء الحساب...";
-            btn.disabled = true;
-            errDiv.style.display = 'none';
-
-            try {
-                const userCredential = await createUserWithEmailAndPassword(auth, email, pass);
-                await updateProfile(userCredential.user, { displayName: name });
-                await sendEmailVerification(userCredential.user);
-                
-                showToast("تم إنشاء الحساب! تم إرسال رابط التفعيل.");
-            } catch (error) {
-                console.error(error);
-                let msg = "خطأ في التسجيل";
-                if (error.code === 'auth/email-already-in-use') msg = "البريد الإلكتروني مسجل مسبقاً";
-                if (error.code === 'auth/weak-password') msg = "كلمة المرور ضعيفة جداً";
-                errDiv.innerText = msg;
-                errDiv.classList.remove('hidden');
-                errDiv.style.display = 'block';
-                btn.innerText = "تسجيل حساب";
-                btn.disabled = false;
-            }
-        };
-
-        window.logout = async () => {
-            await signOut(auth);
-            document.getElementById('login-email').value = '';
-            document.getElementById('login-password').value = '';
-        };
-
-        window.resendVerification = async () => {
-            if (currentUser) {
-                await sendEmailVerification(currentUser);
-                showToast("تم إرسال رابط التفعيل مجدداً");
-            }
-        };
-
-        window.updateProfileData = async () => {
-            const newName = document.getElementById('settings-name').value;
-            if (currentUser && newName) {
-                try {
-                    await updateProfile(currentUser, { displayName: newName });
-                    document.getElementById('current-user-name').innerText = newName;
-                    showToast("تم تحديث البيانات بنجاح");
-                } catch (e) {
-                    showToast("فشل التحديث: " + e.message);
-                }
-            }
-        };
-
-        window.resetEditor = () => {
-            document.getElementById('news-title').value = '';
-            document.getElementById('news-category').value = 'أخبار محلية';
-            document.getElementById('news-image').value = '';
-            document.getElementById('editor').innerText = '';
-            document.getElementById('edit-article-id').value = '';
-            document.getElementById('publish-btn').innerText = "نشر الآن";
-            document.getElementById('edit-mode-indicator').classList.add('hidden');
-            document.getElementById('edit-mode-indicator').style.display = 'none';
-        };
-
-        window.publishAction = async () => {
-            if (!currentUser) return;
-
-            const btn = document.getElementById('publish-btn');
-            const title = document.getElementById('news-title').value;
-            const category = document.getElementById('news-category').value;
-            const image = document.getElementById('news-image').value || "https://via.placeholder.com/800x400";
-            const content = document.getElementById('editor').innerText;
-            const editId = document.getElementById('edit-article-id').value;
-
-            if(!title || !content) { showToast("يرجى إكمال العنوان والمحتوى"); return; }
-
-            btn.innerText = editId ? "جاري التحديث..." : "جاري النشر...";
-            btn.disabled = true;
-
-            try {
-                const newsCollection = collection(db, 'artifacts', appId, 'public', 'data', 'news');
-                
-                if (editId) {
-                    const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'news', editId);
-                    await updateDoc(docRef, {
-                        title: title, category: category, img: image, desc: content,
-                        updatedAt: serverTimestamp()
-                    });
-                    showToast("تم تحديث الخبر بنجاح ✅");
-                } else {
-                    await addDoc(newsCollection, {
-                        title: title, category: category, img: image, desc: content,
-                        author: currentUser.displayName || currentUser.email,
-                        authorId: currentUser.uid,
-                        date: new Date().toLocaleDateString('ar-SA'),
-                        timestamp: serverTimestamp()
-                    });
-                    showToast("تم نشر الخبر بنجاح ✅");
-                }
-
-                resetEditor();
-                btn.disabled = false;
-                loadRealData();
-                loadDashboardStats();
-            } catch (e) {
-                console.error(e);
-                showToast("خطأ: " + e.message);
-                btn.disabled = false;
-                btn.innerText = editId ? "تحديث الآن" : "نشر الآن";
-            }
-        };
-
-        window.deleteArticle = async (id) => {
-            if(!confirm("هل أنت متأكد من حذف هذا المقال نهائياً؟")) return;
-            try {
-                await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'news', id));
-                showToast("تم حذف المقال 🗑️");
-                loadRealData();
-                loadDashboardStats();
-            } catch(e) {
-                showToast("خطأ في الحذف: " + e.message);
-            }
-        };
-
-        window.editArticle = (id) => {
-            const article = allArticlesCache.find(a => a.id === id);
-            if (!article) return;
-
-            document.getElementById('news-title').value = article.title;
-            document.getElementById('news-category').value = article.category;
-            document.getElementById('news-image').value = article.img;
-            document.getElementById('editor').innerText = article.desc;
-            document.getElementById('edit-article-id').value = id;
-            
-            document.getElementById('publish-btn').innerText = "تحديث الآن";
-            const ind = document.getElementById('edit-mode-indicator');
-            ind.classList.remove('hidden');
-            ind.style.display = 'block';
-
-            window.switchView('editor', document.querySelector('[onclick="switchView(\'editor\', this)"]'));
-        };
-
-        window.loadRealData = async () => {
-            if (!currentUser) return;
-            const list = document.getElementById('articles-list');
-
-            try {
-                const newsCollection = collection(db, 'artifacts', appId, 'public', 'data', 'news');
-                const snapshot = await getDocs(newsCollection);
-                
-                if (snapshot.empty) {
-                    list.innerHTML = `<div class="p-8 text-center text-gray-500">لا توجد مقالات منشورة.</div>`;
-                    allArticlesCache = [];
-                    return;
-                }
-
-                allArticlesCache = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                
-                allArticlesCache.sort((a, b) => {
-                    const timeA = a.timestamp ? a.timestamp.seconds : 0;
-                    const timeB = b.timestamp ? b.timestamp.seconds : 0;
-                    return timeB - timeA;
-                });
-
-                filterArticles(); 
-                document.getElementById('stat-total-articles').innerText = allArticlesCache.length;
-
-            } catch(e) { 
-                console.error(e); 
-                list.innerHTML = `<div class="p-4 text-red-400 text-sm">فشل التحميل: ${e.message}</div>`;
-            }
-        };
-
-        window.filterArticles = () => {
-            const query = document.getElementById('search-input').value.toLowerCase();
-            const list = document.getElementById('articles-list');
-            
-            const filtered = allArticlesCache.filter(a => {
-                const t = a.title ? a.title.toLowerCase() : '';
-                const c = a.category ? a.category.toLowerCase() : '';
-                return t.includes(query) || c.includes(query);
-            });
-            
-            if(filtered.length === 0) {
-                list.innerHTML = `<div class="p-8 text-center text-gray-500">لم يتم العثور على نتائج.</div>`;
+            if (articles.length === 0) {
+                heroSection.innerHTML = `<div class="text-center text-gray-500 z-10"><h2 class="text-3xl font-bold mb-2">قريباً</h2><p>لم يتم نشر أي أخبار بعد.</p></div>`;
+                grid.innerHTML = "";
                 return;
             }
 
-            list.innerHTML = filtered.map(d => `
-                <div class="p-4 flex justify-between items-center hover:bg-white/5 transition-colors group" style="padding: 1rem; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.05);">
-                    <div class="flex items-center gap-4 flex-1" style="display: flex; align-items: center; gap: 1rem; flex: 1;">
-                        <div class="w-12 h-12 rounded-lg bg-navy-900 border border-white/10 overflow-hidden cursor-pointer" style="width: 3rem; height: 3rem; border-radius: 0.5rem; background: #050510; border: 1px solid rgba(255,255,255,0.1); overflow: hidden;">
-                            <img src="${d.img}" onerror="this.src='https://via.placeholder.com/100'" style="width: 100%; height: 100%; object-fit: cover;">
-                        </div>
-                        <div>
-                            <h4 class="font-bold text-white text-sm" style="color: white; font-weight: bold; font-size: 0.875rem;">${d.title}</h4>
-                            <div class="flex items-center gap-2 text-xs text-gray-500" style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.75rem; color: #6b7280;">
-                                <span style="background: rgba(255,255,255,0.05); padding: 0.125rem 0.5rem; border-radius: 0.25rem;">${d.category}</span>
-                                <span>${d.author}</span>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="flex items-center gap-2">
-                        <button onclick="editArticle('${d.id}')" style="padding: 0.5rem; color: #4ade80; background: none; border: none; cursor: pointer;" title="تعديل">✎</button>
-                        <button onclick="deleteArticle('${d.id}')" style="padding: 0.5rem; color: #f87171; background: none; border: none; cursor: pointer;" title="حذف">🗑</button>
+            // A. Update Ticker
+            const titles = articles.slice(0, 5).map(a => `<span class="mx-8 text-black/80">🔴 ${a.title}</span>`).join('');
+            ticker.innerHTML = titles + titles; // Duplicate for smooth scroll loop
+
+            // B. Hero Section (First Article)
+            const hero = articles[0];
+            heroSection.onclick = () => openArticle(hero);
+            heroSection.innerHTML = `
+                <img src="${hero.img}" class="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" onerror="this.src='https://via.placeholder.com/1200x600'">
+                <div class="absolute inset-0 hero-gradient"></div>
+                <div class="relative z-10 container mx-auto px-6 h-full flex flex-col justify-end pb-12 items-start text-right">
+                    <span class="bg-gold-400 text-black px-3 py-1 rounded text-xs font-bold mb-4 animate-fade-in">خبر رئيسي</span>
+                    <h2 class="text-4xl md:text-6xl font-black text-white leading-tight mb-4 max-w-4xl drop-shadow-lg">${hero.title}</h2>
+                    <p class="text-gray-300 line-clamp-2 max-w-2xl mb-6 text-lg font-serif">${hero.desc.substring(0, 150)}...</p>
+                    <div class="flex items-center gap-4 text-sm font-medium text-gray-400">
+                        <span class="text-gold-400">${hero.author}</span>
+                        <span>•</span>
+                        <span>${hero.date}</span>
                     </div>
                 </div>
+            `;
+
+            // C. Grid (Rest of articles)
+            const rest = articles.slice(1);
+            grid.innerHTML = rest.map(art => `
+                <article class="article-card group bg-[#0a0a15] rounded-2xl overflow-hidden border border-white/5 hover:border-gold-400/30 transition-all cursor-pointer flex flex-col h-full" onclick='window.currentArticles = ${JSON.stringify(articles)}; window.openArticleById("${art.id}")'>
+                    <div class="relative h-48 overflow-hidden">
+                        <img src="${art.img}" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" onerror="this.src='https://via.placeholder.com/400'">
+                        <div class="absolute inset-0 bg-black/20 group-hover:bg-transparent transition-colors"></div>
+                        <span class="absolute top-4 right-4 bg-black/60 backdrop-blur text-white text-xs px-2 py-1 rounded border border-white/10">${art.category}</span>
+                    </div>
+                    <div class="p-6 flex-1 flex flex-col">
+                        <h3 class="text-xl font-bold text-white mb-3 leading-snug group-hover:text-gold-400 transition-colors line-clamp-2">${art.title}</h3>
+                        <p class="text-gray-500 text-sm line-clamp-3 mb-4 flex-1 font-serif">${art.desc.replace(/[*#]/g, '')}</p>
+                        <div class="flex justify-between items-center text-xs text-gray-600 border-t border-white/5 pt-4 mt-auto">
+                            <span>${art.date}</span>
+                            <span class="group-hover:translate-x-[-5px] transition-transform text-gold-400 font-bold">اقرأ المزيد &larr;</span>
+                        </div>
+                    </div>
+                </article>
             `).join('');
             
-            if (window.lucide) lucide.createIcons();
+            // Expose for onClick mapping (crude but works for generated HTML strings)
+            window.currentArticles = articles;
+        }
+
+        // 5. Modal Logic (Attached to Window)
+        window.openArticleById = (id) => {
+            const art = window.currentArticles.find(a => a.id === id);
+            if(art) openArticle(art);
         };
 
-        window.loadDashboardStats = async () => {
-            await loadRealData();
+        window.openArticle = (art) => {
+            const modal = document.getElementById('reader-modal');
+            document.getElementById('modal-img').src = art.img;
+            document.getElementById('modal-category').innerText = art.category;
+            document.getElementById('modal-title').innerText = art.title;
+            document.getElementById('modal-author').innerText = art.author;
+            document.getElementById('modal-date').innerText = art.date;
+            
+            // Parse Markdown for body
+            document.getElementById('modal-body').innerHTML = marked.parse(art.desc);
+            
+            modal.classList.remove('hidden');
+            // Slight delay for fade in
+            requestAnimationFrame(() => {
+                modal.classList.remove('opacity-0');
+            });
+            document.body.style.overflow = 'hidden';
         };
 
-        window.switchView = (v, btn) => {
-            document.querySelectorAll('.view-section').forEach(e => {
-                e.classList.add('hidden');
-                e.style.display = 'none';
-            });
-            const view = document.getElementById(`view-${v}`);
-            view.classList.remove('hidden');
-            view.style.display = 'block';
-            
-            document.querySelectorAll('.sidebar-link').forEach(e => {
-                e.classList.remove('active');
-                e.style.color = '#9ca3af';
-                e.style.borderRight = 'none';
-                e.style.backgroundColor = 'transparent';
-            });
-            if(btn) {
-                btn.classList.add('active');
-                btn.style.color = '#D4AF37';
-                btn.style.backgroundColor = 'rgba(212, 175, 55, 0.1)';
-            }
-            
-            const titles = { 'dashboard': 'لوحة التحكم', 'editor': 'المحرر الذكي', 'articles': 'أرشيف المقالات', 'settings': 'الإعدادات' };
-            document.getElementById('page-title').innerText = titles[v] || 'النظام';
-
-            if(v === 'articles') loadRealData();
-            if(v === 'dashboard') loadDashboardStats();
-            if(v !== 'editor') resetEditor(); 
+        window.closeArticle = () => {
+            const modal = document.getElementById('reader-modal');
+            modal.classList.add('opacity-0');
+            setTimeout(() => {
+                modal.classList.add('hidden');
+                document.body.style.overflow = 'auto';
+            }, 300);
         };
 
         if (window.lucide) lucide.createIcons();
