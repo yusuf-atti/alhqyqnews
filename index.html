@@ -1949,3 +1949,221 @@
 </body>
 </html>
 
+
+
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ساعة الحقيقة الإبداعية</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;900&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+    <style>
+        body {
+            background-color: #050510;
+            color: #f3f4f6;
+            font-family: 'Tajawal', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow: hidden;
+            direction: rtl;
+        }
+        .clock-container {
+            position: relative;
+            width: 380px;
+            height: 380px;
+            background: radial-gradient(circle, #1a1a2e, #0a0a15);
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            box-shadow: 0 0 50px rgba(212, 175, 55, 0.3), inset 0 0 20px rgba(0, 0, 0, 0.5);
+            border: 8px solid;
+            border-image: linear-gradient(45deg, #D4AF37, #C5A028, #D4AF37) 1;
+        }
+        .clock-center {
+            position: absolute;
+            width: 15px;
+            height: 15px;
+            background: #D4AF37;
+            border-radius: 50%;
+            z-index: 10;
+        }
+        .hand {
+            position: absolute;
+            background: white;
+            border-radius: 50%;
+            transform-origin: bottom center;
+            z-index: 9;
+        }
+        .hour-hand { width: 8px; height: 80px; top: calc(50% - 80px); left: calc(50% - 4px); background: #D4AF37; }
+        .minute-hand { width: 6px; height: 120px; top: calc(50% - 120px); left: calc(50% - 3px); background: #f3f4f6; }
+        .second-hand { width: 3px; height: 140px; top: calc(50% - 140px); left: calc(50% - 1.5px); background: #ff0000; }
+        
+        .number {
+            position: absolute;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: rgba(255, 255, 255, 0.7);
+        }
+        .number:nth-child(1) { top: 10px; right: 50%; transform: translateX(50%); } /* 12 */
+        .number:nth-child(2) { top: 45px; right: 18%; } /* 1 */
+        .number:nth-child(3) { top: 90px; right: 5%; } /* 2 */
+        .number:nth-child(4) { top: 50%; right: 10px; transform: translateY(-50%); } /* 3 */
+        .number:nth-child(5) { bottom: 90px; right: 5%; } /* 4 */
+        .number:nth-child(6) { bottom: 45px; right: 18%; } /* 5 */
+        .number:nth-child(7) { bottom: 10px; right: 50%; transform: translateX(50%); } /* 6 */
+        .number:nth-child(8) { bottom: 45px; left: 18%; } /* 7 */
+        .number:nth-child(9) { bottom: 90px; left: 5%; } /* 8 */
+        .number:nth-child(10) { top: 50%; left: 10px; transform: translateY(-50%); } /* 9 */
+        .number:nth-child(11) { top: 90px; left: 5%; } /* 10 */
+        .number:nth-child(12) { top: 45px; left: 18%; } /* 11 */
+
+        .logo-inner {
+            width: 90px;
+            height: 90px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            z-index: 11; /* Above hands but below center dot */
+        }
+        .logo-box {
+            width: 60px; /* Adjusted size for the box */
+            height: 60px; /* Adjusted size for the box */
+            border: 3px solid #D4AF37;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transform: rotate(45deg);
+        }
+        .logo-fill {
+            width: 30px; /* Adjusted size for the inner fill */
+            height: 30px; /* Adjusted size for the inner fill */
+            background-color: #D4AF37;
+            border-radius: 4px;
+        }
+
+        .date-display {
+            position: absolute;
+            bottom: 40px; /* Adjust as needed */
+            left: 50%;
+            transform: translateX(50%);
+            text-align: center;
+            z-index: 12;
+        }
+
+        .licence-info {
+            position: absolute;
+            top: 40px; /* Adjust as needed */
+            left: 50%;
+            transform: translateX(50%);
+            text-align: center;
+            line-height: 1.2;
+            z-index: 12;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .licence-info img {
+            width: 50px; /* Adjust size of logo */
+            height: auto;
+            margin-bottom: 5px;
+            filter: grayscale(100%) brightness(150%); /* Make it look integrated */
+        }
+    </style>
+</head>
+<body>
+
+    <div class="clock-container">
+        <div class="clock-center"></div>
+
+        <!-- Numbers for the clock face --><div class="number" style="top: 25px; left: 50%; transform: translateX(-50%);">12</div>
+        <div class="number" style="top: 70px; right: 55px;">1</div>
+        <div class="number" style="top: 130px; right: 25px;">2</div>
+        <div class="number" style="top: 50%; right: 15px; transform: translateY(-50%);">3</div>
+        <div class="number" style="bottom: 130px; right: 25px;">4</div>
+        <div class="number" style="bottom: 70px; right: 55px;">5</div>
+        <div class="number" style="bottom: 25px; left: 50%; transform: translateX(-50%);">6</div>
+        <div class="number" style="bottom: 70px; left: 55px;">7</div>
+        <div class="number" style="bottom: 130px; left: 25px;">8</div>
+        <div class="number" style="top: 50%; left: 15px; transform: translateY(-50%);">9</div>
+        <div class="number" style="top: 130px; left: 25px;">10</div>
+        <div class="number" style="top: 70px; left: 55px;">11</div>
+
+        <!-- Hands --><div class="hand hour-hand" id="hourHand"></div>
+        <div class="hand minute-hand" id="minuteHand"></div>
+        <div class="hand second-hand" id="secondHand"></div>
+
+        <!-- Al-Haqiqa Logo --><div class="logo-inner">
+            <div class="logo-box">
+                <div class="logo-fill"></div>
+            </div>
+        </div>
+
+        <!-- Date Display --><div class="date-display">
+            <span id="gregorianDate" class="text-sm text-gray-400"></span>
+            <br>
+            <span id="hijriDate" class="text-md text-gold-400 font-bold"></span>
+        </div>
+
+        <!-- Licence Info --><div class="licence-info">
+            <img src="https://pbs.twimg.com/profile_images/1970779170343907328/-0JJN6EH.jpg" alt="الهيئة العامة للتنظيم الإعلامي" />
+            <span class="text-xs text-gray-500">ترخيص إعلامي: 110674</span>
+            <span class="text-xs text-gray-500">بتاريخ: 1443/09/04هـ</span>
+        </div>
+    </div>
+
+    <script>
+        // Function to update the clock hands
+        function updateClock() {
+            const now = new Date();
+            const seconds = now.getSeconds();
+            const minutes = now.getMinutes();
+            const hours = now.getHours();
+
+            const secondDeg = (seconds / 60) * 360;
+            const minuteDeg = ((minutes + seconds / 60) / 60) * 360;
+            const hourDeg = ((hours + minutes / 60) / 12) * 360;
+
+            document.getElementById('secondHand').style.transform = `rotate(${secondDeg}deg)`;
+            document.getElementById('minuteHand').style.transform = `rotate(${minuteDeg}deg)`;
+            document.getElementById('hourHand').style.transform = `rotate(${hourDeg}deg)`;
+        }
+
+        // Function to get Hijri Date
+        function getHijriDate() {
+            const today = new Date();
+            const options = { year: 'numeric', month: 'long', day: 'numeric' };
+            const hijriDate = new Intl.DateTimeFormat('ar-SA-islamic', options).format(today);
+            return hijriDate.replace('هـ', 'هـ'); // Ensure 'هـ' is present and correctly formatted
+        }
+
+        // Function to update the date display
+        function updateDate() {
+            const now = new Date();
+            const gregorianOptions = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+            document.getElementById('gregorianDate').innerText = now.toLocaleDateString('ar-EG', gregorianOptions);
+            document.getElementById('hijriDate').innerText = getHijriDate();
+        }
+
+        // Initial call and set intervals
+        updateClock();
+        updateDate();
+        setInterval(updateClock, 1000); // Update clock every second
+        setInterval(updateDate, 60000); // Update date every minute
+
+        // Initialize Lucide icons if any are added dynamically
+        document.addEventListener('DOMContentLoaded', () => {
+            if (typeof lucide !== 'undefined') {
+                lucide.createIcons();
+            }
+        });
+    </script>
+</body>
+</html>
