@@ -1,10 +1,919 @@
-<div class="max-w-4xl mx-auto glass p-8 rounded-2xl">
-        <div class="flex justify-between items-center mb-8 border-b border-white/10 pb-4"> 
-            <h1 class="text-3xl font-bold text-gold-400 flex items-center gap-2">
-                <i data-lucide="pen-tool"></i> لوحة نشر الأخبار
-            </h1>
-                        <a href="https://yusuf-atti.github.io/alhqyqnews/2" class="text-sm text-gray-400 hover:text-white flex items-center gap-1 transition-colors">
-                <i data-lucide="home" class="w-4 h-4"></i> العودة للموقع
-            </a>
-        </div>
-...
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>صحيفة الحقيقة | صوت الواقع</title>
+
+    <link rel="manifest" href="manifest.json" />
+    <meta name="theme-color" content="#050510">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800;900&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Tajawal', 'sans-serif'] },
+                    colors: {
+                        navy: { 900: '#050510', 800: '#0a0a15', 700: '#151525' },
+                        gold: { 400: '#D4AF37', 500: '#C5A028' }
+                    },
+                    animation: {
+                        'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                        'marquee': 'marquee 25s linear infinite',
+                        'fade-in': 'fadeIn 0.3s ease-out', // إضافة لتأثير المودال
+                    },
+                    keyframes: {
+                        marquee: {
+                            '0%': { transform: 'translateX(100%)' },
+                            '100%': { transform: 'translateX(-100%)' }
+                        },
+                        fadeIn: {
+                            '0%': { opacity: 0 },
+                            '100%': { opacity: 1 },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body { background-color: #050510; color: #f3f4f6; -webkit-tap-highlight-color: transparent; overflow-x: hidden; }
+        /* Glassmorphism */
+        .glass-nav { background: rgba(5, 5, 16, 0.8); backdrop-filter: blur(12px); border-bottom: 1px solid rgba(255, 255, 255, 0.05); }
+        .glass-panel { background: rgba(21, 21, 37, 0.6); backdrop-filter: blur(16px); border: 1px solid rgba(255, 255, 255, 0.08); box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37); }
+        
+        /* Utils */
+        .editor-content:empty:before { content: attr(placeholder); color: #6b7280; }
+        .loader { border: 3px solid rgba(255,255,255,0.1); border-left-color: #D4AF37; border-radius: 50%; width: 24px; height: 24px; animation: spin 1s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        
+        .view-hidden { display: none !important; }
+        .sidebar-link.active { background: rgba(212, 175, 55, 0.15); color: #D4AF37; border-right: 3px solid #D4AF37; }
+        
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #0a0a15; }
+        ::-webkit-scrollbar-thumb { background: #333; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #D4AF37; }
+        
+        /* Markdown/Prose Styles in Modal */
+        .prose strong { color: #D4AF37; }
+        .prose ul { list-style-type: disc; padding-right: 1.5em; }
+
+        /* Animation class for modals */
+        .animate-fade-in { animation-name: fadeIn; animation-duration: 0.3s; }
+    </style>
+
+</head>
+<body class="antialiased selection:bg-gold-400 selection:text-black pb-20 md:pb-0">
+
+    <div id="public-view" class="block transition-opacity duration-500">
+        
+        <nav class="fixed w-full z-40 glass-nav top-0 transition-all duration-300">
+            <div class="container mx-auto px-4 h-16 flex justify-between items-center">
+                <div class="flex items-center gap-3 cursor-pointer" onclick="window.location.reload()">
+                    <div class="w-8 h-8 border-2 border-gold-400 rounded-lg flex items-center justify-center rotate-45">
+                        <div class="w-4 h-4 bg-gold-400 rounded-sm"></div>
+                    </div>
+                    <span class="text-2xl font-black text-white tracking-tighter">الـحقيقة<span class="text-gold-400">.</span></span>
+                </div>
+
+                <div class="flex gap-3 items-center">
+                    <button id="install-btn" class="hidden bg-gold-400 text-black text-xs font-bold px-3 py-1.5 rounded-full animate-pulse flex items-center gap-1">
+                        <i data-lucide="download" class="w-3 h-3"></i> تثبيت
+                    </button>
+
+                    <button onclick="openSettings()" class="text-gold-400 p-2 rounded-full hover:bg-white/10 transition-colors" title="إعدادات الذكاء الاصطناعي">
+                        <i data-lucide="cpu" class="w-5 h-5"></i>
+                    </button>
+
+                    <button onclick="toggleAdminView()" class="text-white bg-white/10 px-4 py-1.5 rounded-full hover:bg-gold-400 hover:text-black transition-all text-xs font-bold flex items-center gap-2 border border-white/5">
+                        <i data-lucide="shield" class="w-4 h-4"></i> <span class="hidden md:inline">غرفة القيادة</span>
+                    </button>
+                </div>
+            </div>
+        </nav>
+
+        <div class="fixed top-16 w-full z-30 bg-navy-900 border-b border-white/5 py-2 overflow-hidden shadow-md">
+            <div class="container mx-auto px-4 flex items-center overflow-hidden">
+                <span class="text-gold-400 text-[10px] font-bold ml-3 border-l border-gray-700 px-2 whitespace-nowrap flex items-center gap-1 z-10 bg-navy-900">
+                    <div class="w-1.5 h-1.5 bg-red-500 rounded-full animate-pulse"></div> عاجل
+                </span>
+                <div class="w-full overflow-hidden relative h-5">
+                    <div id="ticker-content" class="absolute whitespace-nowrap animate-marquee text-xs text-gray-300 leading-loose">
+                        جاري الاتصال بمركز البيانات...
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <main class="pt-32 container mx-auto px-4 min-h-screen">
+            
+            <section class="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-10" id="hero-section">
+                <div class="lg:col-span-12 flex flex-col items-center justify-center h-[400px] gap-4 border border-white/5 rounded-3xl bg-white/5 animate-pulse">
+                    <div class="loader"></div>
+                    <p class="text-gray-500 text-xs tracking-widest">جاري تحميل الأخبار...</p>
+                </div>
+            </section>
+
+            <section class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+                <div class="lg:col-span-8" id="news-container">
+                    <div class="space-y-4">
+                        <div class="h-32 bg-white/5 rounded-2xl animate-pulse"></div>
+                        <div class="h-32 bg-white/5 rounded-2xl animate-pulse"></div>
+                    </div>
+                </div>
+
+                <div class="lg:col-span-4 hidden lg:block sticky top-36 h-fit">
+                    <div class="glass-panel p-6 rounded-2xl mb-6">
+                        <h3 class="text-gold-400 font-bold mb-4 flex items-center gap-2 border-b border-white/5 pb-2">
+                            <i data-lucide="trending-up" class="w-4 h-4"></i> الأكثر قراءة
+                        </h3>
+                        <div id="sidebar-content" class="space-y-4"></div>
+                    </div>
+                    
+                    <div class="glass-panel p-6 rounded-2xl text-center">
+                        <h3 class="text-white text-sm font-bold mb-2">اشترك في النشرة البريدية</h3>
+                        <p class="text-gray-500 text-xs mb-4">خلاصة الأخبار تصلك أسبوعياً مدعومة بالذكاء الاصطناعي.</p>
+                        <input type="email" placeholder="بريدك الإلكتروني" class="w-full bg-black/50 rounded-lg p-2 text-xs text-white mb-2 outline-none focus:border-gold-400 border border-transparent">
+                        <button class="w-full bg-gold-400 text-black text-xs font-bold py-2 rounded-lg hover:bg-white transition">اشترك الآن</button>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <div id="admin-view" class="view-hidden fixed inset-0 z-[60] bg-[#020205] overflow-y-auto">
+        
+        <div id="login-gate" class="min-h-screen flex items-center justify-center p-4 relative overflow-hidden">
+            <div class="absolute top-0 left-0 w-full h-full overflow-hidden z-0">
+                <div class="absolute top-[-10%] left-[-10%] w-96 h-96 bg-gold-400/10 rounded-full blur-[100px]"></div>
+                <div class="absolute bottom-[-10%] right-[-10%] w-96 h-96 bg-blue-900/20 rounded-full blur-[100px]"></div>
+            </div>
+
+            <div class="glass-panel p-10 rounded-3xl w-full max-w-md text-center relative z-10 border-t border-white/10">
+                <button onclick="toggleAdminView()" class="absolute top-4 right-4 text-gray-500 hover:text-white transition"><i data-lucide="x" class="w-6 h-6"></i></button>
+                
+                <div class="mb-8">
+                    <h1 class="text-4xl font-black text-white mb-2">بوابة<span class="text-gold-400"> القيادة</span></h1>
+                    <p class="text-gray-500 text-[10px] uppercase tracking-[0.3em]">نظام إدارة المحتوى الآمن</p>
+                </div>
+
+                <form onsubmit="handleRealLogin(event)" class="space-y-5 text-right">
+                    <div class="relative">
+                        <input type="email" id="login-email" placeholder="البريد الرسمي" class="w-full bg-[#0a0a15] border border-white/10 rounded-xl py-3 px-4 pl-10 text-white focus:border-gold-400 outline-none transition-colors text-sm">
+                        <i data-lucide="mail" class="absolute left-3 top-3.5 w-4 h-4 text-gray-500"></i>
+                    </div>
+                    <div class="relative">
+                        <input type="password" id="login-password" placeholder="شفرة المرور" class="w-full bg-[#0a0a15] border border-white/10 rounded-xl py-3 px-4 pl-10 text-white focus:border-gold-400 outline-none transition-colors text-sm">
+                        <i data-lucide="lock" class="absolute left-3 top-3.5 w-4 h-4 text-gray-500"></i>
+                    </div>
+                    <div id="login-error" class="text-red-500 text-xs hidden bg-red-900/20 p-2 rounded border border-red-500/20 text-center"></div>
+                    <button id="login-btn" class="w-full bg-gradient-to-r from-gold-400 to-yellow-600 text-black font-bold py-3 rounded-xl hover:shadow-lg hover:shadow-gold-400/20 transition-all transform hover:-translate-y-1">دخول النظام</button>
+                </form>
+                
+                <div class="mt-6 pt-6 border-t border-white/5">
+                    <button onclick="forceAdminEnter()" class="text-[10px] text-gray-600 hover:text-gold-400 transition flex items-center gap-1 mx-auto">
+                        <i data-lucide="wifi-off" class="w-3 h-3"></i> الدخول بالوضع المحلي (الطوارئ)
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div id="dashboard-ui" class="hidden min-h-screen flex flex-col lg:flex-row">
+            
+            <aside class="w-full lg:w-72 bg-navy-900 border-l border-white/5 flex flex-col z-20">
+                <div class="h-20 flex items-center px-6 border-b border-white/5 justify-between lg:justify-start">
+                    <div class="flex items-center gap-2">
+                        <div class="w-8 h-8 bg-gold-400 rounded flex items-center justify-center text-black font-bold">ح</div>
+                        <h2 class="text-lg font-bold text-white">غرفة العمليات</h2>
+                    </div>
+                    <button onclick="toggleAdminView()" class="lg:hidden text-gray-400 hover:text-white"><i data-lucide="x"></i></button>
+                </div>
+                
+                <div class="flex-1 p-4 space-y-2 overflow-y-auto">
+                    <p class="text-[10px] text-gray-500 font-bold uppercase px-2 mb-1">التحرير</p>
+                    <button onclick="switchDashView('editor', this)" class="sidebar-link w-full flex items-center gap-3 px-4 py-3 text-gray-400 hover:bg-white/5 rounded-lg text-sm font-medium active">
+                        <i data-lucide="pen-tool" class="w-4 h-4"></i> المحرر الذكي
+                    </button>
+                    <button onclick="switchDashView('articles', this)" class="sidebar-link w-full flex items-center gap-3 px-4 py-3 text-gray-400 hover:bg-white/5 rounded-lg text-sm font-medium">
+                        <i data-lucide="file-text" class="w-4 h-4"></i> الأرشيف الرقمي
+                    </button>
+                    
+                    <p class="text-[10px] text-gray-500 font-bold uppercase px-2 mb-1 mt-4">النظام</p>
+                    <button onclick="switchDashView('settings', this)" class="sidebar-link w-full flex items-center gap-3 px-4 py-3 text-gray-400 hover:bg-white/5 rounded-lg text-sm font-medium">
+                        <i data-lucide="settings" class="w-4 h-4"></i> الإعدادات
+                    </button>
+                </div>
+
+                <div class="p-4 border-t border-white/5">
+                    <div class="flex items-center gap-3 mb-4 px-2">
+                        <div class="w-8 h-8 rounded-full bg-gradient-to-tr from-blue-500 to-purple-500"></div>
+                        <div class="overflow-hidden">
+                            <p class="text-white text-xs font-bold truncate" id="current-user-name">المدير</p>
+                            <p class="text-green-500 text-[10px] flex items-center gap-1" id="connection-status">
+                                <span class="w-1.5 h-1.5 bg-green-500 rounded-full inline-block" id="status-dot"></span> متصل
+                            </p>
+                        </div>
+                    </div>
+                    <button onclick="logout()" class="w-full flex items-center justify-center gap-2 text-red-400 hover:bg-red-400/10 text-xs py-2 rounded-lg transition">
+                        <i data-lucide="log-out" class="w-3 h-3"></i> تسجيل خروج
+                    </button>
+                </div>
+            </aside>
+
+            <div class="flex-1 bg-[#020205] overflow-y-auto p-4 lg:p-8">
+                <div id="status-bar" class="hidden mb-6 p-3 bg-yellow-500/10 border border-yellow-500/30 text-yellow-500 text-xs rounded-xl flex items-center gap-2">
+                    <i data-lucide="wifi-off" class="w-4 h-4"></i> 
+                    <span><b>وضع العمل المحلي:</b> قاعدة البيانات غير متصلة. يتم حفظ البيانات في جهازك فقط.</span>
+                </div>
+
+                <div id="sec-editor" class="view-section space-y-6 max-w-5xl mx-auto">
+                    <header class="flex justify-between items-end pb-4 border-b border-white/5">
+                        <div>
+                            <h2 class="text-2xl font-bold text-white">نشر خبر جديد</h2>
+                            <p class="text-gray-500 text-xs mt-1">استخدم أدوات الذكاء الاصطناعي لصناعة محتوى احترافي</p>
+                        </div>
+                        <div class="flex gap-2">
+                            <button onclick="publishAction()" id="publish-btn" class="bg-gold-400 text-black font-bold px-6 py-2 rounded-lg hover:bg-white transition shadow-lg shadow-gold-400/20 flex items-center gap-2">
+                                <span>نشر</span> <i data-lucide="send" class="w-4 h-4"></i>
+                            </button>
+                        </div>
+                    </header>
+
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        <div class="lg:col-span-2 space-y-4">
+                            <input type="text" id="news-title" placeholder="عنوان الخبر الرئيسي..." class="w-full bg-transparent text-3xl font-black text-white border-none focus:ring-0 px-0 placeholder-gray-700 leading-tight">
+                            
+                            <div class="flex items-center gap-2 bg-white/5 p-2 rounded-lg w-fit border border-white/5">
+                                <button class="p-1.5 text-gray-400 hover:text-white hover:bg-white/10 rounded transition"><i data-lucide="bold" class="w-4 h-4"></i></button>
+                                <button class="p-1.5 text-gray-400 hover:text-white hover:bg-white/10 rounded transition"><i data-lucide="italic" class="w-4 h-4"></i></button>
+                                <div class="w-px h-4 bg-white/10 mx-1"></div>
+                                <button onclick="triggerAI('summarize')" class="text-xs text-gold-400 hover:bg-gold-400/10 px-2 py-1 rounded flex items-center gap-1 transition"><i data-lucide="sparkles" class="w-3 h-3"></i> إكمال/تلخيص</button>
+                                <button onclick="triggerAI('grammar')" class="text-xs text-green-400 hover:bg-green-400/10 px-2 py-1 rounded flex items-center gap-1 transition"><i data-lucide="check" class="w-3 h-3"></i> تدقيق</button>
+                            </div>
+
+                            <div id="editor" class="editor-content w-full h-[500px] text-lg text-gray-300 leading-loose outline-none resize-none p-4 rounded-xl border border-white/5 focus:border-gold-400/50 transition-colors overflow-y-auto" contenteditable="true" placeholder="ابدأ كتابة القصة هنا..."></div>
+                        </div>
+
+                        <div class="space-y-6">
+                            <div class="glass-panel p-5 rounded-xl space-y-4">
+                                <h4 class="text-white text-xs font-bold uppercase tracking-wider">تفاصيل النشر</h4>
+                                <div>
+                                    <label class="text-gray-500 text-[10px] block mb-1">القسم</label>
+                                    <select id="news-category" class="w-full bg-navy-900 border border-white/10 rounded-lg p-2.5 text-sm text-white focus:border-gold-400 outline-none">
+                                        <option>أخبار محلية</option><option>اقتصاد</option><option>رياضة</option><option>ثقافة</option><option>تكنولوجيا</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="text-gray-500 text-[10px] block mb-1">رابط الصورة</label>
+                                    <input type="text" id="news-image" placeholder="https://..." class="w-full bg-navy-900 border border-white/10 rounded-lg p-2.5 text-sm text-white focus:border-gold-400 outline-none">
+                                </div>
+                                <button onclick="generateImage()" class="w-full border border-dashed border-white/20 hover:border-gold-400 text-gray-400 hover:text-gold-400 rounded-lg p-3 text-xs flex justify-center items-center gap-2 transition">
+                                    <i data-lucide="image-plus" class="w-4 h-4"></i> توليد صورة بالذكاء الاصطناعي
+                                </button>
+                            </div>
+
+                            <div class="glass-panel p-5 rounded-xl border-t-2 border-purple-500">
+                                <h4 class="text-white text-xs font-bold uppercase tracking-wider mb-3 flex items-center gap-2"><i data-lucide="brain-circuit" class="text-purple-500 w-4 h-4"></i> مساعد Gemini</h4>
+                                <div class="space-y-2">
+                                    <button onclick="triggerAI('title')" class="w-full text-right text-xs text-gray-300 hover:text-white hover:bg-white/5 p-2 rounded transition">✨ اقتراح عناوين جذابة</button>
+                                    <button onclick="triggerAI('factcheck')" class="w-full text-right text-xs text-gray-300 hover:text-white hover:bg-white/5 p-2 rounded transition">🕵️ التحقق من المصداقية</button>
+                                </div>
+                                <div id="ai-output" class="hidden mt-4 p-3 bg-black/40 rounded-lg text-xs text-gray-300 border border-white/5"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="sec-articles" class="view-section hidden max-w-5xl mx-auto">
+                    <div class="flex justify-between items-center mb-6">
+                        <h3 class="text-white font-bold text-2xl">أرشيف المحتوى</h3>
+                        <div class="flex gap-2">
+                            <button onclick="generateNewsletter()" class="text-xs bg-gold-400 text-black px-4 py-2 rounded-lg font-bold hover:bg-white transition flex items-center gap-2"><i data-lucide="mail" class="w-4 h-4"></i> توليد نشرة</button>
+                            <button onclick="loadAdminData()" class="text-xs bg-white/10 text-white px-4 py-2 rounded-lg hover:bg-white/20 transition">تحديث</button>
+                        </div>
+                    </div>
+                    <div class="glass-panel rounded-xl overflow-hidden">
+                        <table class="w-full text-right text-gray-400 text-sm">
+                            <thead class="bg-white/5 text-xs uppercase font-bold text-white"><tr><th class="p-4">العنوان</th><th class="p-4 w-24">القسم</th><th class="p-4 w-24">التاريخ</th></tr></thead>
+                            <tbody class="divide-y divide-white/5" id="admin-articles-list">
+                                </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div id="sec-settings" class="view-section hidden max-w-md mx-auto">
+                    <div class="glass-panel p-8 rounded-2xl">
+                        <h3 class="text-white font-bold mb-6 text-xl">الإعدادات</h3>
+                        <label class="text-gold-400 text-xs font-bold block mb-2">مفتاح Gemini API</label>
+                        <input type="password" id="api-key-setting" placeholder="Paste Key Here" class="w-full bg-navy-900 border border-white/10 rounded-lg p-3 text-white mb-4 focus:border-gold-400 outline-none">
+                        <button onclick="saveApiKey()" class="w-full bg-gold-400 text-black font-bold py-2 rounded-lg hover:bg-white transition">حفظ الإعدادات</button>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <div id="article-modal" class="fixed inset-0 z-[70] bg-[#050510] hidden overflow-y-auto animate-fade-in">
+        <button onclick="closeArticleModal()" class="fixed top-6 left-6 z-50 bg-black/50 text-white p-2 rounded-full hover:bg-white hover:text-black transition backdrop-blur-md border border-white/10"><i data-lucide="x" class="w-6 h-6"></i></button>
+        <div class="relative h-[40vh] md:h-[50vh] w-full">
+            <img id="modal-img" src="" class="w-full h-full object-cover" onerror="this.src='https://via.placeholder.com/1200x500'">
+            <div class="absolute inset-0 bg-gradient-to-t from-[#050510] via-[#050510]/60 to-transparent"></div>
+            <div class="absolute bottom-0 right-0 p-6 md:p-12 w-full max-w-4xl mx-auto">
+                <span id="modal-cat" class="bg-gold-400 text-black text-xs font-bold px-3 py-1 rounded-full mb-4 inline-block shadow-lg"></span>
+                <h1 id="modal-title" class="text-3xl md:text-5xl font-black text-white leading-tight mb-4 drop-shadow-lg"></h1>
+                <div class="flex items-center gap-4 text-sm text-gray-300">
+                    <span class="flex items-center gap-1"><i data-lucide="clock" class="w-4 h-4 text-gold-400"></i> <span id="modal-date"></span></span>
+                    <span class="flex items-center gap-1"><i data-lucide="user" class="w-4 h-4 text-gold-400"></i> <span id="modal-author"></span></span>
+                </div>
+            </div>
+        </div>
+        <div class="max-w-3xl mx-auto px-6 py-12 relative">
+            <div class="flex gap-3 mb-8 overflow-x-auto pb-2 border-b border-white/10">
+                <button onclick="askGemini('summarize', this)" class="gemini-btn text-xs bg-gold-400/10 text-gold-400 px-3 py-1.5 rounded-lg border border-gold-400/30 flex items-center gap-1 hover:bg-gold-400 hover:text-black transition"><i data-lucide="sparkles" class="w-3 h-3"></i> تلخيص ذكي</button>
+                <button onclick="askGemini('explain', this)" class="gemini-btn text-xs bg-blue-500/10 text-blue-400 px-3 py-1.5 rounded-lg border border-blue-500/30 flex items-center gap-1 hover:bg-blue-500 hover:text-white transition"><i data-lucide="search" class="w-3 h-3"></i> تحليل السياق</button>
+            </div>
+            <div id="ai-result-text" class="mb-6 text-sm text-gold-400 hidden border-r-2 border-gold-400 pr-3 bg-gold-400/5 p-4 rounded min-h-[40px] flex items-center"></div>
+            <div class="prose prose-invert prose-lg prose-gold max-w-none"><p id="modal-body" class="leading-loose text-gray-300"></p></div>
+        </div>
+    </div>
+
+    <div id="settings-modal" class="fixed inset-0 z-[80] bg-black/90 hidden items-center justify-center p-4 backdrop-blur-sm">
+        <div class="glass-panel w-full max-w-sm rounded-2xl p-6 border border-gold-400/20 shadow-2xl">
+            <h3 class="text-white font-bold mb-4 text-lg">تفعيل الذكاء الاصطناعي</h3>
+            <p class="text-gray-400 text-xs mb-4">للزوار: أدخل مفتاحك الخاص لاستخدام ميزات التحليل.</p>
+            <input type="password" id="api-key-input" placeholder="Gemini API Key" class="w-full bg-black/50 p-3 rounded-xl text-white mb-4 border border-white/10 focus:border-gold-400 outline-none text-sm">
+            <div class="flex gap-3">
+                <button onclick="saveApiKey()" class="flex-1 bg-gold-400 text-black font-bold py-2 rounded-xl hover:bg-white transition">حفظ</button>
+                <button onclick="document.getElementById('settings-modal').classList.add('hidden')" class="flex-1 bg-white/10 text-white py-2 rounded-xl hover:bg-white/20">إلغاء</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="toast" class="fixed bottom-6 left-6 bg-navy-900 border border-gold-400/50 text-white px-6 py-4 rounded-xl shadow-2xl transform translate-y-24 opacity-0 transition-all duration-300 flex items-center gap-3 z-[100]">
+        <span id="toast-msg" class="font-bold">تم</span>
+    </div>
+
+    <div id="newsletter-modal" class="fixed inset-0 z-[90] bg-black/90 hidden items-center justify-center p-4 backdrop-blur-sm">
+        <div class="glass-panel w-full max-w-lg rounded-2xl p-6 border border-white/10 shadow-2xl">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-white font-bold text-lg flex items-center gap-2"><i data-lucide="mail" class="text-gold-400"></i> نشرة بريدية (AI)</h3>
+                <button onclick="document.getElementById('newsletter-modal').classList.add('hidden')" class="text-gray-400 hover:text-white"><i data-lucide="x"></i></button>
+            </div>
+            <div id="newsletter-content" class="text-gray-300 text-sm h-64 overflow-y-auto border border-white/5 p-4 rounded-lg bg-black/30 leading-relaxed prose prose-invert max-w-none">
+                <div class="flex flex-col items-center justify-center h-full gap-2"><div class="loader"></div><span class="text-xs">جاري الصياغة...</span></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- 1. Initialization ---
+        function initIcons() { if (window.lucide) lucide.createIcons(); }
+        document.addEventListener('DOMContentLoaded', initIcons);
+
+        // --- 2. Firebase Config ---
+        const firebaseConfig = {
+          apiKey: "AIzaSyD7b1PZY26GN6hR2pliqiFRgyMsNyRlWOs",
+          authDomain: "alhqyqa-62b0e.firebaseapp.com",
+          projectId: "alhqyqa-62b0e",
+          storageBucket: "alhqyqa-62b0e.firebasestorage.app",
+          messagingSenderId: "354014970954",
+          appId: "1:354014970954:web:435ca4eb0cbbfcfd1152b3"
+        };
+
+        // Variables
+        let isOfflineMode = false;
+        const LOCAL_NEWS_KEY = "local_news_db";
+        let currentArticleText = "";
+        let userApiKey = localStorage.getItem("gemini_api_key") || "";
+
+        // --- 3. Local Storage Handlers ---
+        function getLocalNews() { try { return JSON.parse(localStorage.getItem(LOCAL_NEWS_KEY) || "[]"); } catch { return []; } }
+        function saveLocalNews(item) {
+            const current = getLocalNews();
+            // التأكد من عدم تكرار النشر المحلي لخبر تم نشره بالفعل في وضع الأوفلاين
+            if (current.some(n => n.id === item.id)) return; 
+            current.unshift(item);
+            localStorage.setItem(LOCAL_NEWS_KEY, JSON.stringify(current));
+        }
+
+        // --- 4. Firebase Boot ---
+        let auth, db;
+        try {
+            if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+            auth = firebase.auth();
+            db = firebase.firestore();
+
+            // Monitor Auth
+            auth.onAuthStateChanged((user) => {
+                const userNameEl = document.getElementById('current-user-name');
+                const statusDot = document.getElementById('status-dot');
+                const statusText = document.getElementById('connection-status');
+
+                if (user && !user.isAnonymous) {
+                    userNameEl.innerText = user.email.split('@')[0] || "المدير";
+                    statusText.innerHTML = `<span class="w-1.5 h-1.5 bg-green-500 rounded-full inline-block"></span> متصل`;
+                    
+                    document.getElementById('login-gate').classList.add('hidden');
+                    document.getElementById('dashboard-ui').classList.remove('hidden');
+                    // إذا كان متصلاً بنجاح، يتم إيقاف وضع الأوفلاين إن كان مفعلاً
+                    if(isOfflineMode) isOfflineMode = false;
+                    loadAdminData();
+                } else if (user && user.isAnonymous) {
+                    userNameEl.innerText = "زائر";
+                }
+                
+                if (isOfflineMode) { // تحديث الحالة إذا كنا في وضع الأوفلاين
+                    userNameEl.innerText = "وضع محلي";
+                    statusText.innerHTML = `<span class="w-1.5 h-1.5 bg-yellow-500 rounded-full inline-block animate-pulse"></span> غير متصل`;
+                }
+
+                fetchNews();
+            });
+
+            // Anonymous Login
+            if (!auth.currentUser) {
+                auth.signInAnonymously().catch(err => {
+                    console.warn("Guest Auth Failed:", err.code);
+                    enableOfflineMode();
+                });
+            }
+
+            // Fetch News (Hybrid)
+            async function fetchNews() {
+                if (isOfflineMode) return renderLocalData();
+                try {
+                    const snap = await db.collection("news").limit(20).get();
+                    if (snap.empty) {
+                        const local = getLocalNews();
+                        if(local.length > 0) return renderSite(local);
+                        return renderEmptyState();
+                    }
+                    let data = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                    // Sort client-side to avoid index errors
+                    data.sort((a, b) => (b.timestamp?.seconds || 0) - (a.timestamp?.seconds || 0));
+                    window.newsData = data;
+                    renderSite(data);
+                } catch (error) {
+                    console.error("DB Error:", error);
+                    enableOfflineMode();
+                }
+            }
+            
+            // Expose fetchNews globally
+            window.fetchNews = fetchNews;
+
+            // Login Logic
+            window.handleRealLogin = async (e) => {
+                e.preventDefault();
+                document.getElementById('login-error').classList.add('hidden');
+                document.getElementById('login-btn').innerHTML = `<div class="loader mx-auto"></div>`; // إضافة مؤشر التحميل
+                
+                const email = document.getElementById('login-email').value;
+                const pass = document.getElementById('login-password').value;
+                try {
+                    await auth.signInWithEmailAndPassword(email, pass);
+                    // النجاح يتم معالجته بواسطة onAuthStateChanged
+                } catch (e) {
+                    document.getElementById('login-error').innerText = "بيانات الدخول غير صحيحة. رمز الخطأ: " + e.code;
+                    document.getElementById('login-error').classList.remove('hidden');
+                    document.getElementById('login-btn').innerHTML = `دخول النظام`; // إزالة مؤشر التحميل
+                }
+            };
+
+            // Publish Logic (Hybrid)
+            window.publishAction = async () => {
+                const btn = document.getElementById('publish-btn');
+                const title = document.getElementById('news-title').value.trim();
+                const category = document.getElementById('news-category').value;
+                const img = document.getElementById('news-image').value || "https://via.placeholder.com/800x400";
+                const content = document.getElementById('editor').innerText.trim();
+
+                if (!title || !content) return alert("الرجاء كتابة العنوان والخبر");
+
+                const originalBtnText = btn.innerHTML;
+                btn.disabled = true;
+                btn.innerHTML = `<div class="loader w-4 h-4 mr-2"></div> <span>جاري النشر...</span>`;
+
+                const article = {
+                    id: "local_" + Date.now(), // ID محلي افتراضي
+                    title, category, img, desc: content,
+                    author: auth.currentUser?.email || "LocalAdmin",
+                    date: new Date().toLocaleDateString("ar-SA"),
+                    timestamp: { seconds: Date.now() / 1000 }
+                };
+
+                if (isOfflineMode) {
+                    saveLocalNews(article);
+                    finishPublish(article, "تم الحفظ محلياً ⚠️", originalBtnText);
+                } else {
+                    try {
+                        const docRef = await db.collection("news").add(article);
+                        article.id = docRef.id; // تحديث الـ ID بالـ ID السحابي
+                        finishPublish(article, "تم النشر سحابياً ✅", originalBtnText);
+                    } catch(e) {
+                        saveLocalNews(article);
+                        finishPublish(article, "فشل السحاب - تم الحفظ محلياً ⚠️", originalBtnText);
+                        enableOfflineMode();
+                    }
+                }
+            };
+            
+            // Admin Data
+            window.loadAdminData = async () => {
+                const listEl = document.getElementById('admin-articles-list');
+                listEl.innerHTML = `<tr><td colspan="3" class="text-center py-4"><div class="loader mx-auto"></div></td></tr>`;
+
+                const local = getLocalNews();
+                let displayData = local;
+
+                if (!isOfflineMode) {
+                    try {
+                        const snap = await db.collection("news").limit(20).get();
+                        if(!snap.empty) {
+                            const cloudDocs = snap.docs.map(doc => ({id: doc.id, ...doc.data()}));
+                            // دمج البيانات المحلية والسحابية مع إزالة المكرر (استناداً لـ ID محلي غير مكرر)
+                            const localMap = new Map(local.map(d => [d.id, d]));
+                            cloudDocs.forEach(d => localMap.set(d.id, d));
+                            displayData = Array.from(localMap.values());
+                            // فرز حسب الطابع الزمني
+                            displayData.sort((a, b) => (b.timestamp?.seconds || 0) - (a.timestamp?.seconds || 0));
+                        }
+                    } catch(e) {
+                        console.error("Failed to load cloud data:", e);
+                        // في حالة فشل التحميل، نعرض المحلي فقط
+                    }
+                }
+                
+                if(displayData.length === 0) {
+                     listEl.innerHTML = `<tr><td colspan="3" class="text-center py-4 text-gray-500">لا يوجد محتوى في الأرشيف</td></tr>`;
+                     return;
+                }
+
+                // تحديث عرض الأرشيف في الجدول
+                listEl.innerHTML = displayData.map(d => 
+                    `<tr class="border-b border-white/5 hover:bg-white/10 transition cursor-pointer" onclick="openArticle('${d.id}')">
+                        <td class="p-4 text-white font-bold text-sm truncate w-2/3">${d.title}</td>
+                        <td class="p-4 text-xs text-gray-500">${d.category}</td>
+                        <td class="p-4 text-xs text-gray-500 font-mono">${d.date}</td>
+                    </tr>`
+                ).join("");
+            }
+
+            window.logout = () => {
+                auth.signOut().then(() => {
+                    document.getElementById('dashboard-ui').classList.add('hidden');
+                    document.getElementById('login-gate').classList.remove('hidden');
+                    if (!isOfflineMode) auth.signInAnonymously();
+                });
+            };
+
+        } catch (err) {
+            console.error("Fatal Error: Firebase failed to initialize.", err);
+            // لضمان استمرار عمل التطبيق في حالة فشل Firebase
+            enableOfflineMode();
+            // تعريف الدوال لكي لا يفشل الكود عند محاولة استدعائها
+            window.fetchNews = () => renderLocalData();
+            window.handleRealLogin = (e) => { e.preventDefault(); forceAdminEnter(); };
+            window.publishAction = () => { alert("الوضع المحلي مفعّل، الرجاء إدخال العنوان والمحتوى وحفظهما يدوياً."); };
+            window.loadAdminData = () => { document.getElementById('admin-articles-list').innerHTML = `<tr><td colspan="3" class="text-center py-4 text-gray-500">وضع الأوفلاين: لا يمكن عرض البيانات السحابية</td></tr>`; };
+            window.logout = () => { document.getElementById('dashboard-ui').classList.add('hidden'); document.getElementById('login-gate').classList.remove('hidden'); };
+        }
+
+        // --- 5. UI & Helpers ---
+        function enableOfflineMode() {
+            isOfflineMode = true;
+            document.getElementById('ticker-content').innerText = " • وضع عدم الاتصال (البيانات محلية)";
+            // تحديث حالة الاتصال في الشريط الجانبي
+            document.getElementById('status-bar')?.classList.remove("hidden");
+            document.getElementById('connection-status')?.classList.remove('text-green-500');
+            document.getElementById('connection-status')?.classList.add('text-yellow-500');
+            document.getElementById('status-dot')?.classList.remove('bg-green-500');
+            document.getElementById('status-dot')?.classList.add('bg-yellow-500');
+            renderLocalData();
+        }
+
+        function finishPublish(article, msg, originalBtnText) {
+            const btn = document.getElementById('publish-btn');
+            btn.disabled = false;
+            btn.innerHTML = originalBtnText;
+            document.getElementById('news-title').value = "";
+            document.getElementById('editor').innerText = "";
+            
+            // تحديث newsData
+            const current = window.newsData || [];
+            // إزالة الخبر المضاف سابقاً في حال كان هناك تكرار (لنظام الـ SPA)
+            const existingIndex = current.findIndex(n => n.id === article.id);
+            if (existingIndex > -1) current.splice(existingIndex, 1);
+            
+            current.unshift(article);
+            window.newsData = current;
+            
+            renderSite(current);
+            loadAdminData();
+            showToast(msg);
+        }
+
+        window.forceAdminEnter = () => {
+            isOfflineMode = true;
+            document.getElementById('login-gate').classList.add("hidden");
+            document.getElementById('dashboard-ui').classList.remove("hidden");
+            enableOfflineMode(); // للتأكد من تحديث الحالة البصرية
+            loadAdminData();
+        };
+
+        window.toggleAdminView = () => {
+            const adminView = document.getElementById('admin-view');
+            adminView.classList.toggle('view-hidden');
+            
+            const user = firebase.apps.length ? firebase.auth().currentUser : null;
+            const isLoggedIn = (user && !user.isAnonymous) || isOfflineMode;
+
+            if (isLoggedIn && adminView.classList.contains('view-hidden') === false) {
+                document.getElementById('login-gate').classList.add('hidden');
+                document.getElementById('dashboard-ui').classList.remove('hidden');
+                loadAdminData();
+            } else if (adminView.classList.contains('view-hidden') === false) {
+                document.getElementById('login-gate').classList.remove('hidden');
+                document.getElementById('dashboard-ui').classList.add('hidden');
+            }
+            initIcons();
+        };
+        
+        window.switchDashView = (v, btn) => {
+            document.querySelectorAll(".view-section").forEach(e => e.classList.add("hidden"));
+            document.getElementById(`sec-${v}`).classList.remove("hidden");
+            document.querySelectorAll(".sidebar-link").forEach(e => e.classList.remove("active"));
+            btn.classList.add("active");
+            if (v === "articles") loadAdminData();
+        };
+
+        // --- 6. Gemini AI ---
+        window.openSettings = () => {
+            document.getElementById('settings-modal').classList.remove('hidden');
+            document.getElementById('api-key-input').value = userApiKey;
+            document.getElementById('api-key-setting').value = userApiKey; // تحديث الإعدادات في لوحة التحكم أيضاً
+        }
+
+        window.saveApiKey = () => { 
+            const keyInput = document.getElementById('api-key-input');
+            const keySetting = document.getElementById('api-key-setting');
+            const key = keyInput.value || keySetting.value;
+            
+            if (key) { 
+                localStorage.setItem("gemini_api_key", key); 
+                userApiKey = key; 
+                document.getElementById('settings-modal').classList.add('hidden');
+                showToast("تم حفظ المفتاح ✅");
+            } else {
+                alert("الرجاء إدخال مفتاح API.");
+            }
+        }
+        
+        async function callGemini(prompt, system) {
+            if (!userApiKey) { 
+                alert("الرجاء إدخال مفتاح API في الإعدادات لتفعيل ميزات الذكاء الاصطناعي."); 
+                return null; 
+            }
+            try {
+                const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${userApiKey}`;
+                const payload = { contents: [{ parts: [{ text: prompt }] }], config: { systemInstruction: system } };
+                
+                const res = await fetch(url, { 
+                    method: "POST", 
+                    headers: { "Content-Type": "application/json" }, 
+                    body: JSON.stringify(payload) 
+                });
+                
+                const data = await res.json();
+                
+                if (!res.ok || data.candidates?.[0]?.content?.parts?.[0]?.text === undefined) {
+                    throw new Error(data.error?.message || "فشل غير معروف في API.");
+                }
+                
+                return data.candidates?.[0]?.content?.parts?.[0]?.text;
+            } catch (e) { 
+                console.error("Gemini Error:", e);
+                alert(`خطأ في اتصال Gemini: ${e.message}. تأكد من صحة المفتاح.`);
+                return null; 
+            }
+        }
+
+        window.triggerAI = async (mode) => {
+            const out = document.getElementById('ai-output');
+            const editorEl = document.getElementById('editor');
+            const text = editorEl.innerText.trim();
+            if (!text) return alert("يرجى كتابة بعض المحتوى أولاً.");
+
+            out.classList.remove("hidden"); 
+            out.innerHTML = `<div class="flex items-center gap-2"><div class="loader w-4 h-4"></div> <span class="animate-pulse">جاري التفكير...</span></div>`;
+            
+            let prompt = "";
+            let system = "أنت مساعد صحفي محترف. ردودك يجب أن تكون دائمًا باللغة العربية وتنسيق Markdown.";
+            
+            if (mode === "title") prompt = `اقترح 3 عناوين جذابة لـ: ${text}`;
+            else if (mode === "grammar") prompt = `صحح لغوياً وأعد صياغة هذا النص مع الحفاظ على المعنى الأصلي. لا تضف أي شرح أو مقدمات، فقط النص المصحح: ${text}`;
+            else if (mode === "factcheck") prompt = `تحقق من المصداقية والمغالطات في: ${text}`;
+            else if (mode === "summarize") prompt = `أكمل أو لخص هذا النص في حدود 150 كلمة: ${text}`;
+
+            const result = await callGemini(prompt, system);
+            
+            if (result) {
+                out.innerHTML = marked.parse(result);
+                if (mode === "grammar" || mode === "summarize") {
+                    editorEl.innerText = result.replace(/\*\*/g, '').replace(/###/g, '').replace(/\* /g, ''); // إزالة تنسيق Markdown في المحرر
+                    showToast(mode === "grammar" ? "تم التصحيح اللغوي ✅" : "تم الإكمال/التلخيص ✨");
+                }
+            } else {
+                out.innerHTML = "فشل الاتصال. تأكد من المفتاح.";
+            }
+        };
+
+        window.askGemini = async (action, btn) => {
+            const resDiv = document.getElementById('ai-result-text');
+            
+            // تعطيل جميع الأزرار وعرض مؤشر التحميل
+            document.querySelectorAll('.gemini-btn').forEach(b => b.disabled = true);
+            const originalIcon = btn.innerHTML;
+            btn.innerHTML = `<div class="loader w-3 h-3"></div>`;
+
+            resDiv.classList.remove('hidden'); 
+            resDiv.innerHTML = `<div class="flex items-center gap-2"><div class="loader w-4 h-4"></div> <span class="animate-pulse">جاري التحليل...</span></div>`;
+            
+            let prompt = "";
+            if (action === 'summarize') prompt = `لخص هذا الخبر في نقاط مهمة: ${currentArticleText}`;
+            else if (action === 'explain') prompt = `اشرح السياق والخلفيات لهذا الخبر وما هي التوقعات المستقبلية: ${currentArticleText}`;
+
+            const result = await callGemini(prompt, "أنت محلل أخبار محترف لصحيفة الحقيقة. ردودك يجب أن تكون باللغة العربية وفي نقاط Markdown.");
+            
+            // إعادة تفعيل الأزرار واستعادة النص
+            document.querySelectorAll('.gemini-btn').forEach(b => b.disabled = false);
+            btn.innerHTML = originalIcon;
+            initIcons();
+
+            if (result) {
+                resDiv.innerHTML = marked.parse(result);
+            } else {
+                resDiv.innerHTML = "فشل التحليل. تأكد من إدخال مفتاح API صحيح.";
+            }
+        };
+
+        window.generateNewsletter = async () => {
+             const localNews = getLocalNews();
+             if(!localNews.length) return alert("لا توجد أخبار محلية لتلخيصها");
+             
+             // في حالة الأوفلاين، نستخدم البيانات المحلية فقط
+             const titles = localNews.map(n => `- ${n.title}`).join("\n");
+             
+             document.getElementById('newsletter-modal').classList.remove('hidden');
+             document.getElementById('newsletter-content').innerHTML = `<div class="flex flex-col items-center justify-center h-full gap-2"><div class="loader"></div><span class="text-xs text-gray-400">جاري صياغة النشرة البريدية...</span></div>`;
+             
+             const res = await callGemini(`اكتب نشرة بريدية أسبوعية جذابة وموجزة بناءً على هذه العناوين:\n${titles}`, "أنت كاتب نشرات بريدية محترف لصحيفة إخبارية.");
+             
+             if (res) {
+                 document.getElementById('newsletter-content').innerHTML = marked.parse(res);
+             } else {
+                 document.getElementById('newsletter-content').innerHTML = `<p class="text-red-400">فشل توليد النشرة. تحقق من مفتاح API.</p>`;
+             }
+        };
+
+        window.generateImage = async () => {
+             const title = document.getElementById('news-title').value;
+             if (!title) return alert("الرجاء كتابة عنوان الخبر أولاً لوصف الصورة.");
+             if (!userApiKey) return alert("أدخل مفتاح API لتوليد الصورة.");
+
+             const imgInput = document.getElementById('news-image');
+             const originalVal = imgInput.value;
+             imgInput.value = "جاري التوليد... يرجى الانتظار.";
+             
+             const prompt = await callGemini(`Describe a photorealistic news image for the article: "${title}". Use high quality visual description in English.`, "Prompt Engineer");
+             
+             if(!prompt) { imgInput.value = originalVal; return; }
+             
+             try {
+                 const url = `https://generativelanguage.googleapis.com/v1beta/models/imagen-3.0-generate-001:predict?key=${userApiKey}`;
+                 const res = await fetch(url, { 
+                     method: "POST", 
+                     headers: { "Content-Type": "application/json" }, 
+                     body: JSON.stringify({ 
+                         instances: [{ prompt }], 
+                         parameters: { sampleCount: 1, outputMimeType: "image/jpeg" } // تحديد JPEG لتحسين الأداء
+                     }) 
+                 });
+                 const data = await res.json();
+                 
+                 if (data.predictions && data.predictions.length > 0) {
+                    // الصورة تأتي بصيغة base64
+                    const img = `data:image/jpeg;base64,${data.predictions[0].bytesBase64Encoded}`;
+                    imgInput.value = img;
+                    showToast("تم توليد الصورة 🎨");
+                 } else {
+                    throw new Error("لم يتم توليد صورة.");
+                 }
+                 
+             } catch (e) { 
+                 alert(`فشل توليد الصورة: ${e.message}`); 
+                 imgInput.value = originalVal;
+             }
+        };
+
+        // --- 7. Rendering ---
+        function renderSite(news) {
+            if (!news || !news.length) return renderEmptyState();
+            
+            const hero = news[0];
+            const rest = news.slice(1);
+            document.getElementById('ticker-content').innerText = " • " + news.map(n => n.title).join(" • ");
+
+            document.getElementById('hero-section').innerHTML = `
+                <div onclick="openArticle('${hero.id}')" class="lg:col-span-12 relative group rounded-2xl overflow-hidden h-[300px] lg:h-[450px] cursor-pointer shadow-2xl border border-white/10">
+                    <img src="${hero.img}" class="w-full h-full object-cover group-hover:scale-105 transition duration-700" onerror="this.src='https://via.placeholder.com/800x400'" />
+                    <div class="absolute inset-0 bg-gradient-to-t from-black via-black/30 to-transparent"></div>
+                    <div class="absolute top-4 right-4 bg-gold-400 text-black text-xs font-bold px-3 py-1 rounded-full shadow-lg z-10">${hero.category || 'رئيسي'}</div>
+                    <div class="absolute bottom-0 p-6 lg:p-10">
+                        <h1 class="text-2xl md:text-4xl font-black text-white mb-3 leading-tight">${hero.title}</h1>
+                        <p class="text-gray-200 text-sm hidden md:block line-clamp-2 opacity-90">${hero.desc}</p>
+                    </div>
+                </div>`;
+
+            document.getElementById('news-container').innerHTML = rest.map(n => `
+                <div onclick="openArticle('${n.id}')" class="flex gap-4 mb-4 bg-white/5 p-3 rounded-xl border border-white/5 hover:border-gold-400/30 transition-all group cursor-pointer">
+                    <div class="w-24 h-24 md:w-32 md:h-24 flex-shrink-0 overflow-hidden rounded-lg"><img src="${n.img}" class="w-full h-full object-cover group-hover:scale-110 transition duration-500" onerror="this.src='https://via.placeholder.com/200'" /></div>
+                    <div class="flex flex-col justify-center flex-1">
+                        <span class="text-[10px] text-gold-400 font-bold mb-1">${n.category}</span>
+                        <h3 class="text-white font-bold leading-snug group-hover:text-gold-400 line-clamp-2">${n.title}</h3>
+                    </div>
+                </div>`).join("");
+            
+            // Sidebar Random
+            document.getElementById('sidebar-content').innerHTML = [...news].sort(() => Math.random() - 0.5).slice(0, 5).map((n, i) => `
+                <div onclick="openArticle('${n.id}')" class="flex gap-3 items-center cursor-pointer group border-b border-white/5 pb-2 last:border-0">
+                    <span class="text-gold-400 font-black text-lg w-4">${i + 1}</span>
+                    <h4 class="text-gray-300 text-xs group-hover:text-white line-clamp-2">${n.title}</h4>
+                </div>`).join("");
+            
+            initIcons();
+        }
+
+        window.openArticle = (id) => {
+            const art = window.newsData.find(n => n.id === id);
+            if (!art) return;
+            currentArticleText = art.title + "\n" + art.desc;
+            
+            // تنظيف نتائج الذكاء الاصطناعي السابقة
+            document.getElementById('ai-result-text').classList.add('hidden');
+            document.getElementById('ai-result-text').innerHTML = '';
+            document.querySelectorAll('.gemini-btn').forEach(b => b.disabled = false); // تفعيل الأزرار
+
+            document.getElementById('modal-img').src = art.img;
+            document.getElementById('modal-cat').innerText = art.category;
+            document.getElementById('modal-title').innerText = art.title;
+            // تنسيق التاريخ والكاتب
+            document.getElementById('modal-date').innerText = art.date || new Date(art.timestamp.seconds * 1000).toLocaleDateString("ar-SA");
+            document.getElementById('modal-author').innerText = art.author?.split('@')[0] || "فريق التحرير";
+            document.getElementById('modal-body').innerHTML = marked.parse(art.desc);
+            document.getElementById('article-modal').classList.remove("hidden");
+        };
+        window.closeArticleModal = () => document.getElementById('article-modal').classList.add("hidden");
+
+        function renderEmptyState() { document.getElementById('hero-section').innerHTML = `<div class="lg:col-span-12 h-64 flex items-center justify-center text-gray-500 border border-dashed border-white/10 rounded-2xl">لا توجد أخبار بعد.</div>`; }
+        
+        function renderLocalData() {
+            const local = getLocalNews();
+            if (local.length) {
+                window.newsData = local;
+                renderSite(local);
+            } else renderMock("مرحباً.. يرجى تفعيل Firestore للاستمرار");
+        }
+        
+        function renderMock(msg) {
+            const mock = [{ id: "1", title: "انطلاق صحيفة الحقيقة بحلتها الجديدة", category: "أخبار", date: new Date().toLocaleDateString("ar-SA"), author: "المطور", img: "https://images.unsplash.com/photo-1504711434969-e33886168f5c", desc: "نعلن اليوم عن إطلاق المنصة الرقمية الجديدة... نقلة نوعية في عالم الصحافة الرقمية باستخدام تقنيات الذكاء الاصطناعي." }];
+            window.newsData = mock;
+            renderSite(mock);
+            document.getElementById('ticker-content').innerText = msg;
+        }
+        
+        function showToast(msg) {
+            const t = document.getElementById('toast');
+            t.querySelector('#toast-msg').innerText = msg;
+            t.classList.remove("translate-y-24", "opacity-0");
+            setTimeout(() => { t.classList.add("translate-y-24", "opacity-0"); }, 3000);
+        }
+    </script>
+</body>
+</html>
