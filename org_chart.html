@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>الهيكل التنظيمي | صحيفة الحقيقة</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;700;900&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+    <style>
+        body {
+            font-family: 'Tajawal', sans-serif;
+            background-color: #050510; /* Navy Blue */
+            color: #f3f4f6;
+            overflow-x: hidden;
+        }
+
+        .gold-border-top {
+            border-top: 3px solid #D4AF37;
+        }
+
+        .level-card {
+            background-color: #151525; /* Darker Navy */
+            border-radius: 12px;
+            padding: 1.5rem;
+            transition: all 0.3s;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            position: relative;
+        }
+
+        .level-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(212, 175, 55, 0.15);
+        }
+
+        .connector {
+            background-color: #D4AF37;
+            width: 2px;
+            margin: 0 auto;
+            position: relative;
+        }
+
+        .region-card {
+            background-color: #0a0a15;
+            border-bottom: 2px solid #3b82f6; /* Blue Accent */
+        }
+        
+        /* Tooltip style for details */
+        .tooltip-container {
+            position: relative;
+        }
+        .tooltip-text {
+            visibility: hidden;
+            background-color: #D4AF37;
+            color: #000;
+            text-align: center;
+            border-radius: 6px;
+            padding: 5px 10px;
+            position: absolute;
+            z-index: 10;
+            bottom: 100%;
+            right: 50%;
+            transform: translateX(50%);
+            white-space: nowrap;
+            opacity: 0;
+            transition: opacity 0.3s, visibility 0.3s;
+            font-size: 0.8rem;
+        }
+        .tooltip-container:hover .tooltip-text {
+            visibility: visible;
+            opacity: 1;
+        }
+    </style>
+</head>
+<body class="pt-20">
+
+    <div class="container mx-auto px-4 py-8">
+
+        <!-- Header -->
+        <div class="text-center mb-12">
+            <h1 class="text-4xl font-black text-white mb-2 tracking-wider">الهيكل التنظيمي لصحيفة الحقيقة</h1>
+            <p class="text-gold-400 text-lg font-medium">القيادة الإبداعية والأمن المؤسسي</p>
+        </div>
+
+        <!-- المستوى 1: الإدارة العليا -->
+        <div class="text-center mb-10">
+            <h2 class="text-gold-400 text-xl font-bold mb-4 uppercase tracking-wider border-b border-gold-400/30 inline-block px-4 pb-1">القيادة والرؤية (الإدارة العليا)</h2>
+            <div class="connector h-8"></div>
+            <div class="level-card bg-gold-400 text-black mx-auto w-64 p-4 rounded-xl shadow-2xl shadow-gold-400/20">
+                <p class="font-black text-lg">رئيس التحرير (الناشر)</p>
+                <p class="text-sm">يوسف عطية</p>
+            </div>
+        </div>
+
+        <!-- المستوى 2: الإدارة الوسطى (العصب المحرك) -->
+        <div class="mb-10">
+            <h2 class="text-gray-400 text-xl font-bold mb-8 uppercase tracking-wider text-center">التخطيط والإشراف (الإدارة الوسطى)</h2>
+            
+            <div class="flex justify-center">
+                <div class="connector h-8"></div>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+                
+                <div class="level-card gold-border-top">
+                    <p class="text-gold-400 font-bold">مدير التحرير التنفيذي</p>
+                    <p class="text-sm text-gray-400">إدارة الإنتاج اليومي</p>
+                </div>
+                
+                <div class="level-card gold-border-top">
+                    <p class="text-gold-400 font-bold">مدير التقنية والذكاء الاصطناعي</p>
+                    <p class="text-sm text-gray-400">أمن النظام وأدوات Gemini</p>
+                </div>
+                
+                <div class="level-card gold-border-top">
+                    <p class="text-gold-400 font-bold">المدير المالي والموارد البشرية</p>
+                    <p class="text-sm text-gray-400">توثيق العقود والأرشفة</p>
+                </div>
+                
+                <div class="level-card gold-border-top">
+                    <p class="text-gold-400 font-bold">المدير الفني والإبداعي</p>
+                    <p class="text-sm text-gray-400">الهوية البصرية وتصميم الوسائط</p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- المستوى 3: الإدارة التنفيذية ومكاتب المناطق -->
+        <div class="mb-10">
+            <h2 class="text-gray-400 text-xl font-bold mb-8 uppercase tracking-wider text-center">الإنتاج والإلزام (الإدارة التنفيذية)</h2>
+            
+            <div class="flex justify-center">
+                <div class="connector h-8"></div>
+            </div>
+            
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                
+                <!-- عمود 1: مركز التحرير -->
+                <div class="space-y-4">
+                    <h3 class="text-gold-400 text-lg font-bold border-b border-white/10 pb-2 flex items-center gap-2">
+                        <i data-lucide="newspaper" class="w-5 h-5"></i>
+                        غرفة الأخبار المركزية
+                    </h3>
+                    <div class="level-card text-sm">قسم الأخبار العاجلة</div>
+                    <div class="level-card text-sm">قسم التحقيقات والتقارير</div>
+                    <div class="level-card text-sm">قسم الرأي والمقالات</div>
+                </div>
+
+                <!-- عمود 2: المكاتب الإقليمية (الأهم) -->
+                <div class="lg:col-span-2 space-y-4">
+                    <h3 class="text-gold-400 text-lg font-bold border-b border-white/10 pb-2 flex items-center gap-2">
+                        <i data-lucide="map-pin" class="w-5 h-5"></i>
+                        شبكة المكاتب الإقليمية (توثيق العقود)
+                    </h3>
+                    
+                    <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
+                        
+                        <div class="level-card region-card tooltip-container">
+                            <p class="text-lg font-bold text-white">الوسطى</p>
+                            <p class="text-xs text-gray-400">المكتب الإقليمي رقم 1</p>
+                            <span class="tooltip-text">
+                                المسؤول عن توثيق عقود منطقة الرياض والقصيم.
+                            </span>
+                        </div>
+                        
+                        <div class="level-card region-card tooltip-container">
+                            <p class="text-lg font-bold text-white">الغربية</p>
+                            <p class="text-xs text-gray-400">المكتب الإقليمي رقم 2</p>
+                            <span class="tooltip-text">
+                                المسؤول عن توثيق عقود جدة ومكة والمدينة.
+                            </span>
+                        </div>
+                        
+                        <div class="level-card region-card tooltip-container">
+                            <p class="text-lg font-bold text-white">الشرقية</p>
+                            <p class="text-xs text-gray-400">المكتب الإقليمي رقم 3</p>
+                            <span class="tooltip-text">
+                                المسؤول عن توثيق عقود الدمام والخبر والجبيل.
+                            </span>
+                        </div>
+                        
+                        <div class="level-card region-card tooltip-container">
+                            <p class="text-lg font-bold text-white">الشمالية</p>
+                            <p class="text-xs text-gray-400">المكتب الإقليمي رقم 4</p>
+                            <span class="tooltip-text">
+                                المسؤول عن توثيق عقود تبوك وعرعر.
+                            </span>
+                        </div>
+                        
+                        <div class="level-card region-card tooltip-container">
+                            <p class="text-lg font-bold text-white">الجنوبية</p>
+                            <p class="text-xs text-gray-400">المكتب الإقليمي رقم 5</p>
+                            <span class="tooltip-text">
+                                المسؤول عن توثيق عقود عسير وجازان.
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer class="text-center text-gray-600 text-xs py-8">
+        <p>تم تصميم هذا الهيكل ليعكس نظام الأمان والأرشفة المناطقية المعتمد في صحيفة "الحقيقة".</p>
+    </footer>
+
+    <script>
+        lucide.createIcons();
+    </script>
+</body>
+</html>
