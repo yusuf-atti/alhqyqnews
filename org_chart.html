@@ -7,6 +7,8 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;700;900&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked@12.0.0/lib/marked.umd.js"></script>
+    
     <style>
         body {
             font-family: 'Tajawal', sans-serif;
@@ -70,6 +72,8 @@
             visibility: visible;
             opacity: 1;
         }
+        .loader { border: 3px solid #ccc; border-top-color: #D4AF37; border-radius: 50%; width: 16px; height: 16px; animation: spin 1s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
     </style>
 </head>
 <body class="pt-20">
@@ -102,29 +106,37 @@
             
             <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
                 
-                <div class="level-card gold-border-top">
+                <div class="level-card gold-border-top tooltip-container group" data-role="مدير التحرير التنفيذي">
                     <p class="text-gold-400 font-bold">مدير التحرير التنفيذي</p>
                     <p class="text-sm text-gray-400">إدارة الإنتاج اليومي</p>
+                    <button onclick="analyzeRole('مدير التحرير التنفيذي')" class="mt-2 text-xs text-blue-400 hover:text-white flex items-center gap-1"><i data-lucide="search-check" class="w-4 h-4"></i> تحليل الدور</button>
+                    <button onclick="generateJobDescription('مدير التحرير التنفيذي')" class="mt-1 text-xs text-green-400 hover:text-white flex items-center gap-1"><i data-lucide="file-text" class="w-4 h-4"></i> وظيفة</button>
                 </div>
                 
-                <div class="level-card gold-border-top">
+                <div class="level-card gold-border-top tooltip-container group" data-role="مدير التقنية والذكاء الاصطناعي">
                     <p class="text-gold-400 font-bold">مدير التقنية والذكاء الاصطناعي</p>
                     <p class="text-sm text-gray-400">أمن النظام وأدوات Gemini</p>
+                    <button onclick="analyzeRole('مدير التقنية والذكاء الاصطناعي')" class="mt-2 text-xs text-blue-400 hover:text-white flex items-center gap-1"><i data-lucide="search-check" class="w-4 h-4"></i> تحليل الدور</button>
+                    <button onclick="generateJobDescription('مدير التقنية والذكاء الاصطناعي')" class="mt-1 text-xs text-green-400 hover:text-white flex items-center gap-1"><i data-lucide="file-text" class="w-4 h-4"></i> وظيفة</button>
                 </div>
                 
-                <div class="level-card gold-border-top">
+                <div class="level-card gold-border-top tooltip-container group" data-role="المدير المالي والموارد البشرية">
                     <p class="text-gold-400 font-bold">المدير المالي والموارد البشرية</p>
                     <p class="text-sm text-gray-400">توثيق العقود والأرشفة</p>
+                    <button onclick="analyzeRole('المدير المالي والموارد البشرية')" class="mt-2 text-xs text-blue-400 hover:text-white flex items-center gap-1"><i data-lucide="search-check" class="w-4 h-4"></i> تحليل الدور</button>
+                    <button onclick="generateJobDescription('المدير المالي والموارد البشرية')" class="mt-1 text-xs text-green-400 hover:text-white flex items-center gap-1"><i data-lucide="file-text" class="w-4 h-4"></i> وظيفة</button>
                 </div>
                 
-                <div class="level-card gold-border-top">
+                <div class="level-card gold-border-top tooltip-container group" data-role="المدير الفني والإبداعي">
                     <p class="text-gold-400 font-bold">المدير الفني والإبداعي</p>
                     <p class="text-sm text-gray-400">الهوية البصرية وتصميم الوسائط</p>
+                    <button onclick="analyzeRole('المدير الفني والإبداعي')" class="mt-2 text-xs text-blue-400 hover:text-white flex items-center gap-1"><i data-lucide="search-check" class="w-4 h-4"></i> تحليل الدور</button>
+                    <button onclick="generateJobDescription('المدير الفني والإبداعي')" class="mt-1 text-xs text-green-400 hover:text-white flex items-center gap-1"><i data-lucide="file-text" class="w-4 h-4"></i> وظيفة</button>
                 </div>
             </div>
         </div>
         
-        <!-- المستوى 3: الإدارة التنفيذية ومكاتب المناطق -->
+        <!-- المستوى 3: الإدارة التنفيذية ومكاتب المناطق (مختصر) -->
         <div class="mb-10">
             <h2 class="text-gray-400 text-xl font-bold mb-8 uppercase tracking-wider text-center">الإنتاج والإلزام (الإدارة التنفيذية)</h2>
             
@@ -133,7 +145,6 @@
             </div>
             
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                
                 <!-- عمود 1: مركز التحرير -->
                 <div class="space-y-4">
                     <h3 class="text-gold-400 text-lg font-bold border-b border-white/10 pb-2 flex items-center gap-2">
@@ -145,54 +156,18 @@
                     <div class="level-card text-sm">قسم الرأي والمقالات</div>
                 </div>
 
-                <!-- عمود 2: المكاتب الإقليمية (الأهم) -->
+                <!-- عمود 2: المكاتب الإقليمية -->
                 <div class="lg:col-span-2 space-y-4">
                     <h3 class="text-gold-400 text-lg font-bold border-b border-white/10 pb-2 flex items-center gap-2">
                         <i data-lucide="map-pin" class="w-5 h-5"></i>
                         شبكة المكاتب الإقليمية (توثيق العقود)
                     </h3>
-                    
                     <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
-                        
-                        <div class="level-card region-card tooltip-container">
-                            <p class="text-lg font-bold text-white">الوسطى</p>
-                            <p class="text-xs text-gray-400">المكتب الإقليمي رقم 1</p>
-                            <span class="tooltip-text">
-                                المسؤول عن توثيق عقود منطقة الرياض والقصيم.
-                            </span>
-                        </div>
-                        
-                        <div class="level-card region-card tooltip-container">
-                            <p class="text-lg font-bold text-white">الغربية</p>
-                            <p class="text-xs text-gray-400">المكتب الإقليمي رقم 2</p>
-                            <span class="tooltip-text">
-                                المسؤول عن توثيق عقود جدة ومكة والمدينة.
-                            </span>
-                        </div>
-                        
-                        <div class="level-card region-card tooltip-container">
-                            <p class="text-lg font-bold text-white">الشرقية</p>
-                            <p class="text-xs text-gray-400">المكتب الإقليمي رقم 3</p>
-                            <span class="tooltip-text">
-                                المسؤول عن توثيق عقود الدمام والخبر والجبيل.
-                            </span>
-                        </div>
-                        
-                        <div class="level-card region-card tooltip-container">
-                            <p class="text-lg font-bold text-white">الشمالية</p>
-                            <p class="text-xs text-gray-400">المكتب الإقليمي رقم 4</p>
-                            <span class="tooltip-text">
-                                المسؤول عن توثيق عقود تبوك وعرعر.
-                            </span>
-                        </div>
-                        
-                        <div class="level-card region-card tooltip-container">
-                            <p class="text-lg font-bold text-white">الجنوبية</p>
-                            <p class="text-xs text-gray-400">المكتب الإقليمي رقم 5</p>
-                            <span class="tooltip-text">
-                                المسؤول عن توثيق عقود عسير وجازان.
-                            </span>
-                        </div>
+                        <div class="level-card region-card tooltip-container"><p class="text-lg font-bold text-white">الوسطى</p><p class="text-xs text-gray-400">الرياض والقصيم</p><span class="tooltip-text">المكتب الإقليمي رقم 1</span></div>
+                        <div class="level-card region-card tooltip-container"><p class="text-lg font-bold text-white">الغربية</p><p class="text-xs text-gray-400">جدة ومكة والمدينة</p><span class="tooltip-text">المكتب الإقليمي رقم 2</span></div>
+                        <div class="level-card region-card tooltip-container"><p class="text-lg font-bold text-white">الشرقية</p><p class="text-xs text-gray-400">الدمام والخبر والجبيل</p><span class="tooltip-text">المكتب الإقليمي رقم 3</span></div>
+                        <div class="level-card region-card tooltip-container"><p class="text-lg font-bold text-white">الشمالية</p><p class="text-xs text-gray-400">تبوك وعرعر</p><span class="tooltip-text">المكتب الإقليمي رقم 4</span></div>
+                        <div class="level-card region-card tooltip-container"><p class="text-lg font-bold text-white">الجنوبية</p><p class="text-xs text-gray-400">عسير وجازان</p><span class="tooltip-text">المكتب الإقليمي رقم 5</span></div>
                     </div>
                 </div>
             </div>
@@ -202,9 +177,97 @@
     <footer class="text-center text-gray-600 text-xs py-8">
         <p>تم تصميم هذا الهيكل ليعكس نظام الأمان والأرشفة المناطقية المعتمد في صحيفة "الحقيقة".</p>
     </footer>
+    
+    <!-- Modal for AI Output -->
+    <div id="ai-modal" class="fixed inset-0 z-[100] bg-black/80 hidden items-center justify-center p-4">
+        <div class="bg-[#151525] w-full max-w-xl rounded-xl border border-gold-400/30 p-6 relative">
+            <button onclick="closeAIModal()" class="absolute top-4 left-4 text-gray-400 hover:text-white"><i data-lucide="x" class="w-6 h-6"></i></button>
+            <h3 id="ai-modal-title" class="text-xl font-bold text-gold-400 mb-4"></h3>
+            <div id="ai-modal-content" class="text-gray-300 text-sm overflow-y-auto max-h-96 leading-relaxed"></div>
+        </div>
+    </div>
 
+    <!-- Script Logic -->
     <script>
         lucide.createIcons();
+
+        // Placeholder API Key (Replace with user's actual key later if needed)
+        let apiKey = ""; // Should be loaded via settings if available
+
+        // --- AI API CALL ---
+        async function callGemini(prompt, system, loadingMessage) {
+            if (!apiKey) {
+                alert("الرجاء إدخال مفتاح Gemini API في الإعدادات لتفعيل هذه الميزة.");
+                return null;
+            }
+            
+            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
+            
+            try {
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        contents: [{ parts: [{ text: prompt }] }], 
+                        systemInstruction: { parts: [{ text: system }] }
+                    })
+                });
+
+                const data = await response.json();
+                return data.candidates?.[0]?.content?.parts?.[0]?.text;
+            } catch (error) {
+                console.error("Gemini Error:", error);
+                return "حدث خطأ في الاتصال بالذكاء الاصطناعي.";
+            }
+        }
+        
+        // --- Modal Helpers ---
+        function openAIModal(title, content) {
+            document.getElementById('ai-modal-title').innerText = title;
+            document.getElementById('ai-modal-content').innerHTML = content;
+            document.getElementById('ai-modal').classList.remove('hidden');
+            document.getElementById('ai-modal').classList.add('flex');
+        }
+
+        function closeAIModal() {
+            document.getElementById('ai-modal').classList.add('hidden');
+            document.getElementById('ai-modal').classList.remove('flex');
+        }
+
+        // --- Feature 1: Role Analysis ---
+        window.analyzeRole = async (roleTitle) => {
+            openAIModal(`تحليل الدور الوظيفي: ${roleTitle}`, `<div class="loader mx-auto"></div><p class="mt-4 text-center">جاري تحليل المتطلبات...</p>`);
+            
+            const prompt = `
+                حلل الدور الوظيفي لـ "${roleTitle}" في سياق صحيفة رقمية متقدمة تستخدم الذكاء الاصطناعي.
+                
+                المطلوب: توليد 3 مهارات أساسية يجب توافرها في المرشح لهذا المنصب. استخدم تنسيق Markdown لـ (قائمة غير مرتبة).
+            `;
+            const system = "أنت خبير في الموارد البشرية وإدارة المؤسسات الإعلامية.";
+
+            const result = await callGemini(prompt, system);
+            document.getElementById('ai-modal-content').innerHTML = result ? marked.parse(result) : "فشل التحليل.";
+        };
+        
+        // --- Feature 2: Job Description Generator ---
+        window.generateJobDescription = async (roleTitle) => {
+             openAIModal(`الوصف الوظيفي لـ: ${roleTitle}`, `<div class="loader mx-auto"></div><p class="mt-4 text-center">جاري صياغة الوصف القانوني...</p>`);
+            
+            const prompt = `
+                قم بصياغة وصف وظيفي تفصيلي ومُلزم قانونياً باللغة العربية لدور "${roleTitle}" في مؤسسة إعلامية.
+                
+                يجب أن يشمل الوصف:
+                1. الملخص العام للدور.
+                2. المهام والمسؤوليات الرئيسية (قائمة).
+                3. المؤهلات المطلوبة (قائمة).
+                
+                استخدم تنسيق Markdown.
+            `;
+            const system = "أنت مستشار توظيف وقانوني متخصص في الإعلام الرقمي.";
+
+            const result = await callGemini(prompt, system);
+            document.getElementById('ai-modal-content').innerHTML = result ? marked.parse(result) : "فشل صياغة الوصف الوظيفي.";
+        };
     </script>
 </body>
 </html>
