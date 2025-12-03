@@ -3,15 +3,13 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-    <title>صحيفة الحقيقة | النظام الإداري المتكامل</title>
-
-    <link rel="manifest" href="manifest.json" />
+    <title>صحيفة الحقيقة | صوت الواقع</title>
+    <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#050510">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;900&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -27,7 +25,7 @@
                 extend: {
                     fontFamily: { sans: ['Tajawal', 'sans-serif'] },
                     colors: { navy: { 900: '#050510', 800: '#0a0a15', 700: '#151525' }, gold: { 400: '#D4AF37', 500: '#C5A028' } },
-                    animation: { 'pulse-slow': 'pulse 3s ease infinite', 'marquee': 'marquee 30s linear infinite' },
+                    animation: { 'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite', 'marquee': 'marquee 30s linear infinite' },
                     keyframes: { marquee: { '0%': { transform: 'translateX(100%)' }, '100%': { transform: 'translateX(-100%)' } } }
                 }
             }
@@ -38,16 +36,13 @@
         .glass-nav { background: rgba(5, 5, 16, 0.95); backdrop-filter: blur(16px); border-bottom: 1px solid rgba(255, 255, 255, 0.05); }
         .glass-panel { background: rgba(21, 21, 37, 0.9); border: 1px solid rgba(255, 255, 255, 0.05); }
         .loader { border: 3px solid rgba(255,255,255,0.1); border-left-color: #D4AF37; width: 24px; height: 24px; border-radius: 50%; animation: spin 1s linear infinite; }
-        .view-hidden { display: none !important; }
         .sidebar-link.active { background: rgba(212, 175, 55, 0.1); color: #D4AF37; border-right: 3px solid #D4AF37; }
-        
-        /* Contract Styles */
-        .contract-paper { background-color: #fff; color: #000; font-family: 'Times New Roman', serif; padding: 40px; border: 1px solid #ccc; box-shadow: 0 0 20px rgba(0,0,0,0.5); }
+        .view-hidden { display: none !important; }
     </style>
 </head>
 <body class="antialiased selection:bg-gold-400 selection:text-black pb-20 md:pb-0">
 
-    <!-- 1. واجهة الزوار -->
+    <!-- PUBLIC VIEW -->
     <div id="public-view" class="block">
         <nav class="fixed w-full z-40 glass-nav top-0 h-16">
             <div class="container mx-auto px-4 h-full flex justify-between items-center">
@@ -90,10 +85,8 @@
         </main>
     </div>
 
-    <!-- 2. واجهة الإدارة (Admin View) -->
+    <!-- ADMIN VIEW -->
     <div id="admin-view" class="view-hidden fixed inset-0 z-[60] bg-[#020205] overflow-y-auto">
-        
-        <!-- بوابة الدخول -->
         <div id="login-gate" class="min-h-screen flex items-center justify-center p-4">
             <div class="glass-panel p-10 rounded-3xl w-full max-w-md text-center relative border border-gold-400/20">
                 <button onclick="toggleAdminView()" class="absolute top-4 left-4 text-gray-500 hover:text-white"><i data-lucide="x" class="w-6 h-6"></i></button>
@@ -105,44 +98,30 @@
                     <div id="login-error" class="text-red-500 text-xs hidden bg-red-900/20 p-2 rounded">بيانات خاطئة</div>
                     <button id="login-btn" class="w-full bg-gold-400 text-black font-bold py-4 rounded-xl hover:bg-white transition shadow-lg shadow-gold-400/20">دخول النظام</button>
                 </form>
-                <div class="mt-4 pt-4 border-t border-white/10">
-                    <button onclick="forceAdminEnter()" class="text-xs text-gray-500 hover:text-gold-400 underline">دخول اضطراري (وضع محلي)</button>
-                </div>
             </div>
         </div>
 
-        <!-- لوحة التحكم -->
         <div id="dashboard-ui" class="hidden min-h-screen flex flex-col lg:flex-row">
-            <!-- Sidebar -->
-            <aside class="w-full lg:w-72 bg-navy-900 border-l border-white/5 flex flex-col z-20">
+            <aside class="w-full lg:w-64 bg-navy-900 border-l border-white/5 flex flex-col z-20">
                 <div class="h-20 flex items-center px-6 border-b border-white/5 justify-between lg:justify-start">
-                    <h2 class="text-xl font-bold text-white flex items-center gap-2"><i data-lucide="layout-grid" class="text-gold-400"></i> الهيكل التنظيمي</h2>
+                    <h2 class="text-xl font-bold text-white">غرفة العمليات</h2>
                     <button onclick="toggleAdminView()" class="lg:hidden text-gray-400"><i data-lucide="x"></i></button>
                 </div>
                 <div class="flex-1 p-4 space-y-2 overflow-y-auto">
-                    <div class="text-[10px] text-gray-500 font-bold uppercase px-2 mb-1 mt-2">المحتوى</div>
                     <button onclick="switchDashView('editor', this)" class="sidebar-link w-full flex items-center gap-3 px-4 py-3 text-gray-400 hover:bg-white/5 rounded-lg text-sm font-medium active"><i data-lucide="pen-tool" class="w-4 h-4"></i> المحرر الذكي</button>
                     <button onclick="switchDashView('articles', this)" class="sidebar-link w-full flex items-center gap-3 px-4 py-3 text-gray-400 hover:bg-white/5 rounded-lg text-sm font-medium"><i data-lucide="file-text" class="w-4 h-4"></i> الأرشيف</button>
-                    
-                    <div class="text-[10px] text-gray-500 font-bold uppercase px-2 mb-1 mt-4">إدارة الموارد البشرية</div>
-                    <button onclick="switchDashView('hr', this)" class="sidebar-link w-full flex items-center gap-3 px-4 py-3 text-gray-400 hover:bg-white/5 rounded-lg text-sm font-medium"><i data-lucide="users" class="w-4 h-4"></i> الهيكل الإداري</button>
-                    
-                    <div class="text-[10px] text-gray-500 font-bold uppercase px-2 mb-1 mt-4">النظام</div>
                     <button onclick="switchDashView('settings', this)" class="sidebar-link w-full flex items-center gap-3 px-4 py-3 text-gray-400 hover:bg-white/5 rounded-lg text-sm font-medium"><i data-lucide="settings" class="w-4 h-4"></i> الإعدادات</button>
                 </div>
                 <div class="p-4 border-t border-white/5">
-                    <button onclick="logout()" class="w-full flex items-center gap-2 text-red-400 hover:text-red-300 text-sm p-2"><i data-lucide="log-out" class="w-4 h-4"></i> تسجيل خروج</button>
+                    <button onclick="logout()" class="w-full flex items-center gap-2 text-red-400 hover:text-red-300 text-sm p-2"><i data-lucide="log-out" class="w-4 h-4"></i> خروج</button>
                     <button onclick="toggleAdminView()" class="w-full flex items-center gap-2 text-gray-400 hover:text-white text-sm p-2 mt-2"><i data-lucide="eye" class="w-4 h-4"></i> معاينة الموقع</button>
                 </div>
             </aside>
 
-            <!-- Workspace -->
             <div class="flex-1 bg-[#020205] overflow-y-auto p-6">
                 <div id="status-bar" class="hidden mb-4 p-2 bg-yellow-500/10 border border-yellow-500/30 text-yellow-500 text-xs rounded-lg flex items-center gap-2"><i data-lucide="wifi-off" class="w-4 h-4"></i> وضع العمل المحلي</div>
-
-                <!-- Editor Section -->
-                <div id="sec-editor" class="view-section max-w-4xl mx-auto space-y-6">
-                    <h2 class="text-2xl font-bold text-white">نشر خبر جديد</h2>
+                
+                <div id="sec-editor" class="view-section space-y-6 max-w-4xl mx-auto">
                     <input type="text" id="news-title" placeholder="عنوان الخبر الرئيسي..." class="w-full bg-transparent text-3xl font-black text-white border-none focus:ring-0 px-0 placeholder-gray-700">
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <select id="news-category" class="bg-navy-800 border border-white/10 rounded-lg p-2 text-white focus:border-gold-400 outline-none"><option>أخبار محلية</option><option>رياضة</option><option>اقتصاد</option><option>ثقافة</option></select>
@@ -150,6 +129,7 @@
                     </div>
                     <div class="flex flex-wrap gap-2">
                         <button onclick="triggerAI('title')" class="px-3 py-1.5 rounded-full border border-white/10 text-xs text-gold-400 hover:bg-gold-400 hover:text-black transition flex items-center gap-1"><i data-lucide="sparkles" class="w-3 h-3"></i> عناوين</button>
+                        <button onclick="triggerAI('grammar')" class="px-3 py-1.5 rounded-full border border-white/10 text-xs text-green-400 hover:bg-green-400 hover:text-black transition flex items-center gap-1"><i data-lucide="check" class="w-3 h-3"></i> تدقيق</button>
                         <button onclick="generateImage()" class="px-3 py-1.5 rounded-full border border-white/10 text-xs text-blue-400 hover:bg-blue-400 hover:text-black transition flex items-center gap-1"><i data-lucide="image" class="w-3 h-3"></i> توليد صورة</button>
                     </div>
                     <div id="ai-output" class="hidden p-4 bg-white/5 rounded-lg text-sm text-gray-300 border-l-2 border-gold-400"></div>
@@ -157,145 +137,17 @@
                     <button onclick="publishAction()" id="publish-btn" class="w-full bg-gold-400 text-black font-bold py-3 rounded-lg hover:bg-white transition-colors shadow-lg">نشر في الموقع 🚀</button>
                 </div>
 
-                <!-- HR & Hierarchy Section (NEW) -->
-                <div id="sec-hr" class="view-section hidden max-w-5xl mx-auto space-y-8">
-                    <div class="flex justify-between items-center">
-                        <div>
-                            <h2 class="text-3xl font-bold text-white">إدارة الكوادر البشرية</h2>
-                            <p class="text-gray-500 text-sm">الهيكل التنظيمي وسجل العقود</p>
-                        </div>
-                        <!-- زر توليد الرابط (للمدراء فقط) -->
-                        <button onclick="generateInviteLink()" class="bg-gold-400 text-black px-4 py-2 rounded-lg font-bold hover:bg-white transition flex items-center gap-2 shadow-lg">
-                            <i data-lucide="link" class="w-4 h-4"></i> توليد رابط دعوة موظف
-                        </button>
-                    </div>
-
-                    <!-- Hierarchy Tabs -->
-                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-                        <div class="glass-panel p-4 rounded-xl border-t-4 border-purple-500">
-                            <p class="text-xs text-gray-400 font-bold">الإدارة العليا</p>
-                            <h3 class="text-xl font-black text-white mt-1">مجلس الإدارة</h3>
-                        </div>
-                        <div class="glass-panel p-4 rounded-xl border-t-4 border-blue-500">
-                            <p class="text-xs text-gray-400 font-bold">الإدارة الوسطى</p>
-                            <h3 class="text-xl font-black text-white mt-1">رؤساء الأقسام</h3>
-                        </div>
-                        <div class="glass-panel p-4 rounded-xl border-t-4 border-green-500">
-                            <p class="text-xs text-gray-400 font-bold">الإدارة الدنيا</p>
-                            <h3 class="text-xl font-black text-white mt-1">المحررين</h3>
-                        </div>
-                        <div class="glass-panel p-4 rounded-xl border-t-4 border-gold-400">
-                            <p class="text-xs text-gray-400 font-bold">النطاق الجغرافي</p>
-                            <h3 class="text-xl font-black text-white mt-1">المكاتب (5)</h3>
-                        </div>
-                    </div>
-
-                    <!-- Members List & Expiry Alert -->
-                    <div class="glass-panel rounded-xl overflow-hidden">
-                        <div class="p-4 border-b border-white/5 bg-navy-900 flex justify-between items-center">
-                            <h4 class="font-bold text-white flex items-center gap-2"><i data-lucide="users" class="w-4 h-4"></i> سجل الأعضاء النشطين</h4>
-                            <span class="text-xs bg-red-500/20 text-red-400 px-2 py-1 rounded border border-red-500/30">تنبيه: عقود تنتهي قريباً (2)</span>
-                        </div>
-                        <table class="w-full text-right text-sm text-gray-300">
-                            <thead class="bg-white/5 text-xs uppercase font-bold text-white">
-                                <tr><th class="p-4">الاسم</th><th class="p-4">المنصب</th><th class="p-4">المكتب</th><th class="p-4">نهاية العقد</th><th class="p-4">الحالة</th></tr>
-                            </thead>
-                            <tbody class="divide-y divide-white/5" id="members-list-body">
-                                <!-- Populated by JS -->
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-
-                <!-- Archive -->
                 <div id="sec-articles" class="view-section hidden max-w-4xl mx-auto">
                     <div class="flex justify-between items-center mb-6"><h3 class="text-white font-bold text-xl">الأرشيف</h3><button onclick="loadAdminData()" class="text-gold-400 text-sm hover:underline">تحديث</button></div>
                     <div id="admin-articles-list" class="space-y-2"></div>
                 </div>
 
-                <!-- Settings -->
                 <div id="sec-settings" class="view-section hidden max-w-md mx-auto">
                     <div class="glass-panel p-6 rounded-2xl">
                         <h3 class="text-white font-bold mb-4">إعدادات الذكاء الاصطناعي</h3>
                         <input type="password" id="api-key-setting" placeholder="Gemini API Key" class="w-full bg-black/50 p-3 rounded-xl text-white mb-4 border border-white/10 focus:border-gold-400 outline-none">
                         <button onclick="saveApiKey()" class="w-full bg-gold-400 text-black font-bold py-2 rounded-xl hover:bg-white">حفظ</button>
                     </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Invite Link Modal -->
-    <div id="invite-modal" class="view-hidden fixed inset-0 z-[80] bg-black/90 flex items-center justify-center p-4 backdrop-blur-sm">
-        <div class="bg-navy-800 w-full max-w-md rounded-2xl p-6 border border-gold-400/30 shadow-2xl text-center">
-            <div class="w-16 h-16 bg-gold-400/20 rounded-full flex items-center justify-center mx-auto mb-4 text-gold-400"><i data-lucide="link" class="w-8 h-8"></i></div>
-            <h3 class="text-white font-bold text-xl mb-2">تم توليد رابط الدعوة</h3>
-            <p class="text-gray-400 text-sm mb-6">هذا الرابط صالح لتسجيل عضو واحد فقط. الرقم الوظيفي الجديد: <span class="text-white font-mono font-bold" id="new-job-id">...</span></p>
-            
-            <div class="bg-black/50 p-3 rounded-lg border border-white/10 flex items-center justify-between mb-6">
-                <input type="text" id="invite-link-input" readonly class="bg-transparent text-gray-300 text-xs w-full outline-none" value="...">
-                <button onclick="copyInviteLink()" class="text-gold-400 hover:text-white"><i data-lucide="copy" class="w-4 h-4"></i></button>
-            </div>
-
-            <button onclick="document.getElementById('invite-modal').classList.add('view-hidden')" class="w-full bg-white/10 text-white py-2 rounded-lg hover:bg-white/20">إغلاق</button>
-        </div>
-    </div>
-
-    <!-- Registration Modal (Opened via Link) -->
-    <div id="register-modal" class="view-hidden fixed inset-0 z-[90] bg-[#050510] overflow-y-auto">
-        <div class="min-h-screen flex items-center justify-center p-4">
-            <div class="max-w-3xl w-full bg-white text-black rounded-xl shadow-2xl overflow-hidden">
-                <!-- Contract Header -->
-                <div class="bg-navy-900 text-white p-8 text-center border-b-4 border-gold-400">
-                    <h1 class="text-3xl font-black mb-2">عقد عمل إعلامي</h1>
-                    <p class="text-gold-400 text-sm">وثيقة رسمية ملزمة - صحيفة الحقيقة</p>
-                </div>
-                
-                <div class="p-8">
-                    <div class="bg-yellow-50 border-r-4 border-yellow-400 p-4 mb-6 text-sm text-yellow-800">
-                        <strong>تنبيه:</strong> أنت على وشك الانضمام للفريق برقم وظيفي: <span id="reg-job-id" class="font-bold">...</span>. يرجى التأكد من صحة بياناتك.
-                    </div>
-
-                    <form onsubmit="submitContract(event)" class="space-y-6">
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <div>
-                                <label class="block text-xs font-bold text-gray-600 mb-1">الاسم الرباعي</label>
-                                <input type="text" id="reg-name" required class="w-full p-3 border rounded-lg bg-gray-50 focus:border-navy-900 outline-none">
-                            </div>
-                            <div>
-                                <label class="block text-xs font-bold text-gray-600 mb-1">رقم الهوية (10 أرقام تبدأ بـ 1)</label>
-                                <input type="text" id="reg-national-id" maxlength="10" required class="w-full p-3 border rounded-lg bg-gray-50 focus:border-navy-900 outline-none">
-                            </div>
-                            <div>
-                                <label class="block text-xs font-bold text-gray-600 mb-1">البريد الإلكتروني الشخصي</label>
-                                <input type="email" id="reg-email" required class="w-full p-3 border rounded-lg bg-gray-50 focus:border-navy-900 outline-none">
-                            </div>
-                            <div>
-                                <label class="block text-xs font-bold text-gray-600 mb-1">المكتب التابع له</label>
-                                <select id="reg-office" class="w-full p-3 border rounded-lg bg-gray-50 outline-none">
-                                    <option>المقر الرئيسي</option>
-                                    <option>المنطقة الوسطى</option>
-                                    <option>المنطقة الغربية</option>
-                                    <option>المنطقة الشرقية</option>
-                                    <option>المنطقة الشمالية</option>
-                                    <option>المنطقة الجنوبية</option>
-                                </select>
-                            </div>
-                        </div>
-
-                        <div class="border-t pt-6 mt-6">
-                            <h3 class="font-bold text-navy-900 mb-4">التعهد والالتزام:</h3>
-                            <ul class="list-disc list-inside text-sm text-gray-600 space-y-2 mb-6">
-                                <li>أقر بصحة البيانات أعلاه وأتحمل المسؤولية القانونية عنها.</li>
-                                <li>أتعهد بالعمل حصرياً لصحيفة الحقيقة وعدم النشر لجهات أخرى.</li>
-                                <li>أفوض الصحيفة باستخدام بصمتي الرقمية كتوثيق لهذا العقد.</li>
-                            </ul>
-                            
-                            <button type="submit" class="w-full bg-navy-900 text-white font-bold py-4 rounded-xl hover:bg-gold-400 hover:text-black transition shadow-lg flex justify-center items-center gap-2">
-                                <i data-lucide="fingerprint"></i> توقيع العقد واعتماد التعيين
-                            </button>
-                        </div>
-                    </form>
                 </div>
             </div>
         </div>
@@ -317,20 +169,28 @@
             </div>
         </div>
         <div class="max-w-3xl mx-auto px-6 py-12 relative">
-            <div class="flex gap-3 mb-6 overflow-x-auto pb-2">
+            <!-- AI Tools in Reading View -->
+            <div class="flex gap-3 mb-6 overflow-x-auto pb-2 border-b border-white/10">
                 <button onclick="askGemini('summarize')" class="text-xs bg-gold-400/10 text-gold-400 px-3 py-1.5 rounded-lg border border-gold-400/30 flex items-center gap-1"><i data-lucide="sparkles" class="w-3 h-3"></i> تلخيص</button>
+                <button onclick="askGemini('explain')" class="text-xs bg-blue-500/10 text-blue-400 px-3 py-1.5 rounded-lg border border-blue-500/30 flex items-center gap-1"><i data-lucide="search" class="w-3 h-3"></i> تحليل</button>
+                <!-- The New Time-Path Button -->
+                <button onclick="generateTimeline()" class="text-xs bg-purple-500/10 text-purple-400 px-3 py-1.5 rounded-lg border border-purple-500/30 flex items-center gap-1 hover:bg-purple-500 hover:text-white transition">
+                    <i data-lucide="history" class="w-3 h-3"></i> مسار الزمن
+                </button>
             </div>
+            
+            <!-- Timeline Container -->
+            <div id="timeline-area" class="hidden mt-6 mb-6 border-r-2 border-purple-500 pr-4 space-y-4 relative bg-purple-500/5 p-4 rounded-lg"></div>
+
             <div id="ai-result-text" class="mb-6 text-sm text-gold-400 hidden border-r-2 border-gold-400 pr-3"></div>
             <div class="prose prose-invert prose-lg prose-gold max-w-none"><p id="modal-body" class="leading-loose text-gray-300"></p></div>
         </div>
     </div>
 
-    <!-- Toast -->
     <div id="toast" class="fixed bottom-6 left-6 bg-navy-900 border border-gold-400/50 text-white px-6 py-4 rounded-xl shadow-2xl transform translate-y-24 opacity-0 transition-all duration-300 flex items-center gap-3 z-[100]">
         <span id="toast-msg" class="font-bold">تم</span>
     </div>
 
-    <!-- Settings Modal -->
     <div id="settings-modal" class="fixed inset-0 z-[80] bg-black/90 hidden items-center justify-center p-4 backdrop-blur-sm">
         <div class="bg-navy-800 w-full max-w-sm rounded-2xl p-6 border border-gold-400/20 shadow-2xl">
             <h3 class="text-white font-bold mb-4 text-lg">إعدادات الذكاء الاصطناعي</h3>
@@ -346,43 +206,25 @@
         function initIcons() { if (window.lucide) lucide.createIcons(); }
         document.addEventListener('DOMContentLoaded', initIcons);
 
-        const firebaseConfig = {
-          apiKey: "AIzaSyD7b1PZY26GN6hR2pliqiFRgyMsNyRlWOs",
-          authDomain: "alhqyqa-62b0e.firebaseapp.com",
-          projectId: "alhqyqa-62b0e",
-          storageBucket: "alhqyqa-62b0e.firebasestorage.app",
-          messagingSenderId: "354014970954",
-          appId: "1:354014970954:web:435ca4eb0cbbfcfd1152b3"
-        };
-
+        const firebaseConfig = { apiKey: "AIzaSyD7b1PZY26GN6hR2pliqiFRgyMsNyRlWOs", authDomain: "alhqyqa-62b0e.firebaseapp.com", projectId: "alhqyqa-62b0e", storageBucket: "alhqyqa-62b0e.firebasestorage.app", messagingSenderId: "354014970954", appId: "1:354014970954:web:435ca4eb0cbbfcfd1152b3" };
         let isOfflineMode = false;
         const LOCAL_NEWS_KEY = "local_news_db";
-        const MEMBERS_KEY = "local_members_db";
+        let currentArticleText = "";
+        let userApiKey = localStorage.getItem("gemini_api_key") || "";
 
         function getLocalNews() { try { return JSON.parse(localStorage.getItem(LOCAL_NEWS_KEY) || "[]"); } catch { return []; } }
         function saveLocalNews(item) { const current = getLocalNews(); current.unshift(item); localStorage.setItem(LOCAL_NEWS_KEY, JSON.stringify(current)); }
-        
-        function getMembers() { try { return JSON.parse(localStorage.getItem(MEMBERS_KEY) || "[]"); } catch { return []; } }
-        function saveMember(member) { const list = getMembers(); list.push(member); localStorage.setItem(MEMBERS_KEY, JSON.stringify(list)); }
 
         try {
             if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
             const auth = firebase.auth();
             const db = firebase.firestore();
 
-            // Check URL Params for Registration Link
-            const urlParams = new URLSearchParams(window.location.search);
-            if (urlParams.get('mode') === 'register') {
-                document.getElementById('register-modal').classList.remove('view-hidden');
-                document.getElementById('reg-job-id').innerText = urlParams.get('jobId') || '---';
-            }
-
             auth.onAuthStateChanged((user) => {
                 if (user && !user.isAnonymous) {
                     document.getElementById('login-gate').classList.add('hidden');
                     document.getElementById('dashboard-ui').classList.remove('hidden');
                     loadAdminData();
-                    loadMembersList();
                 }
                 fetchNews();
             });
@@ -393,150 +235,173 @@
                 if (isOfflineMode) return renderLocalData();
                 try {
                     const snap = await db.collection("news").limit(20).get();
-                    if (snap.empty) {
-                        const local = getLocalNews();
-                        if(local.length > 0) return renderSite(local);
-                        return renderEmptyState();
-                    }
+                    if (snap.empty) { const l = getLocalNews(); if(l.length) return renderSite(l); return renderEmptyState(); }
                     let data = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
                     data.sort((a, b) => (b.timestamp?.seconds || 0) - (a.timestamp?.seconds || 0));
-                    window.newsData = data;
-                    renderSite(data);
-                } catch (error) { enableOfflineMode(); }
+                    window.newsData = data; renderSite(data); updateTicker(data);
+                } catch (e) { enableOfflineMode(); }
             }
-            
-            // --- HR Logic: Generate Link ---
-            window.generateInviteLink = () => {
-                const jobId = "HQ-" + Math.floor(1000 + Math.random() * 9000);
-                const link = `${window.location.origin}${window.location.pathname}?mode=register&jobId=${jobId}`;
-                
-                document.getElementById('new-job-id').innerText = jobId;
-                document.getElementById('invite-link-input').value = link;
-                document.getElementById('invite-modal').classList.remove('view-hidden');
-            };
-            
-            window.copyInviteLink = () => {
-                const copyText = document.getElementById("invite-link-input");
-                copyText.select();
-                document.execCommand("copy");
-                showToast("تم نسخ الرابط ✅");
-            };
 
-            // --- HR Logic: Submit Contract ---
-            window.submitContract = async (e) => {
-                e.preventDefault();
-                const name = document.getElementById('reg-name').value;
-                const id = document.getElementById('reg-national-id').value;
-                const email = document.getElementById('reg-email').value;
-                const office = document.getElementById('reg-office').value;
-                const jobId = document.getElementById('reg-job-id').innerText;
-
-                // Validation
-                if (!id.startsWith('1') || id.length !== 10) return alert("رقم الهوية يجب أن يبدأ بـ 1 ويتكون من 10 أرقام");
-                
-                // Duplicate Check (Simulated Local + Cloud)
-                const existingMembers = getMembers();
-                if (existingMembers.some(m => m.id === id || m.email === email)) return alert("هذا العضو مسجل مسبقاً!");
-
-                const newMember = {
-                    name, id, email, office, jobId,
-                    joinDate: new Date().toISOString(),
-                    contractExpiry: new Date(new Date().setFullYear(new Date().getFullYear() + 1)).toISOString(), // 1 Year
-                    status: "active"
-                };
-
-                try {
-                    if (!isOfflineMode) await db.collection('members').add(newMember);
-                    saveMember(newMember); // Always save local copy
-                    
-                    alert(`تم توثيق العقد بنجاح!\n\nتم إرسال بريد إلكتروني إلى ${email} ببيانات الدخول.\n(محاكاة: كلمة المرور هي HQ2025)`);
-                    window.location.href = "index.html"; // Redirect home
-                } catch(e) { alert("فشل التسجيل: " + e.message); }
-            };
-
-            // --- HR Logic: Load List ---
-            window.loadMembersList = async () => {
-                let members = getMembers();
-                // Add logic to fetch from cloud if needed
-                
-                const tbody = document.getElementById('members-list-body');
-                tbody.innerHTML = members.map(m => {
-                    const daysLeft = Math.ceil((new Date(m.contractExpiry) - new Date()) / (1000 * 60 * 60 * 24));
-                    const statusColor = daysLeft < 10 ? "text-red-500" : "text-green-500";
-                    
-                    return `<tr class="border-b border-white/5 hover:bg-white/5">
-                        <td class="p-4 text-white font-bold">${m.name}</td>
-                        <td class="p-4 text-xs text-gray-400">محرر</td>
-                        <td class="p-4 text-xs text-gray-400">${m.office}</td>
-                        <td class="p-4 font-mono text-xs ${statusColor}">باقي ${daysLeft} يوم</td>
-                        <td class="p-4"><span class="bg-green-500/20 text-green-500 text-[10px] px-2 py-1 rounded">نشط</span></td>
-                    </tr>`;
-                }).join('');
-            };
-
-            // Standard Functions (Login, Publish, etc. - Same as before)
             window.handleRealLogin = async (e) => {
                 e.preventDefault();
-                if (isOfflineMode) return forceAdminEnter();
-                const email = document.getElementById('login-email').value;
-                const pass = document.getElementById('login-password').value;
-                try { await auth.signInWithEmailAndPassword(email, pass); } 
+                if (isOfflineMode) return;
+                const em = document.getElementById('login-email').value;
+                const ps = document.getElementById('login-password').value;
+                try { await auth.signInWithEmailAndPassword(em, ps); } 
                 catch { document.getElementById('login-error').classList.remove('hidden'); }
             };
 
             window.publishAction = async () => {
-                // ... (Same logic as previous)
                 const btn = document.getElementById('publish-btn');
-                btn.disabled = true; btn.innerText = "جاري النشر...";
-                // ... Simplified for brevity, assume same logic ...
-                setTimeout(() => {
-                    btn.disabled = false; btn.innerText = "نشر";
-                    showToast("تم النشر (محاكاة)");
-                }, 1000);
+                const title = document.getElementById('news-title').value;
+                const cat = document.getElementById('news-category').value;
+                const img = document.getElementById('news-image').value || "https://via.placeholder.com/800x400";
+                const content = document.getElementById('editor').innerText;
+                if (!title || !content) return alert("البيانات ناقصة");
+                btn.innerText = "جاري النشر..."; btn.disabled = true;
+                const art = { id: "local_" + Date.now(), title, category: cat, img, desc: content, author: "Admin", date: new Date().toLocaleDateString("ar-SA"), timestamp: { seconds: Date.now() / 1000 } };
+                if (isOfflineMode) { saveLocalNews(art); finishPublish(art, "تم الحفظ محلياً ⚠️"); } 
+                else {
+                    try { await db.collection("news").add(art); finishPublish(art, "تم النشر سحابياً ✅"); }
+                    catch(e) { saveLocalNews(art); finishPublish(art, "فشل السحاب — تم الحفظ محلياً ⚠️"); enableOfflineMode(); }
+                }
             };
             
-            window.logout = () => { auth.signOut(); window.location.reload(); };
+            window.loadAdminData = async () => {
+                 const local = getLocalNews();
+                 let display = local;
+                 if (!isOfflineMode) {
+                     try {
+                        const snap = await db.collection("news").limit(20).get();
+                        if(!snap.empty) display = [...local, ...snap.docs.map(d => d.data())];
+                     } catch(e) {}
+                 }
+                 document.getElementById('admin-articles-list').innerHTML = display.map(d => `<div class="bg-white/5 p-3 rounded flex justify-between border-b border-white/5"><span>${d.title}</span><span class="text-xs text-gray-500">${d.date}</span></div>`).join("");
+            }
 
-        } catch (err) { enableOfflineMode(); }
+            window.logout = () => {
+                auth.signOut(); 
+                document.getElementById('dashboard-ui').classList.add('hidden');
+                document.getElementById('login-gate').classList.remove('hidden');
+            };
 
-        // --- Helpers & UI ---
-        function enableOfflineMode() { isOfflineMode = true; renderLocalData(); }
-        function renderLocalData() { const l = getLocalNews(); if(l.length) renderSite(l); else renderMock(); }
-        
-        window.forceAdminEnter = () => {
+        } catch (e) { enableOfflineMode(); }
+
+        function enableOfflineMode() {
             isOfflineMode = true;
-            document.getElementById('login-gate').classList.add("hidden");
-            document.getElementById('dashboard-ui').classList.remove("hidden");
+            document.getElementById('ticker-content').innerText = "الحقيقة | أول صحيفة سعودية رقمية ذكية | تصميم وإشراف: يوسف العتي • وضع عدم الاتصال";
             document.getElementById('status-bar').classList.remove("hidden");
-            // Initialize sections
-        };
+            renderLocalData();
+        }
+        function renderLocalData() { const l = getLocalNews(); if (l.length) { window.newsData = l; renderSite(l); } else renderMock(); }
+        function finishPublish(art, msg) {
+            const btn = document.getElementById('publish-btn'); btn.disabled = false; btn.innerText = "نشر في الموقع";
+            document.getElementById('news-title').value = ""; document.getElementById('editor').innerText = "";
+            const curr = window.newsData || []; curr.unshift(art); window.newsData = curr;
+            renderSite(curr); loadAdminData(); showToast(msg);
+        }
 
         window.toggleAdminView = () => {
             const view = document.getElementById('admin-view');
             view.classList.toggle('view-hidden');
         };
-        
-        window.switchDashView = (v, btn) => {
+        window.switchDashView = (v) => {
             document.querySelectorAll(".view-section").forEach(e => e.classList.add("hidden"));
             document.getElementById(`sec-${v}`).classList.remove("hidden");
-            document.querySelectorAll(".sidebar-link").forEach(e => e.classList.remove("active"));
-            btn.classList.add("active");
-            if(v==='hr') loadMembersList();
+            if(v === 'articles') loadAdminData();
         };
 
-        let userApiKey = localStorage.getItem("gemini_api_key") || "";
         window.openSettings = () => document.getElementById('settings-modal').classList.remove('hidden');
         window.saveApiKey = () => { 
-            const key = document.getElementById('api-key-input').value;
-            if (key) { localStorage.setItem("gemini_api_key", key); userApiKey = key; document.getElementById('settings-modal').classList.add('hidden'); }
+            const k = document.getElementById('api-key-input').value || document.getElementById('api-key-setting').value;
+            if(k) { localStorage.setItem("gemini_api_key", k); userApiKey = k; document.getElementById('settings-modal').classList.add('hidden'); }
         }
         
-        // --- Render ---
+        async function callGemini(p, s) {
+            if (!userApiKey) return null;
+            try {
+                const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${userApiKey}`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ contents: [{ parts: [{ text: p }] }], systemInstruction: { parts: [{ text: s }] } }) });
+                const d = await res.json();
+                return d.candidates?.[0]?.content?.parts?.[0]?.text;
+            } catch { return null; }
+        }
+        
+        window.triggerAI = async (mode) => {
+            const out = document.getElementById('ai-output'); out.classList.remove("hidden"); out.innerHTML = "جاري المعالجة...";
+            const txt = document.getElementById('editor').innerText;
+            const res = await callGemini(mode==='title' ? `اقترح عناوين: ${txt}` : `صحح: ${txt}`, "مساعد صحفي");
+            if (res) { out.innerHTML = marked.parse(res); if(mode==='grammar') document.getElementById('editor').innerText = res; }
+        };
+        
+        window.askGemini = async (action) => {
+            const resDiv = document.getElementById('ai-result-text'); resDiv.classList.remove('hidden'); resDiv.innerHTML = "جاري التحليل...";
+            const res = await callGemini(action==='summarize' ? `لخص: ${currentArticleText}` : `اشرح: ${currentArticleText}`, "محلل");
+            if (res) resDiv.innerHTML = marked.parse(res);
+        };
+        
+        window.generateImage = async () => {
+             const title = document.getElementById('news-title').value;
+             if(!userApiKey) { alert("أدخل مفتاح API"); return; }
+             const prompt = await callGemini(`Describe news photo for: "${title}" in English`, "Prompt Engineer");
+             if(!prompt) return;
+             try {
+                 const url = `https://generativelanguage.googleapis.com/v1beta/models/imagen-3.0-generate-001:predict?key=${userApiKey}`;
+                 const res = await fetch(url, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ instances: [{ prompt }], parameters: { sampleCount: 1 } }) });
+                 const data = await res.json();
+                 const img = `data:image/png;base64,${data.predictions[0].bytesBase64Encoded}`;
+                 document.getElementById('news-image').value = img;
+                 showToast("تم توليد الصورة");
+             } catch { alert("فشل توليد الصورة"); }
+        };
+
+        // --- Smart Timeline Feature (The New Addition) ---
+        window.generateTimeline = async () => {
+            if (!userApiKey) { alert("تتطلب هذه الميزة مفتاح الذكاء الاصطناعي"); return; }
+            const container = document.getElementById('timeline-area');
+            container.classList.remove('hidden');
+            container.innerHTML = '<div class="flex items-center gap-2 text-purple-400 text-sm"><div class="loader w-4 h-4"></div> جاري رسم مسار الزمن...</div>';
+
+            const prompt = `
+                حلل هذا الخبر: "${currentArticleText}"
+                وقم بإنشاء مسار زمني من 3 نقاط قصيرة:
+                1. الماضي (الجذور). 2. الحاضر (الحدث). 3. المستقبل (توقع استباقي).
+                الرد JSON فقط: [{"time": "الماضي", "text": "..."}, {"time": "الآن", "text": "..."}, {"time": "المستقبل", "text": "..."}]
+            `;
+
+            try {
+                const jsonStr = await callGemini(prompt, "أنت محلل استراتيجي. رد بـ JSON فقط.");
+                const cleanJson = jsonStr.replace(/```json/g, '').replace(/```/g, '').trim();
+                const timeline = JSON.parse(cleanJson);
+
+                let html = '';
+                timeline.forEach((item, index) => {
+                    const color = index === 0 ? 'text-gray-500' : index === 1 ? 'text-white' : 'text-purple-400';
+                    html += `
+                        <div class="relative pl-4 border-r-2 border-purple-500/30 pb-4 last:pb-0 last:border-0">
+                            <div class="absolute -right-[5px] top-1 w-2 h-2 bg-purple-500 rounded-full"></div>
+                            <p class="text-[10px] text-gray-500 mb-1 font-bold uppercase">${item.time}</p>
+                            <p class="${color} text-sm leading-relaxed">${item.text}</p>
+                        </div>
+                    `;
+                });
+                container.innerHTML = html;
+            } catch (e) {
+                container.innerHTML = '<p class="text-red-400 text-xs">تعذر تحليل الزمن.</p>';
+            }
+        };
+
+        function updateTicker(data) {
+            const ticker = document.getElementById('ticker-content');
+            const signature = "الحقيقة | أول صحيفة سعودية رقمية ذكية | تصميم وإشراف: يوسف العتي";
+            const latestNews = data.length > 0 ? data[0].title : "لا يوجد أخبار عاجلة حاليًا";
+            ticker.innerText = ` • ${signature} • ${latestNews} • `;
+        }
+
         function renderSite(news) {
             if (!news || !news.length) return renderEmptyState();
             const hero = news[0];
             const rest = news.slice(1);
-            document.getElementById('ticker-content').innerText = "الحقيقة | أول صحيفة سعودية رقمية ذكية | تصميم وإشراف: يوسف العتي • " + news.map(n => n.title).join(" • ");
+            updateTicker(news);
             document.getElementById('hero-section').innerHTML = `
                 <div onclick="openArticle('${hero.id}')" class="lg:col-span-12 relative group rounded-2xl overflow-hidden h-[300px] lg:h-[450px] cursor-pointer shadow-2xl border border-white/10">
                     <img src="${hero.img}" class="w-full h-full object-cover group-hover:scale-105 transition duration-700" onerror="this.src='https://via.placeholder.com/800x400'" />
@@ -548,7 +413,7 @@
                 </div>`;
             document.getElementById('news-container').innerHTML = rest.map(n => `
                 <div onclick="openArticle('${n.id}')" class="flex gap-4 mb-4 bg-white/5 p-3 rounded-xl border border-white/5 hover:border-gold-400/30 group cursor-pointer">
-                    <div class="w-24 h-24 md:w-32 md:h-24 overflow-hidden rounded-lg"><img src="${n.img}" class="w-full h-full object-cover" onerror="this.src='https://via.placeholder.com/200'" /></div>
+                    <div class="w-24 h-24 md:w-32 md:h-24 overflow-hidden rounded-lg"><img src="${n.img}" class="w-full h-full object-cover" onerror="this.src='https://via.placeholder.com/150'"></div>
                     <div class="flex flex-col justify-center flex-1"><span class="text-[10px] text-gold-400 font-bold mb-1">${n.category}</span><h3 class="text-white font-bold leading-snug group-hover:text-gold-400 line-clamp-2">${n.title}</h3></div>
                 </div>`).join("");
             document.getElementById('sidebar-content').innerHTML = [...news].sort(() => Math.random() - 0.5).slice(0, 5).map((n, i) => `
@@ -556,19 +421,29 @@
             initIcons();
         }
 
-        window.openArticle = (id) => { /* ... */ };
-        window.closeArticleModal = () => document.getElementById('article-modal').classList.add("hidden");
+        window.openArticle = (id) => {
+            const art = window.newsData.find(n => n.id === id);
+            if (!art) return;
+            currentArticleText = art.title + "\n" + art.desc;
+            document.getElementById('modal-img').src = art.img;
+            document.getElementById('modal-cat').innerText = art.category;
+            document.getElementById('modal-title').innerText = art.title;
+            document.getElementById('modal-date').innerText = art.date;
+            document.getElementById('modal-author').innerText = art.author;
+            document.getElementById('modal-body').innerHTML = marked.parse(art.desc);
+            // Reset Timeline
+            document.getElementById('timeline-area').innerHTML = '';
+            document.getElementById('timeline-area').classList.add('hidden');
+            
+            document.getElementById('article-modal').classList.remove("view-hidden");
+        };
+        window.closeArticleModal = () => document.getElementById('article-modal').classList.add("view-hidden");
         function renderEmptyState() { document.getElementById('hero-section').innerHTML = `<div class="lg:col-span-12 h-64 flex items-center justify-center text-gray-500 border border-dashed border-white/10 rounded-2xl">لا توجد أخبار.</div>`; }
         function renderMock() { 
-            const m = [{ id: "1", title: "انطلاق صحيفة الحقيقة بحلتها الجديدة", category: "أخبار", date: "الآن", img: "https://images.unsplash.com/photo-1504711434969-e33886168f5c", desc: "نعلن اليوم عن إطلاق المنصة الرقمية الجديدة..." }];
+            const m = [{ id: "1", title: "صحيفة الحقيقة تنطلق", category: "عام", date: "الآن", img: "https://images.unsplash.com/photo-1504711434969-e33886168f5c", desc: "الموقع يعمل بنجاح." }];
             window.newsData = m; renderSite(m);
         }
-        function showToast(msg) {
-            const t = document.getElementById('toast');
-            t.querySelector('span').innerText = msg;
-            t.classList.remove("translate-y-24", "opacity-0");
-            setTimeout(() => { t.classList.add("translate-y-24", "opacity-0"); }, 3000);
-        }
+        function showToast(msg) { const t = document.getElementById('toast'); t.querySelector('span').innerText = msg; t.classList.remove("translate-y-24", "opacity-0"); setTimeout(() => { t.classList.add("translate-y-24", "opacity-0"); }, 3000); }
     </script>
 </body>
 </html>
