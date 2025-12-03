@@ -7,13 +7,14 @@
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#050510">
     <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;900&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
+    
     <!-- Firebase -->
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
@@ -25,7 +26,7 @@
                 extend: {
                     fontFamily: { sans: ['Tajawal', 'sans-serif'] },
                     colors: { navy: { 900: '#050510', 800: '#0a0a15', 700: '#151525' }, gold: { 400: '#D4AF37', 500: '#C5A028' } },
-                    animation: { 'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite', 'marquee': 'marquee 30s linear infinite' },
+                    animation: { 'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite', 'marquee': 'marquee 25s linear infinite' },
                     keyframes: { marquee: { '0%': { transform: 'translateX(100%)' }, '100%': { transform: 'translateX(-100%)' } } }
                 }
             }
@@ -36,24 +37,28 @@
         .glass-nav { background: rgba(5, 5, 16, 0.95); backdrop-filter: blur(16px); border-bottom: 1px solid rgba(255, 255, 255, 0.05); }
         .glass-panel { background: rgba(21, 21, 37, 0.9); border: 1px solid rgba(255, 255, 255, 0.05); }
         .loader { border: 3px solid rgba(255,255,255,0.1); border-left-color: #D4AF37; width: 24px; height: 24px; border-radius: 50%; animation: spin 1s linear infinite; }
-        .sidebar-link.active { background: rgba(212, 175, 55, 0.1); color: #D4AF37; border-right: 3px solid #D4AF37; }
         .view-hidden { display: none !important; }
+        .view-visible { display: block !important; animation: fadeIn 0.3s ease-in; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        .sidebar-link.active { background: rgba(212, 175, 55, 0.1); color: #D4AF37; border-right: 3px solid #D4AF37; }
     </style>
 </head>
 <body class="antialiased selection:bg-gold-400 selection:text-black pb-20 md:pb-0">
 
     <!-- PUBLIC VIEW -->
-    <div id="public-view" class="block">
-        <nav class="fixed w-full z-40 glass-nav top-0 h-16">
-            <div class="container mx-auto px-4 h-full flex justify-between items-center">
+    <div id="public-view" class="view-visible">
+        <nav class="fixed w-full z-40 glass-nav top-0">
+            <div class="container mx-auto px-4 h-16 flex justify-between items-center">
                 <div class="flex flex-col justify-center cursor-pointer" onclick="window.location.reload()">
                     <div class="text-2xl font-black text-gold-400 tracking-tighter leading-none">الـحقيقة<span class="text-white">.</span></div>
-                    <span class="text-[9px] text-gray-400 tracking-wider mt-0.5 font-bold">تصميم: يوسف العتي</span>
+                    <span class="text-[9px] text-gray-400 tracking-wider mt-0.5 font-bold">تصميم: يوسف العاتي</span>
                 </div>
                 <div class="flex gap-3 items-center">
-                    <button id="install-btn" class="hidden bg-gold-400 text-black text-[10px] font-bold px-3 py-1 rounded-full animate-pulse flex items-center gap-1"><i data-lucide="download" class="w-3 h-3"></i> تثبيت</button>
-                    <button onclick="openSettings()" class="text-gold-400 p-2 rounded-full hover:bg-white/10"><i data-lucide="cpu" class="w-5 h-5"></i></button>
-                    <button onclick="toggleAdminView()" class="text-white bg-white/10 px-3 py-1.5 rounded-full hover:bg-gold-400 hover:text-black transition-all text-xs font-bold flex items-center gap-2 border border-white/5"><i data-lucide="shield" class="w-3 h-3"></i> الإدارة</button>
+                    <button id="install-btn" class="hidden bg-gold-400 text-black text-xs font-bold px-3 py-1.5 rounded-full animate-pulse flex items-center gap-1"><i data-lucide="download" class="w-3 h-3"></i> تثبيت</button>
+                    <button onclick="openSettings()" class="text-gold-400 p-2 rounded-full hover:bg-white/10" title="إعدادات AI"><i data-lucide="cpu" class="w-5 h-5"></i></button>
+                    <button onclick="toggleAdminView()" class="text-white bg-white/10 px-3 py-1.5 rounded-full hover:bg-gold-400 hover:text-black transition-all text-xs font-bold flex items-center gap-2 border border-white/5">
+                        <i data-lucide="shield" class="w-3 h-3"></i> <span class="hidden md:inline">الإدارة</span>
+                    </button>
                 </div>
             </div>
         </nav>
@@ -85,22 +90,33 @@
         </main>
     </div>
 
-    <!-- ADMIN VIEW -->
+    <!-- ADMIN VIEW (SECURE) -->
     <div id="admin-view" class="view-hidden fixed inset-0 z-[60] bg-[#020205] overflow-y-auto">
+        
+        <!-- Login Gate -->
         <div id="login-gate" class="min-h-screen flex items-center justify-center p-4">
-            <div class="glass-panel p-10 rounded-3xl w-full max-w-md text-center relative border border-gold-400/20">
+            <div class="glass-panel p-10 rounded-3xl w-full max-w-md text-center relative border border-gold-400/20 shadow-2xl">
                 <button onclick="toggleAdminView()" class="absolute top-4 left-4 text-gray-500 hover:text-white"><i data-lucide="x" class="w-6 h-6"></i></button>
-                <h1 class="text-4xl font-black text-white mb-2">بوابة<span class="text-gold-400"> القيادة</span></h1>
-                <p class="text-gray-500 text-xs mb-6">نظام إدارة المحتوى</p>
+                <div class="mb-6 flex justify-center"><i data-lucide="shield-check" class="w-16 h-16 text-gold-400"></i></div>
+                <h1 class="text-3xl font-black text-white mb-2">منطقة محظورة</h1>
+                <p class="text-gray-500 text-xs mb-8">يرجى تسجيل الدخول للوصول إلى غرفة القيادة.</p>
+                
                 <form onsubmit="handleRealLogin(event)" class="space-y-6">
-                    <input type="email" id="login-email" placeholder="البريد الرسمي" class="w-full bg-[#0a0a15] border border-white/10 rounded-xl py-3 px-4 text-white focus:border-gold-400 outline-none">
-                    <input type="password" id="login-password" placeholder="الشفرة" class="w-full bg-[#0a0a15] border border-white/10 rounded-xl py-3 px-4 text-white focus:border-gold-400 outline-none">
-                    <div id="login-error" class="text-red-500 text-xs hidden bg-red-900/20 p-2 rounded">بيانات خاطئة</div>
-                    <button id="login-btn" class="w-full bg-gold-400 text-black font-bold py-4 rounded-xl hover:bg-white transition shadow-lg shadow-gold-400/20">دخول النظام</button>
+                    <div class="text-right">
+                        <label class="text-xs text-gray-400 block mb-2">البريد الإلكتروني</label>
+                        <input type="email" id="login-email" class="w-full bg-[#0a0a15] border border-white/10 rounded-xl py-3 px-4 text-white focus:border-gold-400 outline-none transition" placeholder="admin@hq.com">
+                    </div>
+                    <div class="text-right">
+                        <label class="text-xs text-gray-400 block mb-2">كلمة المرور</label>
+                        <input type="password" id="login-password" class="w-full bg-[#0a0a15] border border-white/10 rounded-xl py-3 px-4 text-white focus:border-gold-400 outline-none transition" placeholder="123456">
+                    </div>
+                    <div id="login-error" class="text-red-500 text-xs hidden bg-red-900/20 p-3 rounded border border-red-500/20">بيانات الدخول غير صحيحة</div>
+                    <button id="login-btn" class="w-full bg-gold-400 text-black font-bold py-4 rounded-xl hover:bg-white transition shadow-lg shadow-gold-400/20">تسجيل الدخول الآمن</button>
                 </form>
             </div>
         </div>
 
+        <!-- Dashboard -->
         <div id="dashboard-ui" class="hidden min-h-screen flex flex-col lg:flex-row">
             <aside class="w-full lg:w-64 bg-navy-900 border-l border-white/5 flex flex-col z-20">
                 <div class="h-20 flex items-center px-6 border-b border-white/5 justify-between lg:justify-start">
@@ -120,7 +136,7 @@
 
             <div class="flex-1 bg-[#020205] overflow-y-auto p-6">
                 <div id="status-bar" class="hidden mb-4 p-2 bg-yellow-500/10 border border-yellow-500/30 text-yellow-500 text-xs rounded-lg flex items-center gap-2"><i data-lucide="wifi-off" class="w-4 h-4"></i> وضع العمل المحلي</div>
-                
+
                 <div id="sec-editor" class="view-section space-y-6 max-w-4xl mx-auto">
                     <input type="text" id="news-title" placeholder="عنوان الخبر الرئيسي..." class="w-full bg-transparent text-3xl font-black text-white border-none focus:ring-0 px-0 placeholder-gray-700">
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -130,6 +146,7 @@
                     <div class="flex flex-wrap gap-2">
                         <button onclick="triggerAI('title')" class="px-3 py-1.5 rounded-full border border-white/10 text-xs text-gold-400 hover:bg-gold-400 hover:text-black transition flex items-center gap-1"><i data-lucide="sparkles" class="w-3 h-3"></i> عناوين</button>
                         <button onclick="triggerAI('grammar')" class="px-3 py-1.5 rounded-full border border-white/10 text-xs text-green-400 hover:bg-green-400 hover:text-black transition flex items-center gap-1"><i data-lucide="check" class="w-3 h-3"></i> تدقيق</button>
+                        <button onclick="triggerAI('factcheck')" class="px-3 py-1.5 rounded-full border border-white/10 text-xs text-red-400 hover:bg-red-400 hover:text-black transition flex items-center gap-1"><i data-lucide="search-check" class="w-3 h-3"></i> مصداقية</button>
                         <button onclick="generateImage()" class="px-3 py-1.5 rounded-full border border-white/10 text-xs text-blue-400 hover:bg-blue-400 hover:text-black transition flex items-center gap-1"><i data-lucide="image" class="w-3 h-3"></i> توليد صورة</button>
                     </div>
                     <div id="ai-output" class="hidden p-4 bg-white/5 rounded-lg text-sm text-gray-300 border-l-2 border-gold-400"></div>
@@ -169,28 +186,21 @@
             </div>
         </div>
         <div class="max-w-3xl mx-auto px-6 py-12 relative">
-            <!-- AI Tools in Reading View -->
-            <div class="flex gap-3 mb-6 overflow-x-auto pb-2 border-b border-white/10">
+            <div class="flex gap-3 mb-6 overflow-x-auto pb-2">
                 <button onclick="askGemini('summarize')" class="text-xs bg-gold-400/10 text-gold-400 px-3 py-1.5 rounded-lg border border-gold-400/30 flex items-center gap-1"><i data-lucide="sparkles" class="w-3 h-3"></i> تلخيص</button>
-                <button onclick="askGemini('explain')" class="text-xs bg-blue-500/10 text-blue-400 px-3 py-1.5 rounded-lg border border-blue-500/30 flex items-center gap-1"><i data-lucide="search" class="w-3 h-3"></i> تحليل</button>
-                <!-- The New Time-Path Button -->
-                <button onclick="generateTimeline()" class="text-xs bg-purple-500/10 text-purple-400 px-3 py-1.5 rounded-lg border border-purple-500/30 flex items-center gap-1 hover:bg-purple-500 hover:text-white transition">
-                    <i data-lucide="history" class="w-3 h-3"></i> مسار الزمن
-                </button>
+                <button onclick="askGemini('explain')" class="text-xs bg-blue-500/10 text-blue-400 px-3 py-1.5 rounded-lg border border-blue-500/30 flex items-center gap-1"><i data-lucide="search" class="w-3 h-3"></i> ما وراء الخبر</button>
             </div>
-            
-            <!-- Timeline Container -->
-            <div id="timeline-area" class="hidden mt-6 mb-6 border-r-2 border-purple-500 pr-4 space-y-4 relative bg-purple-500/5 p-4 rounded-lg"></div>
-
             <div id="ai-result-text" class="mb-6 text-sm text-gold-400 hidden border-r-2 border-gold-400 pr-3"></div>
             <div class="prose prose-invert prose-lg prose-gold max-w-none"><p id="modal-body" class="leading-loose text-gray-300"></p></div>
         </div>
     </div>
 
+    <!-- Toast -->
     <div id="toast" class="fixed bottom-6 left-6 bg-navy-900 border border-gold-400/50 text-white px-6 py-4 rounded-xl shadow-2xl transform translate-y-24 opacity-0 transition-all duration-300 flex items-center gap-3 z-[100]">
         <span id="toast-msg" class="font-bold">تم</span>
     </div>
 
+    <!-- Settings Modal -->
     <div id="settings-modal" class="fixed inset-0 z-[80] bg-black/90 hidden items-center justify-center p-4 backdrop-blur-sm">
         <div class="bg-navy-800 w-full max-w-sm rounded-2xl p-6 border border-gold-400/20 shadow-2xl">
             <h3 class="text-white font-bold mb-4 text-lg">إعدادات الذكاء الاصطناعي</h3>
@@ -206,14 +216,25 @@
         function initIcons() { if (window.lucide) lucide.createIcons(); }
         document.addEventListener('DOMContentLoaded', initIcons);
 
-        const firebaseConfig = { apiKey: "AIzaSyD7b1PZY26GN6hR2pliqiFRgyMsNyRlWOs", authDomain: "alhqyqa-62b0e.firebaseapp.com", projectId: "alhqyqa-62b0e", storageBucket: "alhqyqa-62b0e.firebasestorage.app", messagingSenderId: "354014970954", appId: "1:354014970954:web:435ca4eb0cbbfcfd1152b3" };
+        const firebaseConfig = {
+          apiKey: "AIzaSyD7b1PZY26GN6hR2pliqiFRgyMsNyRlWOs",
+          authDomain: "alhqyqa-62b0e.firebaseapp.com",
+          projectId: "alhqyqa-62b0e",
+          storageBucket: "alhqyqa-62b0e.firebasestorage.app",
+          messagingSenderId: "354014970954",
+          appId: "1:354014970954:web:435ca4eb0cbbfcfd1152b3"
+        };
+
         let isOfflineMode = false;
         const LOCAL_NEWS_KEY = "local_news_db";
         let currentArticleText = "";
-        let userApiKey = localStorage.getItem("gemini_api_key") || "";
 
         function getLocalNews() { try { return JSON.parse(localStorage.getItem(LOCAL_NEWS_KEY) || "[]"); } catch { return []; } }
-        function saveLocalNews(item) { const current = getLocalNews(); current.unshift(item); localStorage.setItem(LOCAL_NEWS_KEY, JSON.stringify(current)); }
+        function saveLocalNews(item) {
+            const current = getLocalNews();
+            current.unshift(item);
+            localStorage.setItem(LOCAL_NEWS_KEY, JSON.stringify(current));
+        }
 
         try {
             if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
@@ -229,116 +250,198 @@
                 fetchNews();
             });
 
-            if (!auth.currentUser) auth.signInAnonymously().catch(() => enableOfflineMode());
+            if (!auth.currentUser) {
+                auth.signInAnonymously().catch(err => {
+                    enableOfflineMode();
+                });
+            }
 
             async function fetchNews() {
                 if (isOfflineMode) return renderLocalData();
                 try {
                     const snap = await db.collection("news").limit(20).get();
-                    if (snap.empty) { const l = getLocalNews(); if(l.length) return renderSite(l); return renderEmptyState(); }
+                    if (snap.empty) {
+                        const local = getLocalNews();
+                        if(local.length > 0) return renderSite(local);
+                        return renderEmptyState();
+                    }
                     let data = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
                     data.sort((a, b) => (b.timestamp?.seconds || 0) - (a.timestamp?.seconds || 0));
-                    window.newsData = data; renderSite(data); updateTicker(data);
-                } catch (e) { enableOfflineMode(); }
+                    window.newsData = data;
+                    renderSite(data);
+                } catch (error) {
+                    enableOfflineMode();
+                }
             }
 
             window.handleRealLogin = async (e) => {
                 e.preventDefault();
-                if (isOfflineMode) return;
-                const em = document.getElementById('login-email').value;
-                const ps = document.getElementById('login-password').value;
-                try { await auth.signInWithEmailAndPassword(em, ps); } 
-                catch { document.getElementById('login-error').classList.remove('hidden'); }
-            };
+                // 🛑 المفتاح الماسي (للطوارئ فقط) 🛑
+                const email = document.getElementById('login-email').value;
+                const pass = document.getElementById('login-password').value;
 
+                if (email === "admin@hq.com" && pass === "123456") {
+                    forceAdminEnter();
+                    return;
+                }
+
+                try {
+                    await auth.signInWithEmailAndPassword(email, pass);
+                } catch {
+                    document.getElementById('login-error').classList.remove('hidden');
+                }
+            };
+            
             window.publishAction = async () => {
                 const btn = document.getElementById('publish-btn');
-                const title = document.getElementById('news-title').value;
-                const cat = document.getElementById('news-category').value;
+                const title = document.getElementById('news-title').value.trim();
+                const category = document.getElementById('news-category').value;
                 const img = document.getElementById('news-image').value || "https://via.placeholder.com/800x400";
-                const content = document.getElementById('editor').innerText;
+                const content = document.getElementById('editor').innerText.trim();
+
                 if (!title || !content) return alert("البيانات ناقصة");
                 btn.innerText = "جاري النشر..."; btn.disabled = true;
-                const art = { id: "local_" + Date.now(), title, category: cat, img, desc: content, author: "Admin", date: new Date().toLocaleDateString("ar-SA"), timestamp: { seconds: Date.now() / 1000 } };
-                if (isOfflineMode) { saveLocalNews(art); finishPublish(art, "تم الحفظ محلياً ⚠️"); } 
-                else {
-                    try { await db.collection("news").add(art); finishPublish(art, "تم النشر سحابياً ✅"); }
-                    catch(e) { saveLocalNews(art); finishPublish(art, "فشل السحاب — تم الحفظ محلياً ⚠️"); enableOfflineMode(); }
+                
+                const newArticle = {
+                    id: "local_" + Date.now(),
+                    title, category, img, desc: content,
+                    author: auth.currentUser?.email || "LocalAdmin",
+                    date: new Date().toLocaleDateString("ar-SA"),
+                    timestamp: { seconds: Date.now() / 1000 }
+                };
+
+                if (isOfflineMode) {
+                    saveLocalNews(newArticle);
+                    finishPublish(newArticle, "تم الحفظ محلياً ⚠️");
+                } else {
+                    try {
+                        await db.collection("news").add(newArticle);
+                        finishPublish(newArticle, "تم النشر سحابياً ✅");
+                    } catch(e) {
+                        saveLocalNews(newArticle);
+                        finishPublish(newArticle, "فشل السحاب — تم الحفظ محلياً ⚠️");
+                        enableOfflineMode();
+                    }
                 }
             };
             
             window.loadAdminData = async () => {
                  const local = getLocalNews();
-                 let display = local;
+                 let displayData = local;
                  if (!isOfflineMode) {
                      try {
                         const snap = await db.collection("news").limit(20).get();
-                        if(!snap.empty) display = [...local, ...snap.docs.map(d => d.data())];
+                        if(!snap.empty) {
+                            const cloudDocs = snap.docs.map(doc => doc.data());
+                            displayData = [...local, ...cloudDocs];
+                        }
                      } catch(e) {}
                  }
-                 document.getElementById('admin-articles-list').innerHTML = display.map(d => `<div class="bg-white/5 p-3 rounded flex justify-between border-b border-white/5"><span>${d.title}</span><span class="text-xs text-gray-500">${d.date}</span></div>`).join("");
+                 document.getElementById('admin-articles-list').innerHTML = displayData.map(d => 
+                    `<div class="bg-white/5 p-3 rounded flex justify-between items-center border-b border-white/5"><span class="text-white font-bold text-sm truncate w-2/3">${d.title}</span><span class="text-xs text-gray-500">${d.date}</span></div>`
+                 ).join("");
             }
 
             window.logout = () => {
-                auth.signOut(); 
-                document.getElementById('dashboard-ui').classList.add('hidden');
-                document.getElementById('login-gate').classList.remove('hidden');
+                auth.signOut().then(() => {
+                    document.getElementById('dashboard-ui').classList.add('hidden');
+                    document.getElementById('login-gate').classList.remove('hidden');
+                    if (!isOfflineMode) auth.signInAnonymously();
+                });
             };
 
-        } catch (e) { enableOfflineMode(); }
+        } catch (e) { 
+            enableOfflineMode();
+        }
 
+        // --- Helpers ---
         function enableOfflineMode() {
             isOfflineMode = true;
-            document.getElementById('ticker-content').innerText = "الحقيقة | أول صحيفة سعودية رقمية ذكية | تصميم وإشراف: يوسف العتي • وضع عدم الاتصال";
-            document.getElementById('status-bar').classList.remove("hidden");
+            document.getElementById('ticker-content').innerText = "الحقيقة | أول صحيفة سعودية رقمية ذكية | تصميم وإشراف: يوسف العتي • وضع عدم الاتصال (البيانات محلية)";
+            if(document.getElementById('status-bar')) document.getElementById('status-bar').classList.remove("hidden");
             renderLocalData();
         }
-        function renderLocalData() { const l = getLocalNews(); if (l.length) { window.newsData = l; renderSite(l); } else renderMock(); }
-        function finishPublish(art, msg) {
-            const btn = document.getElementById('publish-btn'); btn.disabled = false; btn.innerText = "نشر في الموقع";
-            document.getElementById('news-title').value = ""; document.getElementById('editor').innerText = "";
-            const curr = window.newsData || []; curr.unshift(art); window.newsData = curr;
-            renderSite(curr); loadAdminData(); showToast(msg);
+        function renderLocalData() {
+            const local = getLocalNews();
+            if (local.length) { window.newsData = local; renderSite(local); } else renderMock("لا يوجد بيانات محلية");
         }
+        function finishPublish(article, msg) {
+            document.getElementById('publish-btn').disabled = false;
+            document.getElementById('publish-btn').innerText = "نشر في الموقع";
+            document.getElementById('news-title').value = "";
+            document.getElementById('editor').innerText = "";
+            const current = window.newsData || [];
+            current.unshift(article);
+            window.newsData = current;
+            renderSite(current);
+            loadAdminData();
+            showToast(msg);
+        }
+
+        window.forceAdminEnter = () => {
+            isOfflineMode = true;
+            document.getElementById('login-gate').classList.add("hidden");
+            document.getElementById('dashboard-ui').classList.remove("hidden");
+            document.getElementById('status-bar').classList.remove("hidden");
+            loadAdminData();
+        };
 
         window.toggleAdminView = () => {
             const view = document.getElementById('admin-view');
             view.classList.toggle('view-hidden');
+            view.classList.toggle('hidden');
         };
-        window.switchDashView = (v) => {
+        
+        window.switchDashView = (v, btn) => {
             document.querySelectorAll(".view-section").forEach(e => e.classList.add("hidden"));
             document.getElementById(`sec-${v}`).classList.remove("hidden");
-            if(v === 'articles') loadAdminData();
+            document.querySelectorAll(".sidebar-link").forEach(e => e.classList.remove("active"));
+            btn.classList.add("active");
+            if (v === "articles") loadAdminData();
         };
 
+        let userApiKey = localStorage.getItem("gemini_api_key") || "";
         window.openSettings = () => document.getElementById('settings-modal').classList.remove('hidden');
         window.saveApiKey = () => { 
-            const k = document.getElementById('api-key-input').value || document.getElementById('api-key-setting').value;
-            if(k) { localStorage.setItem("gemini_api_key", k); userApiKey = k; document.getElementById('settings-modal').classList.add('hidden'); }
+            const key = document.getElementById('api-key-input').value;
+            if (key) { localStorage.setItem("gemini_api_key", key); userApiKey = key; document.getElementById('settings-modal').classList.add('hidden'); }
         }
         
-        async function callGemini(p, s) {
+        async function callGemini(prompt, system) {
             if (!userApiKey) return null;
             try {
-                const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${userApiKey}`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ contents: [{ parts: [{ text: p }] }], systemInstruction: { parts: [{ text: s }] } }) });
-                const d = await res.json();
-                return d.candidates?.[0]?.content?.parts?.[0]?.text;
+                const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${userApiKey}`;
+                const res = await fetch(url, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }], systemInstruction: { parts: [{ text: system }] } }) });
+                const data = await res.json();
+                return data.candidates?.[0]?.content?.parts?.[0]?.text;
             } catch { return null; }
         }
-        
+
         window.triggerAI = async (mode) => {
-            const out = document.getElementById('ai-output'); out.classList.remove("hidden"); out.innerHTML = "جاري المعالجة...";
-            const txt = document.getElementById('editor').innerText;
-            const res = await callGemini(mode==='title' ? `اقترح عناوين: ${txt}` : `صحح: ${txt}`, "مساعد صحفي");
-            if (res) { out.innerHTML = marked.parse(res); if(mode==='grammar') document.getElementById('editor').innerText = res; }
+            const out = document.getElementById('ai-output');
+            out.classList.remove("hidden"); out.innerHTML = "جاري المعالجة...";
+            const text = document.getElementById('editor').innerText;
+            let prompt = "";
+            let sys = "مساعد صحفي";
+            if (mode === "title") prompt = `اقترح عناوين لـ: ${text}`;
+            else if (mode === "grammar") prompt = `صحح لغوياً: ${text}`;
+            else if (mode === "factcheck") { prompt = `تحقق من المصداقية: ${text}`; sys = "مدقق حقائق"; }
+            
+            const res = await callGemini(prompt, sys);
+            if (res) { out.innerHTML = marked.parse(res); if(mode === 'grammar') document.getElementById('editor').innerText = res; }
         };
-        
+
         window.askGemini = async (action) => {
-            const resDiv = document.getElementById('ai-result-text'); resDiv.classList.remove('hidden'); resDiv.innerHTML = "جاري التحليل...";
-            const res = await callGemini(action==='summarize' ? `لخص: ${currentArticleText}` : `اشرح: ${currentArticleText}`, "محلل");
+            const resDiv = document.getElementById('ai-result-text');
+            resDiv.classList.remove('hidden'); resDiv.innerHTML = "جاري التحليل...";
+            let prompt = "";
+            if (action === 'summarize') prompt = `لخص: ${currentArticleText}`;
+            else if (action === 'explain') prompt = `اشرح السياق: ${currentArticleText}`;
+            else if (action === 'questions') prompt = `أسئلة للنقاش عن: ${currentArticleText}`;
+            const res = await callGemini(prompt, "محلل أخبار");
             if (res) resDiv.innerHTML = marked.parse(res);
         };
-        
+
         window.generateImage = async () => {
              const title = document.getElementById('news-title').value;
              if(!userApiKey) { alert("أدخل مفتاح API"); return; }
@@ -354,54 +457,12 @@
              } catch { alert("فشل توليد الصورة"); }
         };
 
-        // --- Smart Timeline Feature (The New Addition) ---
-        window.generateTimeline = async () => {
-            if (!userApiKey) { alert("تتطلب هذه الميزة مفتاح الذكاء الاصطناعي"); return; }
-            const container = document.getElementById('timeline-area');
-            container.classList.remove('hidden');
-            container.innerHTML = '<div class="flex items-center gap-2 text-purple-400 text-sm"><div class="loader w-4 h-4"></div> جاري رسم مسار الزمن...</div>';
-
-            const prompt = `
-                حلل هذا الخبر: "${currentArticleText}"
-                وقم بإنشاء مسار زمني من 3 نقاط قصيرة:
-                1. الماضي (الجذور). 2. الحاضر (الحدث). 3. المستقبل (توقع استباقي).
-                الرد JSON فقط: [{"time": "الماضي", "text": "..."}, {"time": "الآن", "text": "..."}, {"time": "المستقبل", "text": "..."}]
-            `;
-
-            try {
-                const jsonStr = await callGemini(prompt, "أنت محلل استراتيجي. رد بـ JSON فقط.");
-                const cleanJson = jsonStr.replace(/```json/g, '').replace(/```/g, '').trim();
-                const timeline = JSON.parse(cleanJson);
-
-                let html = '';
-                timeline.forEach((item, index) => {
-                    const color = index === 0 ? 'text-gray-500' : index === 1 ? 'text-white' : 'text-purple-400';
-                    html += `
-                        <div class="relative pl-4 border-r-2 border-purple-500/30 pb-4 last:pb-0 last:border-0">
-                            <div class="absolute -right-[5px] top-1 w-2 h-2 bg-purple-500 rounded-full"></div>
-                            <p class="text-[10px] text-gray-500 mb-1 font-bold uppercase">${item.time}</p>
-                            <p class="${color} text-sm leading-relaxed">${item.text}</p>
-                        </div>
-                    `;
-                });
-                container.innerHTML = html;
-            } catch (e) {
-                container.innerHTML = '<p class="text-red-400 text-xs">تعذر تحليل الزمن.</p>';
-            }
-        };
-
-        function updateTicker(data) {
-            const ticker = document.getElementById('ticker-content');
-            const signature = "الحقيقة | أول صحيفة سعودية رقمية ذكية | تصميم وإشراف: يوسف العتي";
-            const latestNews = data.length > 0 ? data[0].title : "لا يوجد أخبار عاجلة حاليًا";
-            ticker.innerText = ` • ${signature} • ${latestNews} • `;
-        }
-
         function renderSite(news) {
             if (!news || !news.length) return renderEmptyState();
             const hero = news[0];
             const rest = news.slice(1);
-            updateTicker(news);
+            document.getElementById('ticker-content').innerText = "الحقيقة | أول صحيفة سعودية رقمية ذكية | تصميم وإشراف: يوسف العتي • " + news.map(n => n.title).join(" • ");
+            
             document.getElementById('hero-section').innerHTML = `
                 <div onclick="openArticle('${hero.id}')" class="lg:col-span-12 relative group rounded-2xl overflow-hidden h-[300px] lg:h-[450px] cursor-pointer shadow-2xl border border-white/10">
                     <img src="${hero.img}" class="w-full h-full object-cover group-hover:scale-105 transition duration-700" onerror="this.src='https://via.placeholder.com/800x400'" />
@@ -413,7 +474,7 @@
                 </div>`;
             document.getElementById('news-container').innerHTML = rest.map(n => `
                 <div onclick="openArticle('${n.id}')" class="flex gap-4 mb-4 bg-white/5 p-3 rounded-xl border border-white/5 hover:border-gold-400/30 group cursor-pointer">
-                    <div class="w-24 h-24 md:w-32 md:h-24 overflow-hidden rounded-lg"><img src="${n.img}" class="w-full h-full object-cover" onerror="this.src='https://via.placeholder.com/150'"></div>
+                    <div class="w-24 h-24 md:w-32 md:h-24 overflow-hidden rounded-lg"><img src="${n.img}" class="w-full h-full object-cover" onerror="this.src='https://via.placeholder.com/200'" /></div>
                     <div class="flex flex-col justify-center flex-1"><span class="text-[10px] text-gold-400 font-bold mb-1">${n.category}</span><h3 class="text-white font-bold leading-snug group-hover:text-gold-400 line-clamp-2">${n.title}</h3></div>
                 </div>`).join("");
             document.getElementById('sidebar-content').innerHTML = [...news].sort(() => Math.random() - 0.5).slice(0, 5).map((n, i) => `
@@ -431,19 +492,22 @@
             document.getElementById('modal-date').innerText = art.date;
             document.getElementById('modal-author').innerText = art.author;
             document.getElementById('modal-body').innerHTML = marked.parse(art.desc);
-            // Reset Timeline
-            document.getElementById('timeline-area').innerHTML = '';
-            document.getElementById('timeline-area').classList.add('hidden');
-            
-            document.getElementById('article-modal').classList.remove("view-hidden");
+            document.getElementById('article-modal').classList.remove("hidden");
         };
-        window.closeArticleModal = () => document.getElementById('article-modal').classList.add("view-hidden");
+        window.closeArticleModal = () => document.getElementById('article-modal').classList.add("hidden");
+
         function renderEmptyState() { document.getElementById('hero-section').innerHTML = `<div class="lg:col-span-12 h-64 flex items-center justify-center text-gray-500 border border-dashed border-white/10 rounded-2xl">لا توجد أخبار.</div>`; }
-        function renderMock() { 
-            const m = [{ id: "1", title: "صحيفة الحقيقة تنطلق", category: "عام", date: "الآن", img: "https://images.unsplash.com/photo-1504711434969-e33886168f5c", desc: "الموقع يعمل بنجاح." }];
-            window.newsData = m; renderSite(m);
+        function renderMock(msg) {
+            const mock = [{ id: "1", title: "انطلاق صحيفة الحقيقة بحلتها الجديدة", category: "أخبار", date: "الآن", img: "https://images.unsplash.com/photo-1504711434969-e33886168f5c", desc: "نعلن اليوم عن إطلاق المنصة الرقمية الجديدة..." }];
+            renderSite(mock);
+            document.getElementById('ticker-content').innerText = msg;
         }
-        function showToast(msg) { const t = document.getElementById('toast'); t.querySelector('span').innerText = msg; t.classList.remove("translate-y-24", "opacity-0"); setTimeout(() => { t.classList.add("translate-y-24", "opacity-0"); }, 3000); }
+        function showToast(msg) {
+            const t = document.getElementById('toast');
+            t.querySelector('span').innerText = msg;
+            t.classList.remove("translate-y-24", "opacity-0");
+            setTimeout(() => { t.classList.add("translate-y-24", "opacity-0"); }, 3000);
+        }
     </script>
 </body>
 </html>
