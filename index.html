@@ -408,3 +408,497 @@
 </html>
 
 
+
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>صحيفة الحقيقة الذكية</title>
+
+    <!-- PWA -->
+    <link rel="manifest" href="manifest.json" />
+    <meta name="theme-color" content="#050510">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
+    <!-- Tailwind & Fonts -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@100;200;300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <!-- Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['IBM Plex Sans Arabic', 'sans-serif'] },
+                    colors: {
+                        navy: { 900: '#050510', 800: '#0f1219', 700: '#1a1d26' },
+                        gold: { 400: '#D4AF37', 500: '#C5A028' }
+                    },
+                    animation: { 'marquee': 'marquee 30s linear infinite' },
+                    keyframes: { marquee: { '0%': { transform: 'translateX(100%)' }, '100%': { transform: 'translateX(-100%)' } } }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body { background-color: #050510; color: #f3f4f6; overflow-x: hidden; -webkit-tap-highlight-color: transparent; }
+        
+        /* Scrollbar hide for menu */
+        .scrollbar-hide::-webkit-scrollbar { display: none; }
+        .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+
+        /* Accordion Animation */
+        .accordion-content { transition: max-height 0.3s ease-out, opacity 0.3s ease-out; max-height: 0; opacity: 0; overflow: hidden; }
+        .accordion-content.open { max-height: 500px; opacity: 1; }
+        
+        /* Active Nav Item */
+        .nav-item.active { border-bottom: 2px solid #D4AF37; color: #D4AF37; }
+        
+        /* Sidebar Transition */
+        .sidebar { transition: transform 0.3s ease-in-out; transform: translateX(100%); }
+        .sidebar.open { transform: translateX(0); }
+        
+        .glass-header { background: rgba(5, 5, 16, 0.95); backdrop-filter: blur(10px); border-bottom: 1px solid rgba(255,255,255,0.05); }
+        .loader { border: 3px solid rgba(255,255,255,0.1); border-left-color: #D4AF37; width: 24px; height: 24px; border-radius: 50%; animation: spin 1s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+    </style>
+</head>
+<body class="antialiased min-h-screen flex flex-col">
+
+    <!-- HEADER & NAVIGATION (Sticky) -->
+    <header class="fixed top-0 w-full z-50 glass-header">
+        <!-- Top Bar: Logo & Menu Trigger -->
+        <div class="container mx-auto px-4 h-16 flex justify-between items-center">
+            
+            <!-- Logo (Right) -->
+            <div class="flex items-center gap-3" onclick="window.location.reload()">
+                <div class="text-2xl font-black text-white tracking-tighter">
+                    الـحقيقة<span class="text-gold-400">.</span>
+                </div>
+            </div>
+
+            <!-- Search & Menu (Left) -->
+            <div class="flex items-center gap-4">
+                <button class="text-gray-400 hover:text-white"><i data-lucide="search" class="w-5 h-5"></i></button>
+                
+                <!-- Hamburger Menu Trigger -->
+                <button onclick="toggleSidebar()" class="text-white focus:outline-none">
+                    <i data-lucide="menu" class="w-7 h-7"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Horizontal Scroll Menu (Like Screenshot 1) -->
+        <div class="w-full overflow-x-auto scrollbar-hide bg-navy-800 border-b border-white/5">
+            <div class="flex px-4 min-w-max">
+                <button onclick="switchView('home', this)" class="nav-item active px-4 py-3 text-sm font-bold text-gray-300 whitespace-nowrap">الرئيسية</button>
+                <button onclick="switchView('features', this)" class="nav-item px-4 py-3 text-sm font-bold text-gray-300 whitespace-nowrap">الابتكارات الـ 15</button>
+                <button onclick="switchView('contract', this)" class="nav-item px-4 py-3 text-sm font-bold text-gray-300 whitespace-nowrap">توثيق العقد</button>
+                <button onclick="switchView('dashboard', this)" class="nav-item px-4 py-3 text-sm font-bold text-gray-300 whitespace-nowrap">لوحة الأثر</button>
+                <button onclick="switchView('admin', this)" class="nav-item px-4 py-3 text-sm font-bold text-gray-300 whitespace-nowrap">غرفة القيادة</button>
+            </div>
+        </div>
+    </header>
+
+    <!-- SIDEBAR MENU (Like Screenshot 2) -->
+    <aside id="main-sidebar" class="sidebar fixed inset-y-0 right-0 w-72 bg-[#1a1d26] z-[60] shadow-2xl border-l border-white/10 overflow-y-auto">
+        <div class="p-5 border-b border-white/10 flex justify-between items-center">
+            <h2 class="text-lg font-bold text-white">القائمة الرئيسية</h2>
+            <button onclick="toggleSidebar()" class="text-gray-400 hover:text-white"><i data-lucide="x" class="w-6 h-6"></i></button>
+        </div>
+
+        <div class="p-4 space-y-2">
+            <!-- Accordion Item 1: Admin -->
+            <div class="border-b border-white/5 pb-2">
+                <button onclick="toggleAccordion('acc-admin')" class="w-full flex justify-between items-center py-3 text-gray-300 hover:text-gold-400 font-bold">
+                    <span class="flex items-center gap-2"><i data-lucide="shield" class="w-4 h-4"></i> لوحة تحكم الإدارة</span>
+                    <i data-lucide="chevron-down" class="w-4 h-4 transition-transform duration-300" id="icon-acc-admin"></i>
+                </button>
+                <div id="acc-admin" class="accordion-content bg-black/20 rounded-lg">
+                    <a href="#" onclick="switchView('admin'); toggleSidebar()" class="block px-4 py-2 text-sm text-gray-400 hover:text-white hover:bg-white/5 rounded">المحرر الذكي</a>
+                    <a href="#" onclick="switchView('admin'); toggleSidebar()" class="block px-4 py-2 text-sm text-gray-400 hover:text-white hover:bg-white/5 rounded">إدارة الأعضاء (HR)</a>
+                    <a href="#" onclick="switchView('admin'); toggleSidebar()" class="block px-4 py-2 text-sm text-gray-400 hover:text-white hover:bg-white/5 rounded">الأرشيف</a>
+                </div>
+            </div>
+
+            <!-- Accordion Item 2: Settings -->
+            <div class="border-b border-white/5 pb-2">
+                <button onclick="toggleAccordion('acc-settings')" class="w-full flex justify-between items-center py-3 text-gray-300 hover:text-gold-400 font-bold">
+                    <span class="flex items-center gap-2"><i data-lucide="settings" class="w-4 h-4"></i> إعدادات</span>
+                    <i data-lucide="chevron-down" class="w-4 h-4 transition-transform duration-300" id="icon-acc-settings"></i>
+                </button>
+                <div id="acc-settings" class="accordion-content bg-black/20 rounded-lg">
+                    <a href="#" onclick="openSettings(); toggleSidebar()" class="block px-4 py-2 text-sm text-gray-400 hover:text-white hover:bg-white/5 rounded">مفتاح الذكاء الاصطناعي</a>
+                    <a href="#" onclick="toggleReaderAuth(); toggleSidebar()" class="block px-4 py-2 text-sm text-gray-400 hover:text-white hover:bg-white/5 rounded">حسابي</a>
+                </div>
+            </div>
+
+            <!-- Accordion Item 3: Modules -->
+            <div class="border-b border-white/5 pb-2">
+                <button onclick="toggleAccordion('acc-modules')" class="w-full flex justify-between items-center py-3 text-gray-300 hover:text-gold-400 font-bold">
+                    <span class="flex items-center gap-2"><i data-lucide="box" class="w-4 h-4"></i> الموديولات</span>
+                    <i data-lucide="chevron-down" class="w-4 h-4 transition-transform duration-300" id="icon-acc-modules"></i>
+                </button>
+                <div id="acc-modules" class="accordion-content bg-black/20 rounded-lg">
+                    <a href="#" class="block px-4 py-2 text-sm text-gray-400 hover:text-white hover:bg-white/5 rounded">البنرات الإعلانية</a>
+                    <a href="#" class="block px-4 py-2 text-sm text-gray-400 hover:text-white hover:bg-white/5 rounded">القوائم البريدية</a>
+                </div>
+            </div>
+            
+            <!-- Single Links -->
+            <button onclick="switchView('home'); toggleSidebar()" class="w-full flex items-center gap-2 py-3 text-gray-300 hover:text-gold-400 font-bold border-b border-white/5">
+                <i data-lucide="home" class="w-4 h-4"></i> الرئيسية
+            </button>
+            
+            <button onclick="logout()" class="w-full flex items-center gap-2 py-3 text-red-400 hover:text-red-300 font-bold mt-4">
+                <i data-lucide="log-out" class="w-4 h-4"></i> تسجيل خروج
+            </button>
+        </div>
+    </aside>
+
+    <!-- OVERLAY (Background Dim) -->
+    <div id="sidebar-overlay" onclick="toggleSidebar()" class="fixed inset-0 bg-black/50 z-50 hidden backdrop-blur-sm"></div>
+
+    <!-- MAIN CONTENT AREA -->
+    <main class="pt-32 pb-20 container mx-auto px-4 min-h-screen">
+        
+        <!-- 1. HOME VIEW (News) -->
+        <section id="view-home" class="view-section">
+            <!-- Ticker -->
+            <div class="bg-navy-800 border border-white/5 rounded-lg p-2 mb-6 flex items-center gap-3 shadow-lg">
+                <span class="bg-red-600 text-white text-[10px] font-bold px-2 py-0.5 rounded animate-pulse">عاجل</span>
+                <div class="w-full overflow-hidden relative h-5">
+                    <div id="ticker-content" class="absolute whitespace-nowrap animate-marquee text-xs text-gray-300 pt-0.5">
+                        الحقيقة الذكية | تصميم وإشراف: يوسف العتي ... جاري الاتصال...
+                    </div>
+                </div>
+            </div>
+
+            <div id="hero-section" class="mb-8 relative h-[400px] rounded-2xl bg-white/5 animate-pulse flex items-center justify-center border border-white/5">
+                <div class="loader"></div>
+            </div>
+
+            <div id="news-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <!-- News Items -->
+            </div>
+        </section>
+
+        <!-- 2. FEATURES VIEW -->
+        <section id="view-features" class="view-section hidden">
+            <h2 class="text-2xl font-bold text-white mb-6 border-r-4 border-gold-400 pr-3">الابتكارات الـ 15</h2>
+            <div id="features-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+        </section>
+
+        <!-- 3. CONTRACT VIEW -->
+        <section id="view-contract" class="view-section hidden max-w-2xl mx-auto">
+            <div class="bg-navy-800 border border-white/10 rounded-2xl p-6 shadow-2xl">
+                <h2 class="text-2xl font-bold text-white mb-4 text-center">عقد توظيف إلكتروني</h2>
+                <p class="text-gray-400 text-sm text-center mb-6">الرقم الوظيفي: <span class="text-gold-400 font-mono">HQ-GEN-01</span></p>
+                <form onsubmit="submitEmployeeContract(event)" class="space-y-4">
+                    <input type="text" id="rec-name" required class="w-full bg-black/50 border border-white/10 rounded-lg p-3 text-white focus:border-gold-400 outline-none" placeholder="الاسم الثلاثي">
+                    <input type="text" id="rec-id" required class="w-full bg-black/50 border border-white/10 rounded-lg p-3 text-white focus:border-gold-400 outline-none" placeholder="رقم الهوية (1xxxxxxxxx)">
+                    <button class="w-full bg-gold-400 text-black font-bold py-3 rounded-lg hover:bg-white transition">توثيق بالبصمة</button>
+                </form>
+            </div>
+        </section>
+
+        <!-- 4. DASHBOARD VIEW -->
+        <section id="view-dashboard" class="view-section hidden">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+                <div class="bg-navy-800 p-4 rounded-xl border-t-4 border-gold-400 text-center"><h3 class="text-gray-400 text-xs">مؤشر التنبؤ</h3><p class="text-2xl font-bold text-white">85%</p></div>
+                <div class="bg-navy-800 p-4 rounded-xl border-t-4 border-blue-400 text-center"><h3 class="text-gray-400 text-xs">الأثر الاجتماعي</h3><p class="text-2xl font-bold text-white">12.5K</p></div>
+                <div class="bg-navy-800 p-4 rounded-xl border-t-4 border-green-400 text-center"><h3 class="text-gray-400 text-xs">المحررين النشطين</h3><p class="text-2xl font-bold text-white">12</p></div>
+            </div>
+            <div class="bg-navy-800 p-4 rounded-xl border border-white/5 h-64 flex items-center justify-center">
+                <canvas id="predictiveChart"></canvas>
+            </div>
+        </section>
+
+        <!-- 5. ADMIN VIEW (Internal) -->
+        <section id="view-admin" class="view-section hidden">
+            <div id="login-gate" class="max-w-md mx-auto mt-10 bg-navy-800 p-8 rounded-2xl border border-white/10 text-center">
+                <h2 class="text-2xl font-bold text-white mb-6">بوابة القيادة</h2>
+                <form onsubmit="handleRealLogin(event)" class="space-y-4">
+                    <input type="email" id="login-email" class="w-full bg-black/50 p-3 rounded text-white" placeholder="البريد">
+                    <input type="password" id="login-password" class="w-full bg-black/50 p-3 rounded text-white" placeholder="الرمز">
+                    <button class="w-full bg-gold-400 text-black font-bold py-3 rounded hover:bg-white">دخول</button>
+                </form>
+            </div>
+            <div id="admin-panel" class="hidden space-y-6">
+                <div class="flex justify-between items-center">
+                    <h2 class="text-2xl font-bold text-white">لوحة التحكم</h2>
+                    <button onclick="logout()" class="text-red-400 text-sm">خروج</button>
+                </div>
+                <!-- Editor -->
+                <div class="bg-navy-800 p-6 rounded-2xl border border-white/10">
+                    <input type="text" id="news-title" placeholder="عنوان الخبر..." class="w-full bg-transparent text-2xl font-bold text-white mb-4 border-b border-white/10 pb-2 outline-none">
+                    <textarea id="editor" class="w-full h-40 bg-black/30 rounded-lg p-3 text-white mb-4" placeholder="المحتوى..."></textarea>
+                    <div class="flex gap-2">
+                        <button onclick="triggerAI('title')" class="text-xs bg-white/10 text-gold-400 px-3 py-1 rounded">✨ AI عناوين</button>
+                        <button onclick="publishAction()" class="bg-gold-400 text-black px-6 py-2 rounded font-bold text-sm mr-auto">نشر</button>
+                    </div>
+                    <div id="ai-output" class="hidden mt-4 p-3 bg-white/5 rounded text-xs text-gray-300"></div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Modals & Toasts -->
+    <div id="article-modal" class="fixed inset-0 z-[80] bg-black/95 hidden overflow-y-auto animate-fade-in">
+        <div class="min-h-screen p-4 md:p-8">
+            <button onclick="closeArticleModal()" class="fixed top-4 left-4 z-50 bg-white/10 text-white p-2 rounded-full hover:bg-red-500 transition"><i data-lucide="x" class="w-6 h-6"></i></button>
+            <div class="max-w-3xl mx-auto bg-navy-900 rounded-2xl overflow-hidden border border-white/10 shadow-2xl">
+                <img id="modal-img" src="" class="w-full h-64 object-cover">
+                <div class="p-6 md:p-10">
+                    <span id="modal-cat" class="text-gold-400 text-xs font-bold uppercase"></span>
+                    <h1 id="modal-title" class="text-2xl md:text-4xl font-bold text-white mt-2 mb-6 leading-tight"></h1>
+                    <div class="prose prose-invert max-w-none text-gray-300 leading-loose" id="modal-body"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="toast" class="fixed bottom-6 left-6 bg-green-600 text-white px-6 py-3 rounded-full shadow-2xl opacity-0 transition-all z-[100] font-bold flex items-center gap-2">
+        <i data-lucide="check-circle" class="w-5 h-5"></i> <span id="toast-msg">تم</span>
+    </div>
+
+    <div id="settings-modal" class="fixed inset-0 z-[90] bg-black/90 hidden items-center justify-center p-4">
+        <div class="bg-navy-900 w-full max-w-sm rounded-2xl border border-white/10 p-6">
+            <h3 class="text-lg font-bold text-white mb-4">إعدادات الذكاء الاصطناعي</h3>
+            <p class="text-sm text-gray-400 mb-4">لتفعيل ميزات AI، يرجى إدخال مفتاح Gemini API الخاص بك (يتم حفظه محلياً فقط).</p>
+            <input type="password" id="api-key-input" placeholder="Paste Gemini API Key here" class="w-full bg-black/50 border border-white/10 rounded-lg p-3 text-white mb-4 focus:border-gold-400 outline-none">
+            <div class="flex justify-end gap-3">
+                <button onclick="document.getElementById('settings-modal').classList.add('hidden')" class="px-4 py-2 text-gray-400 hover:text-white">إلغاء</button>
+                <button onclick="saveApiKey()" class="px-6 py-2 bg-gold-400 text-black font-bold rounded-lg hover:bg-gold-500">حفظ</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- JAVASCRIPT LOGIC -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            initApp();
+            initCharts();
+            initExplorer();
+        });
+        
+        let apiKey = localStorage.getItem('gemini_api_key') || "";
+        const sourceData = [
+            { title: "وزير البيئة يبحث تطوير مشاريع الخرج", category: "أخبار محلية", date: "29 نوفمبر", impact: 95 },
+            { title: "برنامج رافد الحرمين لموسم الحج", category: "أخبار محلية", date: "29 نوفمبر", impact: 88 },
+            { title: "تحديثات عاجلة لطائرات A320", category: "أخبار محلية", date: "29 نوفمبر", impact: 92 },
+            { title: "الاتحاد والشباب.. مواجهة ثالثة", category: "رياضة", date: "29 نوفمبر", impact: 90 },
+            { title: "الأهلي يبلغ نصف النهائي (كأس الملك)", category: "رياضة", date: "29 نوفمبر", impact: 85 },
+            { title: "عودة فعالية “بسطة الرياض”", category: "أخبار محلية", date: "28 نوفمبر", impact: 70 },
+            { title: "غرفة جازان وتمكين مستفيدي الصندوق", category: "اقتصاد", date: "28 نوفمبر", impact: 65 },
+            { title: "معرض قصص بلا ألوان بأبها", category: "ثقافة", date: "28 نوفمبر", impact: 60 },
+            { title: "تراجع إشغال الفنادق بالمملكة", category: "سياحة", date: "30 أكتوبر", impact: 75 },
+            { title: "صحة مكة وحقوق الإنسان", category: "صحة", date: "04 نوفمبر", impact: 55 },
+            { title: "الخلود يعبر أمواج الخليج", category: "رياضة", date: "28 نوفمبر", impact: 80 },
+            { title: "تفعيل المواقف المجانية بالسليمانية", category: "خدمات", date: "28 نوفمبر", impact: 72 }
+        ];
+
+        function initApp() {
+            initKPIs();
+            lucide.createIcons();
+        }
+
+        function switchView(viewId, btnElement) {
+            ['view-overview', 'view-analytics', 'view-explorer', 'view-insights'].forEach(id => {
+                document.getElementById(id).classList.add('hidden');
+            });
+            document.getElementById(`view-${viewId}`).classList.remove('hidden');
+
+            document.querySelectorAll('.nav-item').forEach(btn => {
+                btn.classList.remove('active-tab');
+            });
+            btnElement.classList.add('active-tab');
+        }
+
+        function initKPIs() {
+            document.getElementById('kpi-total').innerText = sourceData.length;
+            const counts = {};
+            sourceData.forEach(d => counts[d.category] = (counts[d.category] || 0) + 1);
+            const topCat = Object.keys(counts).reduce((a, b) => counts[a] > counts[b] ? a : b);
+            document.getElementById('kpi-top-cat').innerText = topCat;
+        }
+
+        function initCharts() {
+            const counts = {};
+            sourceData.forEach(d => counts[d.category] = (counts[d.category] || 0) + 1);
+            const ctxDist = document.getElementById('distChart').getContext('2d');
+            new Chart(ctxDist, {
+                type: 'doughnut',
+                data: { labels: Object.keys(counts), datasets: [{ data: Object.values(counts), backgroundColor: ['#0f172a', '#D4AF37', '#3b82f6', '#10b981', '#f59e0b', '#6366f1'], borderWidth: 0 }] },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'right', labels: { font: { family: 'Tajawal' } } } } }
+            });
+
+            const sortedImpact = [...sourceData].sort((a,b) => b.impact - a.impact).slice(0, 5);
+            const ctxImp = document.getElementById('impactChart').getContext('2d');
+            new Chart(ctxImp, {
+                type: 'bar',
+                data: { labels: sortedImpact.map(i => i.title.substring(0, 15) + '...'), datasets: [{ label: 'مؤشر الأهمية', data: sortedImpact.map(i => i.impact), backgroundColor: '#D4AF37', borderRadius: 4 }] },
+                options: { responsive: true, maintainAspectRatio: false, indexAxis: 'y', scales: { x: { beginAtZero: true, max: 100 }, y: { grid: { display: false } } }, plugins: { legend: { display: false } } }
+            });
+        }
+
+        function initExplorer() {
+            const filters = document.getElementById('filters-container');
+            const categories = [...new Set(sourceData.map(d => d.category))];
+            
+            categories.forEach(cat => {
+                const btn = document.createElement('button');
+                btn.className = "filter-btn px-4 py-2 rounded-full border border-gray-300 text-gray-600 bg-white font-medium text-sm hover:border-[#0f172a] hover:text-[#0f172a]";
+                btn.innerText = cat;
+                btn.onclick = () => filterContent(cat, btn);
+                filters.appendChild(btn);
+            });
+
+            renderGrid(sourceData);
+        }
+
+        function filterContent(category, btn) {
+            const allBtns = document.getElementById('filters-container').children;
+            for(let b of allBtns) {
+                b.className = "filter-btn px-4 py-2 rounded-full border border-gray-300 text-gray-600 bg-white font-medium text-sm hover:border-[#0f172a] hover:text-[#0f172a]";
+            }
+            btn.classList.remove('bg-white', 'text-gray-600');
+            btn.className = "filter-btn active-filter px-4 py-2 rounded-full bg-[#0f172a] text-white font-bold text-sm shadow-lg border border-[#0f172a]";
+
+            const filtered = category === 'all' ? sourceData : sourceData.filter(d => d.category === category);
+            renderGrid(filtered);
+        }
+
+        function renderGrid(data) {
+            const container = document.getElementById('content-grid');
+            container.innerHTML = '';
+            
+            data.forEach(item => {
+                const card = document.createElement('div');
+                card.className = "glass-card p-5 rounded-xl border border-gray-100 flex flex-col justify-between h-40";
+                card.innerHTML = `
+                    <div>
+                        <div class="flex justify-between items-start mb-2">
+                            <span class="text-[10px] font-bold text-[#D4AF37] bg-[#D4AF37]/10 px-2 py-1 rounded">${item.category}</span>
+                            <span class="text-xs text-gray-400 font-mono">${item.date}</span>
+                        </div>
+                        <h3 class="font-bold text-[#0f172a] text-sm leading-snug line-clamp-2">${item.title}</h3>
+                    </div>
+                    <div class="w-full bg-gray-100 rounded-full h-1.5 mt-2 overflow-hidden">
+                        <div class="bg-[#0f172a] h-1.5 rounded-full transition-all duration-1000" style="width: ${item.impact}%"></div>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+        
+        // --- AI LOGIC ---
+
+        function checkAPIKey() {
+            if (!apiKey) {
+                document.getElementById('api-key-modal').classList.remove('hidden');
+                return false;
+            }
+            return true;
+        }
+
+        function saveApiKey() {
+            const key = document.getElementById('api-key-input').value;
+            if (key) {
+                localStorage.setItem('gemini_api_key', key);
+                apiKey = key;
+                document.getElementById('api-key-modal').classList.add('hidden');
+                alert("تم حفظ مفتاح API!");
+            }
+        }
+
+        async function callGemini(prompt, system) {
+            if (!checkAPIKey()) return null;
+            
+            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
+            try {
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }], systemInstruction: { parts: [{ text: system }] } })
+                });
+
+                const data = await response.json();
+                if (data.candidates && data.candidates[0] && data.candidates[0].content) {
+                    return data.candidates[0].content.parts[0].text;
+                }
+                return "فشل التحليل: استجابة فارغة.";
+            } catch (error) {
+                console.error("Gemini Error:", error);
+                return "فشل الاتصال بالذكاء الاصطناعي.";
+            }
+        }
+
+        async function analyzeTrends() {
+            if (!checkAPIKey()) return;
+            const btn = document.getElementById('btn-analyze-trends');
+            const originalHTML = btn.innerHTML;
+            btn.innerHTML = '<div class="loader"></div> جاري تحليل التوجهات...';
+            btn.disabled = true;
+
+            const contentSummary = sourceData.map(d => `${d.category}: ${d.title} (Impact: ${d.impact})`).join('; ');
+            const prompt = `
+                حلل بيانات المحتوى التالية لصحيفة 'الحقيقة'. بناءً على التوزيع ونقاط التأثير، استنتج ما يجب أن تكون عليه التوجهات التحريرية للأسبوع القادم.
+                البيانات الحالية: ${contentSummary}
+
+                المطلوب: تقرير موجز (Markdown) يشمل:
+                1. تحليل التوزيع الحالي (ما هي الأقسام المهيمنة).
+                2. 3 مواضيع مقترحة (Topics) يجب زيادتها.
+                3. اقتراح إجرائي واحد لتحسين التفاعل.
+            `;
+            const analysis = await callGemini(prompt, "أنت محلل بيانات إخباري خبير.");
+
+            document.getElementById('trends-content').innerHTML = analysis ? marked.parse(analysis) : "فشل تحليل البيانات.";
+            document.getElementById('trends-output').classList.remove('hidden');
+            
+            btn.innerHTML = originalHTML;
+            btn.disabled = false;
+        }
+
+        async function generateStrategy() {
+            if (!checkAPIKey()) return;
+            const btn = document.getElementById('btn-generate-strategy');
+            const originalHTML = btn.innerHTML;
+            btn.innerHTML = '<div class="loader"></div> جاري صياغة الخطة...';
+            btn.disabled = true;
+
+            const strengths = "تغطية فورية للرياضة، اهتمام بالثقافة، تنوع جغرافي.";
+            const weaknesses = "نقص محتوى التقنية، الحاجة لكتاب رأي جدد، ضعف استخدام الرسوم البيانية.";
+            
+            const prompt = `
+                بناءً على التحليل التالي، قم بإنشاء خطة عمل تنفيذية أسبوعية (Roadmap) في 5 نقاط (Markdown). يجب أن تكون الخطة قابلة للتنفيذ وتصحح الضعف.
+
+                - نقاط القوة: ${strengths}
+                - نقاط الضعف: ${weaknesses}
+
+                المطلوب: خطة أسبوعية تتضمن الإجراء، المسؤول، والموعد.
+            `;
+            const strategy = await callGemini(prompt, "أنت مدير مشروع خبير.");
+
+            document.getElementById('strategy-content').innerHTML = strategy ? marked.parse(strategy) : "فشل صياغة الخطة.";
+            document.getElementById('strategy-output').classList.remove('hidden');
+
+            btn.innerHTML = originalHTML;
+            btn.disabled = false;
+        }
+    </script>
+</body>
+</html>
+
+
