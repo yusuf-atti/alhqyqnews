@@ -41,284 +41,231 @@
 
     <style>
         body { background-color: #050510; color: #f3f4f6; overflow-x: hidden; -webkit-tap-highlight-color: transparent; }
-        
-        /* Scrollbar hide for menu */
         .scrollbar-hide::-webkit-scrollbar { display: none; }
-        .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
-
-        /* Accordion Animation */
-        .accordion-content { transition: max-height 0.3s ease-out, opacity 0.3s ease-out; max-height: 0; opacity: 0; overflow: hidden; }
-        .accordion-content.open { max-height: 500px; opacity: 1; }
-        
-        /* Active Nav Item */
         .nav-item.active { border-bottom: 2px solid #D4AF37; color: #D4AF37; }
-        
-        /* Sidebar Transition */
         .sidebar { transition: transform 0.3s ease-in-out; transform: translateX(100%); }
         .sidebar.open { transform: translateX(0); }
-        
         .glass-header { background: rgba(5, 5, 16, 0.95); backdrop-filter: blur(10px); border-bottom: 1px solid rgba(255,255,255,0.05); }
         .loader { border: 3px solid rgba(255,255,255,0.1); border-left-color: #D4AF37; width: 24px; height: 24px; border-radius: 50%; animation: spin 1s linear infinite; }
         @keyframes spin { to { transform: rotate(360deg); } }
+        .view-hidden { display: none !important; }
     </style>
 </head>
 <body class="antialiased min-h-screen flex flex-col">
 
     <!-- HEADER & NAVIGATION (Sticky) -->
     <header class="fixed top-0 w-full z-50 glass-header">
-        <!-- Top Bar: Logo & Menu Trigger -->
         <div class="container mx-auto px-4 h-16 flex justify-between items-center">
             
-            <!-- Logo (Right) -->
+            <!-- Logo -->
             <div class="flex items-center gap-3" onclick="window.location.reload()">
                 <div class="text-2xl font-black text-white tracking-tighter">
                     الـحقيقة<span class="text-gold-400">.</span>
                 </div>
             </div>
 
-            <!-- Search & Menu (Left) -->
+            <!-- Search & Menu -->
             <div class="flex items-center gap-4">
                 <button class="text-gray-400 hover:text-white"><i data-lucide="search" class="w-5 h-5"></i></button>
-                
-                <!-- Hamburger Menu Trigger -->
-                <button onclick="toggleSidebar()" class="text-white focus:outline-none">
-                    <i data-lucide="menu" class="w-7 h-7"></i>
-                </button>
+                <button onclick="toggleSidebar()" class="text-white focus:outline-none"><i data-lucide="menu" class="w-7 h-7"></i></button>
             </div>
         </div>
 
-        <!-- Horizontal Scroll Menu (Like Screenshot 1) -->
+        <!-- Public Menu (News Categories Only) -->
         <div class="w-full overflow-x-auto scrollbar-hide bg-navy-800 border-b border-white/5">
             <div class="flex px-4 min-w-max">
-                <button onclick="switchView('home', this)" class="nav-item active px-4 py-3 text-sm font-bold text-gray-300 whitespace-nowrap">الرئيسية</button>
-                <button onclick="switchView('features', this)" class="nav-item px-4 py-3 text-sm font-bold text-gray-300 whitespace-nowrap">الابتكارات الـ 15</button>
-                <button onclick="switchView('contract', this)" class="nav-item px-4 py-3 text-sm font-bold text-gray-300 whitespace-nowrap">توثيق العقد</button>
-                <button onclick="switchView('dashboard', this)" class="nav-item px-4 py-3 text-sm font-bold text-gray-300 whitespace-nowrap">لوحة الأثر</button>
-                <button onclick="switchView('admin', this)" class="nav-item px-4 py-3 text-sm font-bold text-gray-300 whitespace-nowrap">غرفة القيادة</button>
+                <button onclick="switchPublicView('home', this)" class="nav-item active px-6 py-3 text-sm font-bold text-gray-300 whitespace-nowrap">الرئيسية</button>
+                <button onclick="switchPublicView('local', this)" class="nav-item px-6 py-3 text-sm font-bold text-gray-300 whitespace-nowrap">أخبار محلية</button>
+                <button onclick="switchPublicView('articles', this)" class="nav-item px-6 py-3 text-sm font-bold text-gray-300 whitespace-nowrap">مقالات</button>
+                <button onclick="switchPublicView('reports', this)" class="nav-item px-6 py-3 text-sm font-bold text-gray-300 whitespace-nowrap">تقارير</button>
             </div>
         </div>
     </header>
 
-    <!-- SIDEBAR MENU (Like Screenshot 2) -->
+    <!-- SIDEBAR MENU -->
     <aside id="main-sidebar" class="sidebar fixed inset-y-0 right-0 w-72 bg-[#1a1d26] z-[60] shadow-2xl border-l border-white/10 overflow-y-auto">
         <div class="p-5 border-b border-white/10 flex justify-between items-center">
-            <h2 class="text-lg font-bold text-white">القائمة الرئيسية</h2>
+            <h2 class="text-lg font-bold text-white">القائمة</h2>
             <button onclick="toggleSidebar()" class="text-gray-400 hover:text-white"><i data-lucide="x" class="w-6 h-6"></i></button>
         </div>
-
         <div class="p-4 space-y-2">
-            <!-- Accordion Item 1: Admin -->
-            <div class="border-b border-white/5 pb-2">
-                <button onclick="toggleAccordion('acc-admin')" class="w-full flex justify-between items-center py-3 text-gray-300 hover:text-gold-400 font-bold">
-                    <span class="flex items-center gap-2"><i data-lucide="shield" class="w-4 h-4"></i> لوحة تحكم الإدارة</span>
-                    <i data-lucide="chevron-down" class="w-4 h-4 transition-transform duration-300" id="icon-acc-admin"></i>
-                </button>
-                <div id="acc-admin" class="accordion-content bg-black/20 rounded-lg">
-                    <a href="#" onclick="switchView('admin'); toggleSidebar()" class="block px-4 py-2 text-sm text-gray-400 hover:text-white hover:bg-white/5 rounded">المحرر الذكي</a>
-                    <a href="#" onclick="switchView('admin'); toggleSidebar()" class="block px-4 py-2 text-sm text-gray-400 hover:text-white hover:bg-white/5 rounded">إدارة الأعضاء (HR)</a>
-                    <a href="#" onclick="switchView('admin'); toggleSidebar()" class="block px-4 py-2 text-sm text-gray-400 hover:text-white hover:bg-white/5 rounded">الأرشيف</a>
-                </div>
-            </div>
-
-            <!-- Accordion Item 2: Settings -->
-            <div class="border-b border-white/5 pb-2">
-                <button onclick="toggleAccordion('acc-settings')" class="w-full flex justify-between items-center py-3 text-gray-300 hover:text-gold-400 font-bold">
-                    <span class="flex items-center gap-2"><i data-lucide="settings" class="w-4 h-4"></i> إعدادات</span>
-                    <i data-lucide="chevron-down" class="w-4 h-4 transition-transform duration-300" id="icon-acc-settings"></i>
-                </button>
-                <div id="acc-settings" class="accordion-content bg-black/20 rounded-lg">
-                    <a href="#" onclick="openSettings(); toggleSidebar()" class="block px-4 py-2 text-sm text-gray-400 hover:text-white hover:bg-white/5 rounded">مفتاح الذكاء الاصطناعي</a>
-                    <a href="#" onclick="toggleReaderAuth(); toggleSidebar()" class="block px-4 py-2 text-sm text-gray-400 hover:text-white hover:bg-white/5 rounded">حسابي</a>
-                </div>
-            </div>
-
-            <!-- Accordion Item 3: Modules -->
-            <div class="border-b border-white/5 pb-2">
-                <button onclick="toggleAccordion('acc-modules')" class="w-full flex justify-between items-center py-3 text-gray-300 hover:text-gold-400 font-bold">
-                    <span class="flex items-center gap-2"><i data-lucide="box" class="w-4 h-4"></i> الموديولات</span>
-                    <i data-lucide="chevron-down" class="w-4 h-4 transition-transform duration-300" id="icon-acc-modules"></i>
-                </button>
-                <div id="acc-modules" class="accordion-content bg-black/20 rounded-lg">
-                    <a href="#" class="block px-4 py-2 text-sm text-gray-400 hover:text-white hover:bg-white/5 rounded">البنرات الإعلانية</a>
-                    <a href="#" class="block px-4 py-2 text-sm text-gray-400 hover:text-white hover:bg-white/5 rounded">القوائم البريدية</a>
-                </div>
-            </div>
-            
-            <!-- Single Links -->
-            <button onclick="switchView('home'); toggleSidebar()" class="w-full flex items-center gap-2 py-3 text-gray-300 hover:text-gold-400 font-bold border-b border-white/5">
+            <button onclick="switchPublicView('home'); toggleSidebar()" class="w-full flex items-center gap-2 py-3 text-gray-300 hover:text-gold-400 font-bold border-b border-white/5">
                 <i data-lucide="home" class="w-4 h-4"></i> الرئيسية
             </button>
-            
-            <button onclick="logout()" class="w-full flex items-center gap-2 py-3 text-red-400 hover:text-red-300 font-bold mt-4">
-                <i data-lucide="log-out" class="w-4 h-4"></i> تسجيل خروج
+            <button onclick="toggleAdminView(); toggleSidebar()" class="w-full flex items-center gap-2 py-3 text-gold-400 hover:text-white font-bold mt-4 bg-white/5 rounded px-3">
+                <i data-lucide="shield" class="w-4 h-4"></i> غرفة القيادة (الإدارة)
             </button>
         </div>
     </aside>
-
-    <!-- OVERLAY (Background Dim) -->
     <div id="sidebar-overlay" onclick="toggleSidebar()" class="fixed inset-0 bg-black/50 z-50 hidden backdrop-blur-sm"></div>
 
-    <!-- MAIN CONTENT AREA -->
-    <main class="pt-32 pb-20 container mx-auto px-4 min-h-screen">
-        
-        <!-- 1. HOME VIEW (News) -->
-        <section id="view-home" class="view-section">
-            <!-- Ticker -->
-            <div class="bg-navy-800 border border-white/5 rounded-lg p-2 mb-6 flex items-center gap-3 shadow-lg">
-                <span class="bg-red-600 text-white text-[10px] font-bold px-2 py-0.5 rounded animate-pulse">عاجل</span>
-                <div class="w-full overflow-hidden relative h-5">
-                    <div id="ticker-content" class="absolute whitespace-nowrap animate-marquee text-xs text-gray-300 pt-0.5">
-                        الحقيقة الذكية | تصميم وإشراف: يوسف العتي ... جاري الاتصال...
-                    </div>
+    <!-- PUBLIC CONTENT AREA -->
+    <main id="public-content" class="pt-32 pb-20 container mx-auto px-4 min-h-screen">
+        <!-- Ticker -->
+        <div class="bg-navy-800 border border-white/5 rounded-lg p-2 mb-6 flex items-center gap-3 shadow-lg">
+            <span class="bg-red-600 text-white text-[10px] font-bold px-2 py-0.5 rounded animate-pulse">عاجل</span>
+            <div class="w-full overflow-hidden relative h-5">
+                <div id="ticker-content" class="absolute whitespace-nowrap animate-marquee text-xs text-gray-300 pt-0.5">
+                    الحقيقة الذكية | تصميم وإشراف: يوسف العتي ... جاري الاتصال...
                 </div>
             </div>
+        </div>
 
-            <div id="hero-section" class="mb-8 relative h-[400px] rounded-2xl bg-white/5 animate-pulse flex items-center justify-center border border-white/5">
-                <div class="loader"></div>
-            </div>
+        <div id="hero-section" class="mb-8 relative h-[400px] rounded-2xl bg-white/5 animate-pulse flex items-center justify-center border border-white/5">
+            <div class="loader"></div>
+        </div>
 
-            <div id="news-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                <!-- News Items -->
-            </div>
-        </section>
-
-        <!-- 2. FEATURES VIEW -->
-        <section id="view-features" class="view-section hidden">
-            <h2 class="text-2xl font-bold text-white mb-6 border-r-4 border-gold-400 pr-3">الابتكارات الـ 15</h2>
-            <div id="features-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
-        </section>
-
-        <!-- 3. CONTRACT VIEW -->
-        <section id="view-contract" class="view-section hidden max-w-2xl mx-auto">
-            <div class="bg-navy-800 border border-white/10 rounded-2xl p-6 shadow-2xl">
-                <h2 class="text-2xl font-bold text-white mb-4 text-center">عقد توظيف إلكتروني</h2>
-                <p class="text-gray-400 text-sm text-center mb-6">الرقم الوظيفي: <span class="text-gold-400 font-mono">HQ-GEN-01</span></p>
-                <form onsubmit="submitEmployeeContract(event)" class="space-y-4">
-                    <input type="text" id="rec-name" required class="w-full bg-black/50 border border-white/10 rounded-lg p-3 text-white focus:border-gold-400 outline-none" placeholder="الاسم الثلاثي">
-                    <input type="text" id="rec-id" required class="w-full bg-black/50 border border-white/10 rounded-lg p-3 text-white focus:border-gold-400 outline-none" placeholder="رقم الهوية (1xxxxxxxxx)">
-                    <button class="w-full bg-gold-400 text-black font-bold py-3 rounded-lg hover:bg-white transition">توثيق بالبصمة</button>
-                </form>
-            </div>
-        </section>
-
-        <!-- 4. DASHBOARD VIEW -->
-        <section id="view-dashboard" class="view-section hidden">
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-                <div class="bg-navy-800 p-4 rounded-xl border-t-4 border-gold-400 text-center"><h3 class="text-gray-400 text-xs">مؤشر التنبؤ</h3><p class="text-2xl font-bold text-white">85%</p></div>
-                <div class="bg-navy-800 p-4 rounded-xl border-t-4 border-blue-400 text-center"><h3 class="text-gray-400 text-xs">الأثر الاجتماعي</h3><p class="text-2xl font-bold text-white">12.5K</p></div>
-                <div class="bg-navy-800 p-4 rounded-xl border-t-4 border-green-400 text-center"><h3 class="text-gray-400 text-xs">المحررين النشطين</h3><p class="text-2xl font-bold text-white">12</p></div>
-            </div>
-            <div class="bg-navy-800 p-4 rounded-xl border border-white/5 h-64 flex items-center justify-center">
-                <canvas id="predictiveChart"></canvas>
-            </div>
-        </section>
-
-        <!-- 5. ADMIN VIEW (Internal) -->
-        <section id="view-admin" class="view-section hidden">
-            <div id="login-gate" class="max-w-md mx-auto mt-10 bg-navy-800 p-8 rounded-2xl border border-white/10 text-center">
-                <h2 class="text-2xl font-bold text-white mb-6">بوابة القيادة</h2>
-                <form onsubmit="handleRealLogin(event)" class="space-y-4">
-                    <input type="email" id="login-email" class="w-full bg-black/50 p-3 rounded text-white" placeholder="البريد">
-                    <input type="password" id="login-password" class="w-full bg-black/50 p-3 rounded text-white" placeholder="الرمز">
-                    <button class="w-full bg-gold-400 text-black font-bold py-3 rounded hover:bg-white">دخول</button>
-                </form>
-            </div>
-            <div id="admin-panel" class="hidden space-y-6">
-                <div class="flex justify-between items-center">
-                    <h2 class="text-2xl font-bold text-white">لوحة التحكم</h2>
-                    <button onclick="logout()" class="text-red-400 text-sm">خروج</button>
-                </div>
-                <!-- Editor -->
-                <div class="bg-navy-800 p-6 rounded-2xl border border-white/10">
-                    <input type="text" id="news-title" placeholder="عنوان الخبر..." class="w-full bg-transparent text-2xl font-bold text-white mb-4 border-b border-white/10 pb-2 outline-none">
-                    <textarea id="editor" class="w-full h-40 bg-black/30 rounded-lg p-3 text-white mb-4" placeholder="المحتوى..."></textarea>
-                    <div class="flex gap-2">
-                        <button onclick="triggerAI('title')" class="text-xs bg-white/10 text-gold-400 px-3 py-1 rounded">✨ AI عناوين</button>
-                        <button onclick="publishAction()" class="bg-gold-400 text-black px-6 py-2 rounded font-bold text-sm mr-auto">نشر</button>
-                    </div>
-                    <div id="ai-output" class="hidden mt-4 p-3 bg-white/5 rounded text-xs text-gray-300"></div>
-                </div>
-            </div>
-        </section>
-
+        <div id="news-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div class="h-64 bg-white/5 rounded-xl animate-pulse"></div>
+            <div class="h-64 bg-white/5 rounded-xl animate-pulse"></div>
+        </div>
     </main>
 
-    <!-- MODALS & TOASTS -->
-    <!-- Settings Modal -->
-    <div id="settings-modal" class="fixed inset-0 z-[80] bg-black/90 hidden items-center justify-center p-4">
-        <div class="bg-navy-800 w-full max-w-sm rounded-2xl p-6 border border-gold-400/20">
-            <h3 class="text-white font-bold mb-4">إعدادات الذكاء الاصطناعي</h3>
-            <input type="password" id="api-key-input" placeholder="Gemini API Key" class="w-full bg-black/50 p-3 rounded text-white mb-4 text-sm">
-            <div class="flex gap-2">
-                <button onclick="saveApiKey()" class="flex-1 bg-gold-400 text-black font-bold py-2 rounded">حفظ</button>
-                <button onclick="document.getElementById('settings-modal').classList.add('hidden')" class="flex-1 bg-white/10 text-white py-2 rounded">إلغاء</button>
+    <!-- ADMIN DASHBOARD (The Command Room) -->
+    <div id="admin-view" class="view-hidden fixed inset-0 z-[70] bg-[#050510] w-full h-full overflow-y-auto">
+        
+        <!-- Login Gate -->
+        <div id="login-gate" class="min-h-screen flex items-center justify-center p-4">
+            <div class="glass-panel p-10 rounded-3xl w-full max-w-md text-center relative border border-gold-400/20 shadow-2xl bg-navy-800">
+                <button onclick="toggleAdminView()" class="absolute top-4 right-4 text-gray-500 hover:text-white"><i data-lucide="x" class="w-6 h-6"></i></button>
+                <h1 class="text-3xl font-bold text-white mb-2">بوابة القيادة</h1>
+                <form onsubmit="handleRealLogin(event)" class="space-y-6 mt-6">
+                    <input type="email" id="login-email" placeholder="البريد الرسمي" class="w-full bg-[#0a0a15] border border-white/10 rounded-xl py-3 px-4 text-white focus:border-gold-400 outline-none">
+                    <input type="password" id="login-password" placeholder="الشفرة" class="w-full bg-[#0a0a15] border border-white/10 rounded-xl py-3 px-4 text-white focus:border-gold-400 outline-none">
+                    <button class="w-full bg-gold-400 text-black font-bold py-4 rounded-xl hover:bg-white transition shadow-lg">دخول النظام</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Admin UI -->
+        <div id="dashboard-ui" class="hidden min-h-screen flex flex-col lg:flex-row">
+            <!-- Admin Sidebar -->
+            <aside class="w-full lg:w-72 bg-navy-900 border-l border-white/5 flex flex-col z-20">
+                <div class="h-16 flex items-center justify-between px-6 border-b border-white/5">
+                    <h2 class="text-xl font-bold text-white">غرفة العمليات</h2>
+                    <button onclick="toggleAdminView()" class="lg:hidden text-gray-400"><i data-lucide="x"></i></button>
+                </div>
+                <div class="flex-1 p-4 space-y-1 overflow-y-auto">
+                    
+                    <p class="text-[10px] text-gray-500 font-bold uppercase px-2 py-2">المحتوى</p>
+                    <button onclick="switchDashView('editor', this)" class="sidebar-link active w-full flex items-center gap-3 px-4 py-3 text-gray-400 hover:bg-white/5 rounded-lg text-sm font-medium"><i data-lucide="pen-tool" class="w-4 h-4"></i> المحرر الذكي</button>
+                    <button onclick="switchDashView('articles', this)" class="sidebar-link w-full flex items-center gap-3 px-4 py-3 text-gray-400 hover:bg-white/5 rounded-lg text-sm font-medium"><i data-lucide="file-text" class="w-4 h-4"></i> الأرشيف</button>
+                    
+                    <p class="text-[10px] text-gray-500 font-bold uppercase px-2 py-2 mt-2">الاستراتيجية (جديد)</p>
+                    <button onclick="switchDashView('innovations', this)" class="sidebar-link w-full flex items-center gap-3 px-4 py-3 text-gray-400 hover:bg-white/5 rounded-lg text-sm font-medium"><i data-lucide="lightbulb" class="w-4 h-4 text-gold-400"></i> الابتكارات الـ 15</button>
+                    <button onclick="switchDashView('impact', this)" class="sidebar-link w-full flex items-center gap-3 px-4 py-3 text-gray-400 hover:bg-white/5 rounded-lg text-sm font-medium"><i data-lucide="bar-chart-2" class="w-4 h-4 text-blue-400"></i> لوحة الأثر</button>
+                    
+                    <p class="text-[10px] text-gray-500 font-bold uppercase px-2 py-2 mt-2">الموارد البشرية</p>
+                    <button onclick="switchDashView('hr', this)" class="sidebar-link w-full flex items-center gap-3 px-4 py-3 text-gray-400 hover:bg-white/5 rounded-lg text-sm font-medium"><i data-lucide="users" class="w-4 h-4"></i> إدارة الأعضاء</button>
+                    <button onclick="switchDashView('contract', this)" class="sidebar-link w-full flex items-center gap-3 px-4 py-3 text-gray-400 hover:bg-white/5 rounded-lg text-sm font-medium"><i data-lucide="file-signature" class="w-4 h-4"></i> نموذج العقد</button>
+
+                    <p class="text-[10px] text-gray-500 font-bold uppercase px-2 py-2 mt-2">النظام</p>
+                    <button onclick="switchDashView('settings', this)" class="sidebar-link w-full flex items-center gap-3 px-4 py-3 text-gray-400 hover:bg-white/5 rounded-lg text-sm font-medium"><i data-lucide="settings" class="w-4 h-4"></i> الإعدادات (مفتاح AI)</button>
+                </div>
+                <div class="p-4 border-t border-white/5">
+                    <button onclick="logout()" class="w-full flex items-center justify-center gap-2 text-red-400 hover:bg-red-400/10 text-xs py-2 rounded-lg transition"><i data-lucide="log-out" class="w-3 h-3"></i> تسجيل خروج</button>
+                </div>
+            </aside>
+
+            <div class="flex-1 bg-[#020205] overflow-y-auto p-6">
+                
+                <!-- 1. Editor Tab -->
+                <div id="sec-editor" class="view-section max-w-4xl mx-auto space-y-6">
+                    <h2 class="text-2xl font-bold text-white">نشر خبر جديد</h2>
+                    <input type="text" id="news-title" placeholder="العنوان..." class="w-full bg-transparent text-3xl font-bold text-white border-none focus:ring-0 px-0">
+                    <textarea id="editor" class="w-full h-64 bg-navy-800 border border-white/10 rounded-xl p-4 text-white" placeholder="المحتوى..."></textarea>
+                    <button onclick="publishAction()" id="publish-btn" class="w-full bg-gold-400 text-black font-bold py-3 rounded-lg">نشر 🚀</button>
+                </div>
+
+                <!-- 2. Innovations Tab (Moved inside) -->
+                <div id="sec-innovations" class="view-section hidden space-y-6">
+                    <h2 class="text-2xl font-bold text-white mb-4 border-r-4 border-gold-400 pr-3">الابتكارات الـ 15</h2>
+                    <div id="features-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+                </div>
+
+                <!-- 3. Impact Dashboard Tab (Moved inside) -->
+                <div id="sec-impact" class="view-section hidden space-y-6">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div class="bg-navy-800 p-4 rounded-xl border-t-4 border-gold-400 text-center"><h3 class="text-gray-400 text-xs">مؤشر التنبؤ</h3><p class="text-2xl font-bold text-white">85%</p></div>
+                        <div class="bg-navy-800 p-4 rounded-xl border-t-4 border-blue-400 text-center"><h3 class="text-gray-400 text-xs">الأثر الاجتماعي</h3><p class="text-2xl font-bold text-white">12.5K</p></div>
+                    </div>
+                    <div class="bg-navy-800 p-4 rounded-xl border border-white/5 h-64 flex items-center justify-center">
+                        <canvas id="predictiveChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- 4. Contract Tab (Moved inside) -->
+                <div id="sec-contract" class="view-section hidden max-w-2xl mx-auto">
+                     <div class="bg-navy-800 p-6 rounded-xl border border-white/10">
+                        <h3 class="text-white font-bold mb-4">معاينة العقد الإلكتروني</h3>
+                        <p class="text-gray-400 text-sm mb-4">هذا هو النموذج الذي سيظهر للموظف عند فتح رابط التوظيف.</p>
+                        <div class="bg-black/30 p-4 rounded text-xs text-gray-500 h-40 overflow-y-auto">
+                            نص العقد الافتراضي... المادة الأولى... المادة الثانية... (نسخة للقراءة فقط)
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 5. HR Tab -->
+                <div id="sec-hr" class="view-section hidden max-w-4xl mx-auto">
+                    <div class="flex justify-between items-center mb-6">
+                         <h2 class="text-2xl font-bold text-white">إدارة الكوادر</h2>
+                         <button onclick="generateInviteLink()" class="bg-gold-400 text-black px-4 py-2 rounded-lg font-bold text-sm">توليد رابط توظيف</button>
+                    </div>
+                    <div id="invite-box" class="hidden bg-white/10 p-4 rounded-xl mb-6">
+                        <p class="text-xs text-gold-400">رابط الدعوة:</p>
+                        <input type="text" id="invite-link-val" readonly class="w-full bg-transparent text-white text-xs">
+                    </div>
+                </div>
+
+                <!-- 6. Settings Tab -->
+                <div id="sec-settings" class="view-section hidden max-w-md mx-auto">
+                    <h3 class="text-white font-bold mb-4">مفتاح الذكاء الاصطناعي</h3>
+                    <input type="password" id="api-key-setting" class="w-full bg-navy-800 border border-white/10 rounded p-3 text-white">
+                    <button onclick="saveApiKey()" class="mt-4 w-full bg-gold-400 text-black font-bold py-2 rounded">حفظ</button>
+                </div>
+
+                <!-- Archive Tab -->
+                <div id="sec-articles" class="view-section hidden">
+                    <div id="admin-articles-list" class="space-y-2"></div>
+                </div>
+
             </div>
         </div>
     </div>
 
-    <div id="toast" class="fixed bottom-6 left-6 bg-navy-900 border border-gold-400/50 text-white px-6 py-3 rounded-full shadow-2xl transform translate-y-24 opacity-0 transition-all duration-300 z-[100] font-bold">تم</div>
+    <!-- Toast -->
+    <div id="toast" class="fixed bottom-6 left-6 bg-green-600 text-white px-6 py-3 rounded-full shadow-2xl opacity-0 transition-all z-[100] font-bold">تم</div>
 
     <script>
-        // --- UI & Navigation Logic ---
         function initIcons() { if (window.lucide) lucide.createIcons(); }
-        
-        function toggleSidebar() {
-            const sidebar = document.getElementById('main-sidebar');
-            const overlay = document.getElementById('sidebar-overlay');
-            sidebar.classList.toggle('open');
-            overlay.classList.toggle('hidden');
-        }
+        document.addEventListener('DOMContentLoaded', () => { initIcons(); fetchNews(); renderFeatures(); });
 
-        function toggleAccordion(id) {
-            const content = document.getElementById(id);
-            const icon = document.getElementById('icon-' + id);
-            if (content.classList.contains('open')) {
-                content.classList.remove('open');
-                icon.style.transform = 'rotate(0deg)';
-            } else {
-                content.classList.add('open');
-                icon.style.transform = 'rotate(180deg)';
-            }
-        }
-
-        function switchView(viewId, btn) {
-            // Hide all views
-            document.querySelectorAll('.view-section').forEach(el => el.classList.add('hidden')); // Reset if using class logic
-            ['view-home', 'view-features', 'view-contract', 'view-dashboard', 'view-admin'].forEach(id => {
-                const el = document.getElementById(id);
-                if(el) el.classList.add('hidden');
-            });
-
-            // Show selected view
-            const selected = document.getElementById('view-' + viewId);
-            if(selected) selected.classList.remove('hidden');
-
-            // Update Nav Active State
-            document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
-            if(btn) btn.classList.add('active');
-
-            // Close sidebar on mobile
-            const sidebar = document.getElementById('main-sidebar');
-            if (sidebar.classList.contains('open')) toggleSidebar();
-
-            // Init charts if needed
-            if (viewId === 'dashboard') initCharts();
-        }
-        
-        // Default View
-        document.addEventListener('DOMContentLoaded', () => {
-            initIcons();
-            fetchNews();
-        });
-
-
-        // --- Firebase & Logic (Simplified for Single File) ---
+        // Firebase Config
         const firebaseConfig = { apiKey: "AIzaSyD7b1PZY26GN6hR2pliqiFRgyMsNyRlWOs", authDomain: "alhqyqa-62b0e.firebaseapp.com", projectId: "alhqyqa-62b0e", storageBucket: "alhqyqa-62b0e.firebasestorage.app", messagingSenderId: "354014970954", appId: "1:354014970954:web:435ca4eb0cbbfcfd1152b3" };
         let isOfflineMode = false;
         const LOCAL_NEWS_KEY = "local_news_db";
-        let userApiKey = localStorage.getItem("gemini_api_key") || "";
         let db, auth;
 
+        // Features Data
+        const featuresData = [
+            { icon: '👻', title: 'المراسل الشبح', desc: 'نشر آلي' },
+            { icon: '🔮', title: 'الغرفة التنبؤية', desc: 'توقع التريند' },
+            { icon: '📏', title: 'مقياس الأثر', desc: 'تحليل التأثير' },
+             // ... Add rest if needed
+        ];
+
+        function renderFeatures() {
+            const grid = document.getElementById('features-grid');
+            if(grid) grid.innerHTML = featuresData.map(f => `
+                <div class="bg-white/5 p-4 rounded-xl border border-white/10">
+                    <div class="text-2xl mb-2">${f.icon}</div>
+                    <h3 class="text-white font-bold text-sm">${f.title}</h3>
+                    <p class="text-gray-500 text-xs">${f.desc}</p>
+                </div>
+            `).join('');
+        }
+
+        // Firebase Init
         try {
             if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
             auth = firebase.auth();
@@ -327,15 +274,15 @@
             auth.onAuthStateChanged(user => {
                 if(user && !user.isAnonymous) {
                     document.getElementById('login-gate').classList.add('hidden');
-                    document.getElementById('admin-panel').classList.remove('hidden');
+                    document.getElementById('dashboard-ui').classList.remove('hidden');
+                    loadAdminData();
                 }
             });
             if(!auth.currentUser) auth.signInAnonymously().catch(()=>isOfflineMode=true);
         } catch(e) { isOfflineMode=true; }
 
-        // Mock Data & Render
+        // News Logic
         function getLocalNews() { try { return JSON.parse(localStorage.getItem(LOCAL_NEWS_KEY) || "[]"); } catch { return []; } }
-        
         async function fetchNews() {
             if (isOfflineMode) return renderLocal();
             try {
@@ -347,16 +294,14 @@
                 }
             } catch(e) { renderLocal(); }
         }
-        
         function renderLocal() {
             const l = getLocalNews();
             if(l.length) renderSite(l);
             else {
-                const m = [{id:1, title:"صحيفة الحقيقة تطلق هويتها الجديدة", category:"عام", img:"https://images.unsplash.com/photo-1504711434969-e33886168f5c", desc:"نقلة نوعية في الإعلام الرقمي..."}];
+                const m = [{id:1, title:"صحيفة الحقيقة تطلق هويتها الجديدة", category:"عام", img:"https://images.unsplash.com/photo-1504711434969-e33886168f5c", desc:"نقلة نوعية..."}];
                 renderSite(m);
             }
         }
-
         function renderSite(news) {
             if(!news.length) return;
             const hero = news[0];
@@ -379,21 +324,22 @@
                     <div class="w-24 h-24 rounded-lg overflow-hidden shrink-0"><img src="${n.img}" class="w-full h-full object-cover"></div>
                     <div class="flex flex-col justify-center"><h3 class="text-white font-bold text-sm line-clamp-2">${n.title}</h3><span class="text-[10px] text-gold-400 mt-2">${n.category}</span></div>
                 </div>`).join('');
+            initIcons();
         }
 
-        // Admin
+        // Admin Logic
         window.handleRealLogin = async (e) => {
             e.preventDefault();
             const em = document.getElementById('login-email').value;
             const ps = document.getElementById('login-password').value;
             try { await auth.signInWithEmailAndPassword(em, ps); } catch(e) { alert("خطأ في الدخول"); }
         };
-        
+
         window.publishAction = async () => {
             const title = document.getElementById('news-title').value;
-            const cat = document.getElementById('news-category').value; // You'll need to add select in HTML or assume fixed
+            const cat = document.getElementById('news-category').value;
             const content = document.getElementById('editor').value;
-            const art = { id:"loc_"+Date.now(), title, category: "عام", img:"https://via.placeholder.com/800", desc:content, date: new Date().toLocaleDateString('ar-SA') };
+            const art = { id:"loc_"+Date.now(), title, category: cat, img:"https://via.placeholder.com/800", desc:content, date: new Date().toLocaleDateString('ar-SA') };
             
             try { await db.collection("news").add(art); showToast("تم النشر ✅"); }
             catch { 
@@ -402,50 +348,61 @@
             }
             fetchNews();
         };
-        
-        window.logout = () => { auth.signOut(); window.location.reload(); };
 
-        // AI & Settings
+        // Navigation
+        window.toggleSidebar = () => {
+            document.getElementById('main-sidebar').classList.toggle('open');
+            document.getElementById('sidebar-overlay').classList.toggle('hidden');
+        };
+        window.toggleAdminView = () => {
+            const admin = document.getElementById('admin-view');
+            const pub = document.getElementById('public-view');
+            if(admin.classList.contains('view-hidden')) {
+                admin.classList.remove('view-hidden');
+                pub.classList.add('view-hidden');
+            } else {
+                admin.classList.add('view-hidden');
+                pub.classList.remove('view-hidden');
+            }
+        };
+
+        window.switchPublicView = (view, btn) => {
+             // For now, this just filters news or scrolls, keeping it simple for SPA
+             if(view === 'home') window.location.reload();
+             // In a real app, this would filter the news array
+        };
+
+        window.switchDashView = (v, btn) => {
+            document.querySelectorAll('.view-section').forEach(e => e.classList.add('hidden'));
+            document.getElementById('sec-'+v).classList.remove('hidden');
+            document.querySelectorAll('.sidebar-link').forEach(e => e.classList.remove('active'));
+            btn.classList.add('active');
+            if(v==='impact') initCharts();
+        };
+
+        window.generateInviteLink = () => {
+            const id = "HQ-"+Math.floor(Math.random()*9000);
+            const link = window.location.href.split('?')[0] + "?mode=recruitment&jobId="+id;
+            document.getElementById('invite-box').classList.remove('hidden');
+            document.getElementById('invite-link-val').value = link;
+        }
+        
+        // Settings
         window.openSettings = () => document.getElementById('settings-modal').classList.remove('hidden');
         window.saveApiKey = () => { 
             const k = document.getElementById('api-key-input').value; 
-            if(k) { localStorage.setItem("gemini_api_key", k); userApiKey=k; document.getElementById('settings-modal').classList.add('hidden'); }
+            if(k) { localStorage.setItem("gemini_api_key", k); document.getElementById('settings-modal').classList.add('hidden'); }
         };
-
-        async function callGemini(prompt, system) {
-            if (!userApiKey) return null;
-            try {
-                const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${userApiKey}`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }], systemInstruction: { parts: [{ text: system }] } }) });
-                const d = await res.json();
-                return d.candidates?.[0]?.content?.parts?.[0]?.text;
-            } catch { return null; }
-        }
-        
-        window.triggerAI = async (mode) => {
-             const out = document.getElementById('ai-output'); out.classList.remove('hidden'); out.innerText = "جاري المعالجة...";
-             const txt = document.getElementById('editor').value;
-             const res = await callGemini(mode==='title'? `اقترح عناوين لـ: ${txt}` : `صحح: ${txt}`, "مساعد");
-             if(res) out.innerText = res;
-        };
-
-        // Features (Mocks)
-        function renderFeatures(data) {
-             const grid = document.getElementById('features-grid');
-             if(grid) grid.innerHTML = data.map(f => `<div class="p-4 bg-white/5 rounded border border-white/10"><h3 class="text-gold-400 font-bold">${f.title}</h3><p class="text-xs text-gray-400">${f.desc}</p></div>`).join('');
-        }
-        // Add features array from prev code here if needed for features tab
 
         function showToast(msg) {
-            const t = document.getElementById('toast'); t.innerText = msg; t.classList.remove('translate-y-24', 'opacity-0');
-            setTimeout(() => t.classList.add('translate-y-24', 'opacity-0'), 3000);
+            const t = document.getElementById('toast'); t.innerText = msg; t.classList.remove('opacity-0', 'translate-y-24');
+            setTimeout(() => t.classList.add('opacity-0', 'translate-y-24'), 3000);
         }
-        
-        // Charts
+
         function initCharts() {
              const ctx = document.getElementById('predictiveChart');
              if(ctx) new Chart(ctx, { type: 'line', data: { labels: ['A','B','C'], datasets: [{ label: 'Trend', data: [10, 20, 15], borderColor: '#D4AF37' }] } });
         }
-
     </script>
 </body>
 </html>
