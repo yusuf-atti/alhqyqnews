@@ -1,0 +1,44 @@
+<?php
+// ملف: api.php - ليعمل كـ Router بسيط لـ API
+// (هذا الملف يحتاج لتعريفات بيئتك الحقيقية ليعمل بشكل كامل)
+
+// 1. تحديد المسارات الأساسية
+define('ROOT_PATH', __DIR__);
+define('APP_PATH', ROOT_PATH . '/app');
+
+// 2. تضمين Controller (نحتاج إلى تضمينه يدوياً في هذا المثال البسيط)
+require_once APP_PATH . '/Controllers/HRController.php';
+
+// 3. تحليل المسار (URL)
+$uri = trim(parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH), '/');
+$segments = explode('/', $uri);
+
+// نحذف "api" و "hr" من المسار لأننا نفترض أن التوجيه يمر عبرهما
+// (هذا يعتمد على إعدادات الخادم، لكن سنفترض أن الجزء المتبقي هو اسم الدالة)
+$action = array_pop($segments); 
+
+// 4. تحديد اسم الدالة (Action) من المسار
+// مثال: /api/hr/generate-invite سيؤدي إلى $action = 'generate-invite'
+
+// 5. إنشاء Controller واستدعاء الدالة
+if (strpos($action, 'invite') !== false || strpos($action, 'contract') !== false) {
+    // ترجمة الاسم من dash-case إلى camelCase (اختياري، لكن يفضل)
+    // generate-invite -> generateInvite
+    $methodName = str_replace('-', '', lcfirst(ucwords($action, '-'))); 
+    
+    // إنشاء وحدة التحكم
+    $controller = new HRController();
+
+    // التحقق من وجود الدالة واستدعائها
+    if (method_exists($controller, $methodName)) {
+        $controller->$methodName();
+    } else {
+        header('Content-Type: application/json');
+        http_response_code(404);
+        echo json_encode(['success' => false, 'message' => 'API Endpoint not found.']);
+    }
+} else {
+    // يمكن هنا إضافة منطق لمعالجة المسارات الأخرى
+    // ...
+}
+?>
