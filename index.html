@@ -1,902 +1,686 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-    <title>صحيفة الحقيقة الذكية</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>صحيفة الحقيقة | منصة الأخبار الذكية</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+    
+    <!-- Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    
+    <!-- Markdown Parser -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 
-    <!-- PWA -->
-    <link rel="manifest" href="manifest.json" />
-    <meta name="theme-color" content="#050510">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Tajawal', 'sans-serif'],
+                    },
+                    colors: {
+                        navy: {
+                            900: '#050510',
+                            800: '#0a0a15',
+                            700: '#151525',
+                        },
+                        gold: {
+                            400: '#D4AF37',
+                            500: '#C5A028',
+                        }
+                    },
+                    animation: {
+                        'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                    }
+                }
+            }
+        }
+    </script>
 
-    <!-- Tailwind & Fonts -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@100;200;300;400;500;600;700&display=swap" rel="stylesheet">
-    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body { background-color: #050510; color: #f3f4f6; }
+        .glass-nav { background: rgba(5, 5, 16, 0.85); backdrop-filter: blur(12px); border-bottom: 1px solid rgba(255,255,255,0.05); }
+        .hero-gradient { background: linear-gradient(to top, #050510 0%, rgba(5,5,16,0.8) 50%, transparent 100%); }
+        .news-card:hover .img-scale { transform: scale(1.05); }
+        .scrollbar-hide::-webkit-scrollbar { display: none; }
+        .tab-active { color: #D4AF37; border-bottom: 2px solid #D4AF37; }
+        .line-clamp-2 { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+        
+        /* Loading Animation */
+        .loader { border: 4px solid rgba(255,255,255,0.1); width: 36px; height: 36px; border-radius: 50%; border-left-color: #D4AF37; animation: spin 1s ease infinite; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
-    <!-- Firebase -->
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
-
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    fontFamily: { sans: ['IBM Plex Sans Arabic', 'sans-serif'] },
-                    colors: {
-                        navy: { 900: '#050510', 800: '#0f1219', 700: '#1a1d26' },
-                        gold: { 400: '#D4AF37', 500: '#C5A028' }
-                    },
-                    animation: { 'marquee': 'marquee 30s linear infinite' },
-                    keyframes: { marquee: { '0%': { transform: 'translateX(100%)' }, '100%': { transform: 'translateX(-100%)' } } }
-                }
-            }
-        }
-    </script>
-
-    <style>
-        body { background-color: #050510; color: #f3f4f6; overflow-x: hidden; -webkit-tap-highlight-color: transparent; }
-        .scrollbar-hide::-webkit-scrollbar { display: none; }
-        .nav-item.active { border-bottom: 2px solid #D4AF37; color: #D4AF37; }
-        .sidebar { transition: transform 0.3s ease-in-out; transform: translateX(100%); }
-        .sidebar.open { transform: translateX(0); }
-        .glass-header { background: rgba(5, 5, 16, 0.95); backdrop-filter: blur(10px); border-bottom: 1px solid rgba(255,255,255,0.05); }
-        .loader { border: 3px solid rgba(255,255,255,0.1); border-left-color: #D4AF37; width: 24px; height: 24px; border-radius: 50%; animation: spin 1s linear infinite; }
-        @keyframes spin { to { transform: rotate(360deg); } }
-        .view-hidden { display: none !important; }
-    </style>
+        /* AI Gradient Text */
+        .ai-text {
+            background: linear-gradient(to right, #D4AF37, #fef08a);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        /* Markdown Styles */
+        .prose p { margin-bottom: 0.5em; }
+        .prose strong { color: #D4AF37; }
+        .prose ul { list-style-type: disc; padding-right: 1.5em; margin-bottom: 0.5em; }
+    </style>
 </head>
-<body class="antialiased min-h-screen flex flex-col">
+<body class="antialiased selection:bg-gold-400 selection:text-black">
 
-    <!-- HEADER & NAVIGATION (Sticky) -->
-    <header class="fixed top-0 w-full z-50 glass-header">
-        <div class="container mx-auto px-4 h-16 flex justify-between items-center">
-            
-            <!-- Logo -->
-            <div class="flex items-center gap-3" onclick="window.location.reload()">
-                <div class="text-2xl font-black text-white tracking-tighter">
-                    الـحقيقة<span class="text-gold-400">.</span>
-                </div>
-            </div>
+    <!-- Navbar -->
+    <nav class="fixed w-full z-50 glass-nav transition-all duration-300">
+        <div class="container mx-auto px-6 h-20 flex justify-between items-center">
+            <div class="flex items-center gap-4">
+                <div class="text-3xl font-black tracking-tighter text-white cursor-pointer" onclick="window.location.reload()">
+                    الـحقيقة <span class="text-gold-400 text-4xl">.</span>
+                </div>
+                <div class="hidden md:flex h-6 w-px bg-gray-700 mx-2"></div>
+                <span class="hidden md:block text-xs text-gray-400 tracking-widest">صوت الواقع</span>
+            </div>
+            <div class="hidden md:flex gap-8 text-sm font-medium text-gray-300">
+                <a href="/" class="hover:text-gold-400 transition-colors">الرئيسية</a>
+                <a href="/news/l/2" class="hover:text-gold-400">أخبار محلية</a>
+                <a href="/news/l/9" class="hover:text-gold-400 transition-colors">تقارير</a>
+                <a href="/news/l/30" class="hover:text-gold-400 transition-colors">رياضة</a>
+                <div class="relative group">
+                    <button onclick="openSettings()" class="text-gold-400 flex items-center gap-1 hover:text-white transition-colors">
+                        <i data-lucide="cpu" class="w-4 h-4"></i> إعدادات AI
+                    </button>
+                </div>
+            </div>
+            <div class="flex items-center gap-4">
+                <button class="p-2 hover:bg-white/5 rounded-full transition-colors"><i data-lucide="search" class="w-5 h-5 text-gray-400"></i></button>
+            </div>
+        </div>
+    </nav>
 
-            <!-- Search & Menu -->
-            <div class="flex items-center gap-4">
-                <button class="text-gray-400 hover:text-white"><i data-lucide="search" class="w-5 h-5"></i></button>
-                <button onclick="toggleSidebar()" class="text-white focus:outline-none"><i data-lucide="menu" class="w-7 h-7"></i></button>
-            </div>
-        </div>
+    <!-- Breaking News Ticker -->
+    <div class="fixed top-20 w-full z-40 bg-navy-800 border-b border-white/5 py-2 overflow-hidden">
+        <div class="container mx-auto px-6 flex items-center">
+            <span class="text-gold-400 text-xs font-bold ml-4 whitespace-nowrap px-2 border-l border-gray-700">عاجل</span>
+            <div class="w-full overflow-hidden relative h-5">
+                <div class="absolute whitespace-nowrap animate-[marquee_20s_linear_infinite] text-xs text-gray-300" id="ticker-content">
+                    جاري تحميل آخر الأخبار العاجلة من صحيفة الحقيقة...
+                </div>
+            </div>
+        </div>
+    </div>
 
-        <!-- Public Menu (News Categories Only) -->
-        <div class="w-full overflow-x-auto scrollbar-hide bg-navy-800 border-b border-white/5">
-            <div class="flex px-4 min-w-max">
-                <button onclick="switchPublicView('home', this)" class="nav-item active px-6 py-3 text-sm font-bold text-gray-300 whitespace-nowrap">الرئيسية</button>
-                <button onclick="switchPublicView('local', this)" class="nav-item px-6 py-3 text-sm font-bold text-gray-300 whitespace-nowrap">أخبار محلية</button>
-                <button onclick="switchPublicView('articles', this)" class="nav-item px-6 py-3 text-sm font-bold text-gray-300 whitespace-nowrap">مقالات</button>
-                <button onclick="switchPublicView('reports', this)" class="nav-item px-6 py-3 text-sm font-bold text-gray-300 whitespace-nowrap">تقارير</button>
-            </div>
-        </div>
-    </header>
+    <!-- Main Content Wrapper -->
+    <main class="pt-36 pb-20 container mx-auto px-6">
+        
+        <!-- Hero Section (Dynamic) -->
+        <section class="grid grid-cols-1 lg:grid-cols-12 gap-8 mb-16 h-auto lg:h-[500px]" id="hero-section">
+            <div class="lg:col-span-12 flex items-center justify-center h-96">
+                <div class="loader"></div>
+            </div>
+        </section>
 
-    <!-- SIDEBAR MENU -->
-    <aside id="main-sidebar" class="sidebar fixed inset-y-0 right-0 w-72 bg-[#1a1d26] z-[60] shadow-2xl border-l border-white/10 overflow-y-auto">
-        <div class="p-5 border-b border-white/10 flex justify-between items-center">
-            <h2 class="text-lg font-bold text-white">القائمة</h2>
-            <button onclick="toggleSidebar()" class="text-gray-400 hover:text-white"><i data-lucide="x" class="w-6 h-6"></i></button>
-        </div>
-        <div class="p-4 space-y-2">
-            <button onclick="switchPublicView('home'); toggleSidebar()" class="w-full flex items-center gap-2 py-3 text-gray-300 hover:text-gold-400 font-bold border-b border-white/5">
-                <i data-lucide="home" class="w-4 h-4"></i> الرئيسية
-            </button>
-            <button onclick="toggleAdminView(); toggleSidebar()" class="w-full flex items-center gap-2 py-3 text-gold-400 hover:text-white font-bold mt-4 bg-white/5 rounded px-3">
-                <i data-lucide="shield" class="w-4 h-4"></i> دخول أعضاء الصحيفة (الإدارة)
-            </button>
-        </div>
-    </aside>
-    <div id="sidebar-overlay" onclick="toggleSidebar()" class="fixed inset-0 bg-black/50 z-50 hidden backdrop-blur-sm"></div>
+        <!-- Dynamic Content Section -->
+        <section class="grid grid-cols-1 lg:grid-cols-12 gap-12">
+            
+            <!-- Right Column: Latest News List -->
+            <div class="lg:col-span-8">
+                <div class="flex items-center justify-between mb-8 border-b border-white/10 pb-4">
+                    <h2 class="text-2xl font-bold text-white flex items-center gap-2">
+                        <span class="w-2 h-8 bg-gold-400 rounded-full"></span>
+                        آخر المستجدات
+                    </h2>
+                    <a href="/news/l/2" class="text-sm text-gray-500 hover:text-white">عرض المزيد ←</a>
+                </div>
 
-    <!-- PUBLIC CONTENT AREA -->
-    <main id="public-content" class="pt-32 pb-20 container mx-auto px-4 min-h-screen">
-        <!-- Ticker -->
-        <div class="bg-navy-800 border border-white/5 rounded-lg p-2 mb-6 flex items-center gap-3 shadow-lg">
-            <span class="bg-red-600 text-white text-[10px] font-bold px-2 py-0.5 rounded animate-pulse">عاجل</span>
-            <div class="w-full overflow-hidden relative h-5">
-                <div id="ticker-content" class="absolute whitespace-nowrap animate-marquee text-xs text-gray-300 pt-0.5">
-                    الحقيقة الذكية | تصميم وإشراف: يوسف العتي ... جاري الاتصال...
-                </div>
-            </div>
-        </div>
+                <div class="space-y-6" id="news-container">
+                    <div class="flex justify-center py-10"><div class="loader"></div></div>
+                </div>
+            </div>
 
-        <div id="hero-section" class="mb-8 relative h-[400px] rounded-2xl bg-white/5 animate-pulse flex items-center justify-center border border-white/5">
-            <div class="loader"></div>
-        </div>
+            <!-- Left Column: Sidebar -->
+            <div class="lg:col-span-4">
+                <div class="sticky top-32 bg-navy-800/50 p-6 rounded-2xl border border-white/5 backdrop-blur-sm">
+                    <div class="flex gap-6 mb-6 border-b border-white/10 pb-2 overflow-x-auto scrollbar-hide">
+                        <button class="tab-btn tab-active pb-2 text-sm font-bold whitespace-nowrap text-gold-400">الأكثر قراءة</button>
+                    </div>
+                    <!-- Sidebar Content -->
+                    <div id="sidebar-content" class="space-y-5 min-h-[400px]">
+                        <div class="flex justify-center py-10"><div class="loader"></div></div>
+                    </div>
+                </div>
+            </div>
+        </section>
 
-        <div id="news-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <div class="h-64 bg-white/5 rounded-xl animate-pulse"></div>
-            <div class="h-64 bg-white/5 rounded-xl animate-pulse"></div>
-        </div>
-    </main>
+    </main>
 
-    <!-- ADMIN DASHBOARD (The Command Room) -->
-    <div id="admin-view" class="view-hidden fixed inset-0 z-[70] bg-[#050510] w-full h-full overflow-y-auto">
-        
-        <!-- Login Gate -->
-        <div id="login-gate" class="min-h-screen flex items-center justify-center p-4">
-            <div class="glass-panel p-10 rounded-3xl w-full max-w-md text-center relative border border-gold-400/20 shadow-2xl bg-navy-800">
-                <button onclick="toggleAdminView()" class="absolute top-4 right-4 text-gray-500 hover:text-white"><i data-lucide="x" class="w-6 h-6"></i></button>
-                <h1 class="text-3xl font-bold text-white mb-2">بوابة القيادة</h1>
-                <form onsubmit="handleRealLogin(event)" class="space-y-6 mt-6">
-                    <input type="email" id="login-email" placeholder="البريد الرسمي" class="w-full bg-[#0a0a15] border border-white/10 rounded-xl py-3 px-4 text-white focus:border-gold-400 outline-none">
-                    <input type="password" id="login-password" placeholder="الشفرة" class="w-full bg-[#0a0a15] border border-white/10 rounded-xl py-3 px-4 text-white focus:border-gold-400 outline-none">
-                    <button class="w-full bg-gold-400 text-black font-bold py-4 rounded-xl hover:bg-white transition shadow-lg">دخول النظام</button>
-                </form>
-            </div>
-        </div>
+    <!-- AI Chatbot Widget -->
+    <div class="fixed bottom-6 left-6 z-50 flex flex-col items-end gap-4">
+        
+        <!-- Chat Window -->
+        <div id="ai-chat-window" class="hidden w-80 md:w-96 bg-navy-800 border border-gold-400/30 rounded-2xl shadow-2xl overflow-hidden transition-all duration-300 transform scale-95 opacity-0 origin-bottom-left">
+            <div class="bg-navy-900 p-4 border-b border-white/5 flex justify-between items-center">
+                <div class="flex items-center gap-2">
+                    <div class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
+                    <span class="font-bold text-gold-400 text-sm">مساعد الحقيقة AI</span>
+                </div>
+                <button onclick="toggleChat()" class="text-gray-400 hover:text-white"><i data-lucide="x" class="w-4 h-4"></i></button>
+            </div>
+            <div id="chat-messages" class="h-80 overflow-y-auto p-4 space-y-3 bg-navy-800/95 text-sm">
+                <div class="bg-white/5 p-3 rounded-tr-xl rounded-bl-xl rounded-br-xl text-gray-300 self-start max-w-[90%]">
+                    مرحباً بك! أنا مساعد الذكاء الاصطناعي لصحيفة الحقيقة. كيف يمكنني مساعدتك في فهم الأخبار اليوم؟
+                </div>
+            </div>
+            <div class="p-3 bg-navy-900 border-t border-white/5">
+                <div class="relative">
+                    <input type="text" id="chat-input" placeholder="اكتب سؤالك هنا..." class="w-full bg-black/30 border border-white/10 rounded-full py-2 px-4 pr-10 text-white text-sm focus:outline-none focus:border-gold-400/50 transition-colors">
+                    <button onclick="sendMessage()" class="absolute left-2 top-1.5 p-1 text-gold-400 hover:text-white transition-colors">
+                        <i data-lucide="send" class="w-4 h-4"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
 
-        <!-- Admin UI -->
-        <div id="dashboard-ui" class="hidden min-h-screen flex flex-col lg:flex-row">
-            <!-- Admin Sidebar -->
-            <aside class="w-full lg:w-72 bg-navy-900 border-l border-white/5 flex flex-col z-20">
-                <div class="h-16 flex items-center justify-between px-6 border-b border-white/5">
-                    <h2 class="text-xl font-bold text-white">غرفة العمليات</h2>
-                    <button onclick="toggleAdminView()" class="lg:hidden text-gray-400"><i data-lucide="x"></i></button>
-                </div>
-                <div class="flex-1 p-4 space-y-1 overflow-y-auto">
-                    
-                    <p class="text-[10px] text-gray-500 font-bold uppercase px-2 py-2">المحتوى</p>
-                    <button onclick="switchDashView('editor', this)" class="sidebar-link active w-full flex items-center gap-3 px-4 py-3 text-gray-400 hover:bg-white/5 rounded-lg text-sm font-medium"><i data-lucide="pen-tool" class="w-4 h-4"></i> المحرر الذكي</button>
-                    <button onclick="switchDashView('articles', this)" class="sidebar-link w-full flex items-center gap-3 px-4 py-3 text-gray-400 hover:bg-white/5 rounded-lg text-sm font-medium"><i data-lucide="file-text" class="w-4 h-4"></i> الأرشيف</button>
-                    
-                    <p class="text-[10px] text-gray-500 font-bold uppercase px-2 py-2 mt-2">الاستراتيجية (جديد)</p>
-                    <button onclick="switchDashView('innovations', this)" class="sidebar-link w-full flex items-center gap-3 px-4 py-3 text-gray-400 hover:bg-white/5 rounded-lg text-sm font-medium"><i data-lucide="lightbulb" class="w-4 h-4 text-gold-400"></i> الابتكارات الـ 15</button>
-                    <button onclick="switchDashView('impact', this)" class="sidebar-link w-full flex items-center gap-3 px-4 py-3 text-gray-400 hover:bg-white/5 rounded-lg text-sm font-medium"><i data-lucide="bar-chart-2" class="w-4 h-4 text-blue-400"></i> لوحة الأثر</button>
-                    
-                    <p class="text-[10px] text-gray-500 font-bold uppercase px-2 py-2 mt-2">الموارد البشرية</p>
-                    <button onclick="switchDashView('hr', this)" class="sidebar-link w-full flex items-center gap-3 px-4 py-3 text-gray-400 hover:bg-white/5 rounded-lg text-sm font-medium"><i data-lucide="users" class="w-4 h-4"></i> إدارة الأعضاء</button>
-                    <button onclick="switchDashView('contract', this)" class="sidebar-link w-full flex items-center gap-3 px-4 py-3 text-gray-400 hover:bg-white/5 rounded-lg text-sm font-medium"><i data-lucide="file-signature" class="w-4 h-4"></i> نموذج العقد</button>
+        <!-- Chat Button -->
+        <button onclick="toggleChat()" class="w-14 h-14 bg-gradient-to-br from-gold-400 to-gold-500 rounded-full shadow-lg shadow-gold-400/20 flex items-center justify-center text-black hover:scale-110 transition-transform group">
+            <i data-lucide="sparkles" class="w-6 h-6 group-hover:rotate-12 transition-transform"></i>
+        </button>
+    </div>
 
-                    <p class="text-[10px] text-gray-500 font-bold uppercase px-2 py-2 mt-2">النظام</p>
-                    <button onclick="switchDashView('settings', this)" class="sidebar-link w-full flex items-center gap-3 px-4 py-3 text-gray-400 hover:bg-white/5 rounded-lg text-sm font-medium"><i data-lucide="settings" class="w-4 h-4"></i> الإعدادات (مفتاح AI)</button>
-                </div>
-                <div class="p-4 border-t border-white/5">
-                    <button onclick="logout()" class="w-full flex items-center justify-center gap-2 text-red-400 hover:bg-red-400/10 text-xs py-2 rounded-lg transition"><i data-lucide="log-out" class="w-3 h-3"></i> تسجيل خروج</button>
-                </div>
-            </aside>
+    <!-- AI Analysis Modal -->
+    <div id="analysis-modal" class="fixed inset-0 z-[60] bg-black/80 backdrop-blur-sm hidden items-center justify-center p-4">
+        <div class="bg-navy-800 w-full max-w-2xl rounded-2xl border border-gold-400/30 shadow-2xl overflow-hidden transform transition-all scale-95 opacity-0" id="analysis-modal-content">
+            <div class="p-6 border-b border-white/5 flex justify-between items-start">
+                <div>
+                    <h3 class="text-xl font-bold text-white mb-1 flex items-center gap-2">
+                        <i data-lucide="brain-circuit" class="w-5 h-5 text-gold-400"></i>
+                        تحليل الذكاء الاصطناعي
+                    </h3>
+                    <p class="text-xs text-gray-400">مدعوم بواسطة Gemini Pro</p>
+                </div>
+                <button onclick="closeAnalysis()" class="p-1 hover:bg-white/10 rounded-full text-gray-400 hover:text-white transition-colors">
+                    <i data-lucide="x" class="w-6 h-6"></i>
+                </button>
+            </div>
+            <div class="p-6 overflow-y-auto max-h-[60vh]">
+                <div id="analysis-loader" class="flex flex-col items-center justify-center py-8">
+                    <div class="loader mb-4"></div>
+                    <p class="text-gold-400 text-sm animate-pulse">جاري تحليل الخبر واستخراج السياق...</p>
+                </div>
+                <div id="analysis-result" class="hidden prose prose-invert prose-sm max-w-none text-gray-300 leading-relaxed">
+                    <!-- Content will be injected here -->
+                </div>
+            </div>
+            <div class="p-4 bg-navy-900 border-t border-white/5 flex justify-end">
+                <button onclick="closeAnalysis()" class="px-4 py-2 bg-white/5 hover:bg-white/10 rounded-lg text-sm text-white transition-colors">إغلاق</button>
+            </div>
+        </div>
+    </div>
 
-            <div class="flex-1 bg-[#020205] overflow-y-auto p-6">
-                
-                <!-- 1. Editor Tab -->
-                <div id="sec-editor" class="view-section max-w-4xl mx-auto space-y-6">
-                    <h2 class="text-2xl font-bold text-white">نشر خبر جديد</h2>
-                    <input type="text" id="news-title" placeholder="العنوان..." class="w-full bg-transparent text-3xl font-bold text-white border-none focus:ring-0 px-0">
-                    <textarea id="editor" class="w-full h-64 bg-navy-800 border border-white/10 rounded-xl p-4 text-white" placeholder="المحتوى..."></textarea>
-                    <button onclick="publishAction()" id="publish-btn" class="w-full bg-gold-400 text-black font-bold py-3 rounded-lg">نشر 🚀</button>
-                </div>
+    <!-- Quiz Modal -->
+    <div id="quiz-modal" class="fixed inset-0 z-[65] bg-black/80 backdrop-blur-sm hidden items-center justify-center p-4">
+        <div class="bg-navy-800 w-full max-w-lg rounded-2xl border border-gold-400/30 shadow-2xl overflow-hidden transform transition-all scale-95 opacity-0" id="quiz-modal-content">
+            <div class="p-6 border-b border-white/5 flex justify-between items-start">
+                <div>
+                    <h3 class="text-xl font-bold text-white mb-1 flex items-center gap-2">
+                        <i data-lucide="file-question" class="w-5 h-5 text-gold-400"></i>
+                        اختبر معلوماتك
+                    </h3>
+                    <p class="text-xs text-gray-400">أسئلة مولدة تلقائياً عن الخبر</p>
+                </div>
+                <button onclick="closeQuiz()" class="p-1 hover:bg-white/10 rounded-full text-gray-400 hover:text-white transition-colors">
+                    <i data-lucide="x" class="w-6 h-6"></i>
+                </button>
+            </div>
+            <div class="p-6">
+                <div id="quiz-loader" class="flex flex-col items-center justify-center py-8">
+                    <div class="loader mb-4"></div>
+                    <p class="text-gold-400 text-sm animate-pulse">Gemini يقوم بصياغة الأسئلة...</p>
+                </div>
+                <div id="quiz-container" class="hidden space-y-6">
+                    <!-- Quiz questions will be injected here -->
+                </div>
+            </div>
+        </div>
+    </div>
 
-                <!-- 2. Innovations Tab (Moved inside) -->
-                <div id="sec-innovations" class="view-section hidden space-y-6">
-                    <h2 class="text-2xl font-bold text-white mb-4 border-r-4 border-gold-400 pr-3">الابتكارات الـ 15</h2>
-                    <div id="features-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
-                </div>
+    <!-- Settings Modal (API Key) -->
+    <div id="settings-modal" class="fixed inset-0 z-[70] bg-black/90 hidden items-center justify-center p-4">
+        <div class="bg-navy-800 w-full max-w-md rounded-xl border border-white/10 p-6">
+            <h3 class="text-lg font-bold text-white mb-4">إعدادات الذكاء الاصطناعي</h3>
+            <p class="text-sm text-gray-400 mb-4">لتفعيل ميزات AI، يرجى إدخال مفتاح Gemini API الخاص بك (يتم حفظه محلياً فقط).</p>
+            <input type="password" id="api-key-input" placeholder="Paste Gemini API Key here" class="w-full bg-black/50 border border-white/10 rounded-lg p-3 text-white mb-4 focus:border-gold-400 outline-none">
+            <div class="flex justify-end gap-3">
+                <button onclick="document.getElementById('settings-modal').classList.add('hidden')" class="px-4 py-2 text-gray-400 hover:text-white">إلغاء</button>
+                <button onclick="saveApiKey()" class="px-6 py-2 bg-gold-400 text-black font-bold rounded-lg hover:bg-gold-500">حفظ</button>
+            </div>
+        </div>
+    </div>
 
-                <!-- 3. Impact Dashboard Tab (Moved inside) -->
-                <div id="sec-impact" class="view-section hidden space-y-6">
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <div class="bg-navy-800 p-4 rounded-xl border-t-4 border-gold-400 text-center"><h3 class="text-gray-400 text-xs">مؤشر التنبؤ</h3><p class="text-2xl font-bold text-white">85%</p></div>
-                        <div class="bg-navy-800 p-4 rounded-xl border-t-4 border-blue-400 text-center"><h3 class="text-gray-400 text-xs">الأثر الاجتماعي</h3><p class="text-2xl font-bold text-white">12.5K</p></div>
-                    </div>
-                    <div class="bg-navy-800 p-4 rounded-xl border border-white/5 h-64 flex items-center justify-center">
-                        <canvas id="predictiveChart"></canvas>
-                    </div>
-                </div>
+    <!-- Hidden Audio Player -->
+    <audio id="tts-player" class="hidden"></audio>
 
-                <!-- 4. Contract Tab (Moved inside) -->
-                <div id="sec-contract" class="view-section hidden max-w-2xl mx-auto">
-                     <div class="bg-navy-800 p-6 rounded-xl border border-white/10">
-                        <h3 class="text-white font-bold mb-4">معاينة العقد الإلكتروني</h3>
-                        <p class="text-gray-400 text-sm mb-4">هذا هو النموذج الذي سيظهر للموظف عند فتح رابط التوظيف.</p>
-                        <div class="bg-black/30 p-4 rounded text-xs text-gray-500 h-40 overflow-y-auto">
-                            نص العقد الافتراضي... المادة الأولى... المادة الثانية... (نسخة للقراءة فقط)
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- 5. HR Tab -->
-                <div id="sec-hr" class="view-section hidden max-w-4xl mx-auto">
-                    <div class="flex justify-between items-center mb-6">
-                         <h2 class="text-2xl font-bold text-white">إدارة الكوادر</h2>
-                         <button onclick="generateInviteLink()" class="bg-gold-400 text-black px-4 py-2 rounded-lg font-bold text-sm">توليد رابط توظيف</button>
-                    </div>
-                    <div id="invite-box" class="hidden bg-white/10 p-4 rounded-xl mb-6">
-                        <p class="text-xs text-gold-400">رابط الدعوة:</p>
-                        <input type="text" id="invite-link-val" readonly class="w-full bg-transparent text-white text-xs">
-                    </div>
-                </div>
+    <!-- Footer -->
+    <footer class="bg-navy-800 border-t border-white/5 pt-16 pb-8">
+        <div class="container mx-auto px-6 text-center">
+            <h2 class="text-3xl font-black text-white mb-6">الـحقيقة</h2>
+            <p class="text-gray-400 text-sm mb-8">صحيفة إلكترونية سعودية شاملة.</p>
+            <div class="text-gray-600 text-xs">© 2025 جميع الحقوق محفوظة.</div>
+        </div>
+    </footer>
 
-                <!-- 6. Settings Tab -->
-                <div id="sec-settings" class="view-section hidden max-w-md mx-auto">
-                    <h3 class="text-white font-bold mb-4">مفتاح الذكاء الاصطناعي</h3>
-                    <input type="password" id="api-key-setting" class="w-full bg-navy-800 border border-white/10 rounded p-3 text-white">
-                    <button onclick="saveApiKey()" class="mt-4 w-full bg-gold-400 text-black font-bold py-2 rounded">حفظ</button>
-                </div>
+    <script>
+        lucide.createIcons();
 
-                <!-- Archive Tab -->
-                <div id="sec-articles" class="view-section hidden">
-                    <div id="admin-articles-list" class="space-y-2"></div>
-                </div>
+        let userApiKey = localStorage.getItem('gemini_api_key') || "";
+        const apiKey = ""; 
+        const RSS_URL = "https://alhqyq.com/rss-action-feed-m-news-id-0-feed-rss20.xml";
+        let fetchedNewsData = [];
 
-            </div>
-        </div>
-    </div>
+        // --- UI FUNCTIONS ---
+        function openSettings() {
+            document.getElementById('settings-modal').classList.remove('hidden');
+            document.getElementById('api-key-input').value = userApiKey;
+        }
 
-    <!-- Toast -->
-    <div id="toast" class="fixed bottom-6 left-6 bg-green-600 text-white px-6 py-3 rounded-full shadow-2xl opacity-0 transition-all z-[100] font-bold">تم</div>
+        function saveApiKey() {
+            const key = document.getElementById('api-key-input').value.trim();
+            if (key) {
+                userApiKey = key;
+                localStorage.setItem('gemini_api_key', key);
+                document.getElementById('settings-modal').classList.add('hidden');
+                alert("تم حفظ المفتاح بنجاح! جميع الميزات مفعلة الآن.");
+            }
+        }
 
-    <script>
-        function initIcons() { if (window.lucide) lucide.createIcons(); }
-        document.addEventListener('DOMContentLoaded', () => { initIcons(); fetchNews(); renderFeatures(); });
+        function toggleChat() {
+            const chatWindow = document.getElementById('ai-chat-window');
+            if (chatWindow.classList.contains('hidden')) {
+                chatWindow.classList.remove('hidden');
+                setTimeout(() => {
+                    chatWindow.classList.remove('opacity-0', 'scale-95');
+                    chatWindow.classList.add('opacity-100', 'scale-100');
+                }, 10);
+                document.getElementById('chat-input').focus();
+            } else {
+                chatWindow.classList.remove('opacity-100', 'scale-100');
+                chatWindow.classList.add('opacity-0', 'scale-95');
+                setTimeout(() => {
+                    chatWindow.classList.add('hidden');
+                }, 300);
+            }
+        }
 
-        // Firebase Config
-        const firebaseConfig = { apiKey: "AIzaSyD7b1PZY26GN6hR2pliqiFRgyMsNyRlWOs", authDomain: "alhqyqa-62b0e.firebaseapp.com", projectId: "alhqyqa-62b0e", storageBucket: "alhqyqa-62b0e.firebasestorage.app", messagingSenderId: "354014970954", appId: "1:354014970954:web:435ca4eb0cbbfcfd1152b3" };
-        let isOfflineMode = false;
-        const LOCAL_NEWS_KEY = "local_news_db";
-        let db, auth;
+        function closeAnalysis() {
+            const modal = document.getElementById('analysis-modal');
+            const content = document.getElementById('analysis-modal-content');
+            content.classList.remove('opacity-100', 'scale-100');
+            content.classList.add('opacity-0', 'scale-95');
+            setTimeout(() => { modal.classList.add('hidden'); modal.classList.remove('flex'); }, 300);
+        }
 
-        // Features Data
-        const featuresData = [
-            { icon: '👻', title: 'المراسل الشبح', desc: 'نشر آلي' },
-            { icon: '🔮', title: 'الغرفة التنبؤية', desc: 'توقع التريند' },
-            { icon: '📏', title: 'مقياس الأثر', desc: 'تحليل التأثير' },
-             // ... Add rest if needed
-        ];
+        function closeQuiz() {
+            const modal = document.getElementById('quiz-modal');
+            const content = document.getElementById('quiz-modal-content');
+            content.classList.remove('opacity-100', 'scale-100');
+            content.classList.add('opacity-0', 'scale-95');
+            setTimeout(() => { modal.classList.add('hidden'); modal.classList.remove('flex'); }, 300);
+        }
 
-        function renderFeatures() {
-            const grid = document.getElementById('features-grid');
-            if(grid) grid.innerHTML = featuresData.map(f => `
-                <div class="bg-white/5 p-4 rounded-xl border border-white/10">
-                    <div class="text-2xl mb-2">${f.icon}</div>
-                    <h3 class="text-white font-bold text-sm">${f.title}</h3>
-                    <p class="text-gray-500 text-xs">${f.desc}</p>
-                </div>
-            `).join('');
-        }
+        // --- HELPER: WAV CONVERTER ---
+        // Converts PCM16 audio data to WAV for browser playback
+        function pcmToWav(pcmData, sampleRate = 24000) {
+            const binaryString = window.atob(pcmData);
+            const len = binaryString.length;
+            const bytes = new Uint8Array(len);
+            for (let i = 0; i < len; i++) {
+                bytes[i] = binaryString.charCodeAt(i);
+            }
+            const wavHeader = new ArrayBuffer(44);
+            const view = new DataView(wavHeader);
+            const writeString = (view, offset, string) => {
+                for (let i = 0; i < string.length; i++) view.setUint8(offset + i, string.charCodeAt(i));
+            };
+            writeString(view, 0, 'RIFF');
+            view.setUint32(4, 36 + bytes.length, true);
+            writeString(view, 8, 'WAVE');
+            writeString(view, 12, 'fmt ');
+            view.setUint32(16, 16, true);
+            view.setUint16(20, 1, true);
+            view.setUint16(22, 1, true);
+            view.setUint32(24, sampleRate, true);
+            view.setUint32(28, sampleRate * 2, true);
+            view.setUint16(32, 2, true);
+            view.setUint16(34, 16, true);
+            writeString(view, 36, 'data');
+            view.setUint32(40, bytes.length, true);
+            const wavBytes = new Uint8Array(wavHeader.byteLength + bytes.length);
+            wavBytes.set(new Uint8Array(wavHeader), 0);
+            wavBytes.set(bytes, wavHeader.byteLength);
+            return new Blob([wavBytes], { type: 'audio/wav' });
+        }
 
-        // Firebase Init
-        try {
-            if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
-            auth = firebase.auth();
-            db = firebase.firestore();
-            
-            auth.onAuthStateChanged(user => {
-                if(user && !user.isAnonymous) {
-                    document.getElementById('login-gate').classList.add('hidden');
-                    document.getElementById('dashboard-ui').classList.remove('hidden');
-                    loadAdminData();
-                }
-            });
-            if(!auth.currentUser) auth.signInAnonymously().catch(()=>isOfflineMode=true);
-        } catch(e) { isOfflineMode=true; }
+        // --- GEMINI API CALLS ---
 
-        // News Logic
-        function getLocalNews() { try { return JSON.parse(localStorage.getItem(LOCAL_NEWS_KEY) || "[]"); } catch { return []; } }
-        async function fetchNews() {
-            if (isOfflineMode) return renderLocal();
-            try {
-                const snap = await db.collection("news").limit(20).get();
-                if(snap.empty) renderLocal();
-                else {
-                    const data = snap.docs.map(d => ({id:d.id, ...d.data()}));
-                    renderSite(data);
-                }
-            } catch(e) { renderLocal(); }
-        }
-        function renderLocal() {
-            const l = getLocalNews();
-            if(l.length) renderSite(l);
-            else {
-                const m = [{id:1, title:"صحيفة الحقيقة تطلق هويتها الجديدة", category:"عام", img:"https://images.unsplash.com/photo-1504711434969-e33886168f5c", desc:"نقلة نوعية..."}];
-                renderSite(m);
-            }
-        }
-        function renderSite(news) {
-            if(!news.length) return;
-            const hero = news[0];
-            const rest = news.slice(1);
-            
-            document.getElementById('ticker-content').innerText = "الحقيقة الذكية | تصميم: يوسف العتي • " + news.map(n => n.title).join(" • ");
-            
-            document.getElementById('hero-section').innerHTML = `
-                <div class="w-full h-full relative group overflow-hidden rounded-2xl cursor-pointer shadow-2xl">
-                    <img src="${hero.img}" class="w-full h-full object-cover transition duration-700 group-hover:scale-105">
-                    <div class="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent"></div>
-                    <div class="absolute bottom-0 p-8">
-                        <span class="bg-gold-400 text-black text-xs font-bold px-3 py-1 rounded-full mb-3 inline-block">${hero.category}</span>
-                        <h1 class="text-3xl font-bold text-white mb-2">${hero.title}</h1>
-                    </div>
-                </div>`;
+        const getKey = () => {
+            const k = userApiKey || apiKey;
+            if (!k) { openSettings(); throw new Error("No API Key"); }
+            return k;
+        }
 
-            document.getElementById('news-container').innerHTML = rest.map(n => `
-                <div class="flex gap-4 bg-white/5 p-3 rounded-xl border border-white/5 hover:border-gold-400/30 cursor-pointer transition">
-                    <div class="w-24 h-24 rounded-lg overflow-hidden shrink-0"><img src="${n.img}" class="w-full h-full object-cover"></div>
-                    <div class="flex flex-col justify-center"><h3 class="text-white font-bold text-sm line-clamp-2">${n.title}</h3><span class="text-[10px] text-gold-400 mt-2">${n.category}</span></div>
-                </div>`).join('');
-            initIcons();
-        }
+        // 1. Text Generation (Analysis & Chat & Quiz)
+        async function generateText(prompt, systemPrompt = "", jsonMode = false) {
+            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${getKey()}`;
+            const payload = {
+                contents: [{ parts: [{ text: prompt }] }],
+                systemInstruction: { parts: [{ text: systemPrompt }] },
+                generationConfig: jsonMode ? { responseMimeType: "application/json" } : {}
+            };
+            
+            const response = await fetch(url, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(payload) });
+            if (!response.ok) throw new Error("API Error");
+            const data = await response.json();
+            return data.candidates?.[0]?.content?.parts?.[0]?.text;
+        }
 
-        // Admin Logic
-        window.handleRealLogin = async (e) => {
-            e.preventDefault();
-            const em = document.getElementById('login-email').value;
-            const ps = document.getElementById('login-password').value;
-            try { await auth.signInWithEmailAndPassword(em, ps); } catch(e) { alert("خطأ في الدخول"); }
-        };
+        // 2. TTS Generation
+        async function generateSpeech(text) {
+            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-tts:generateContent?key=${getKey()}`;
+            const payload = {
+                contents: [{ parts: [{ text: text }] }],
+                generationConfig: {
+                    responseModalities: ["AUDIO"],
+                    speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName: "Kore" } } }
+                }
+            };
+            const response = await fetch(url, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(payload) });
+            if (!response.ok) throw new Error("TTS Error");
+            const data = await response.json();
+            return data.candidates?.[0]?.content?.parts?.[0]?.inlineData?.data; // Base64 PCM
+        }
 
-        window.publishAction = async () => {
-            const title = document.getElementById('news-title').value;
-            const cat = document.getElementById('news-category').value;
-            const content = document.getElementById('editor').value;
-            const art = { id:"loc_"+Date.now(), title, category: cat, img:"https://via.placeholder.com/800", desc:content, date: new Date().toLocaleDateString('ar-SA') };
-            
-            try { await db.collection("news").add(art); showToast("تم النشر ✅"); }
-            catch { 
-                const l = getLocalNews(); l.unshift(art); localStorage.setItem(LOCAL_NEWS_KEY, JSON.stringify(l));
-                showToast("تم الحفظ محلياً ⚠️");
-            }
-            fetchNews();
-        };
 
-        // Navigation
-        window.toggleSidebar = () => {
-            document.getElementById('main-sidebar').classList.toggle('open');
-            document.getElementById('sidebar-overlay').classList.toggle('hidden');
-        };
-        window.toggleAdminView = () => {
-            const admin = document.getElementById('admin-view');
-            const pub = document.getElementById('public-view');
-            if(admin.classList.contains('view-hidden')) {
-                admin.classList.remove('view-hidden');
-                pub.classList.add('view-hidden');
-            } else {
-                admin.classList.add('view-hidden');
-                pub.classList.remove('view-hidden');
-            }
-        };
+        // --- FEATURES ---
 
-        window.switchPublicView = (view, btn) => {
-             // For now, this just filters news or scrolls, keeping it simple for SPA
-             if(view === 'home') window.location.reload();
-             // In a real app, this would filter the news array
-        };
+        // Feature 1: Analyze
+        async function analyzeNews(title, desc) {
+            const modal = document.getElementById('analysis-modal');
+            modal.classList.remove('hidden'); modal.classList.add('flex');
+            setTimeout(() => { document.getElementById('analysis-modal-content').classList.remove('opacity-0', 'scale-95'); document.getElementById('analysis-modal-content').classList.add('opacity-100', 'scale-100'); }, 10);
+            
+            const loader = document.getElementById('analysis-loader');
+            const resultDiv = document.getElementById('analysis-result');
+            loader.classList.remove('hidden'); resultDiv.classList.add('hidden');
 
-        window.switchDashView = (v, btn) => {
-            document.querySelectorAll('.view-section').forEach(e => e.classList.add('hidden'));
-            document.getElementById('sec-'+v).classList.remove('hidden');
-            document.querySelectorAll('.sidebar-link').forEach(e => e.classList.remove('active'));
-            btn.classList.add('active');
-            if(v==='impact') initCharts();
-        };
+            try {
+                const analysis = await generateText(
+                    `الخبر: ${title}\nالتفاصيل: ${desc}\nالمطلوب: شرح السياق، الأهمية، والتوقعات المستقبلية في نقاط Markdown.`,
+                    "أنت محلل إخباري لصحيفة الحقيقة."
+                );
+                loader.classList.add('hidden');
+                resultDiv.classList.remove('hidden');
+                resultDiv.innerHTML = marked.parse(analysis);
+            } catch (e) {
+                closeAnalysis();
+            }
+        }
 
-        window.generateInviteLink = () => {
-            const id = "HQ-"+Math.floor(Math.random()*9000);
-            const link = window.location.href.split('?')[0] + "?mode=recruitment&jobId="+id;
-            document.getElementById('invite-box').classList.remove('hidden');
-            document.getElementById('invite-link-val').value = link;
-        }
-        
-        // Settings
-        window.openSettings = () => document.getElementById('settings-modal').classList.remove('hidden');
-        window.saveApiKey = () => { 
-            const k = document.getElementById('api-key-input').value; 
-            if(k) { localStorage.setItem("gemini_api_key", k); document.getElementById('settings-modal').classList.add('hidden'); }
-        };
+        // Feature 2: Chat
+        async function sendMessage() {
+            const input = document.getElementById('chat-input');
+            const message = input.value.trim();
+            if (!message) return;
+            
+            const chatMessages = document.getElementById('chat-messages');
+            chatMessages.innerHTML += `<div class="bg-gold-400 text-black p-3 rounded-tl-xl rounded-tr-xl rounded-bl-xl self-end max-w-[90%] font-medium">${message}</div>`;
+            input.value = ''; chatMessages.scrollTop = chatMessages.scrollHeight;
 
-        function showToast(msg) {
-            const t = document.getElementById('toast'); t.innerText = msg; t.classList.remove('opacity-0', 'translate-y-24');
-            setTimeout(() => t.classList.add('opacity-0', 'translate-y-24'), 3000);
-        }
+            const newsContext = fetchedNewsData.slice(0, 5).map(n => `- ${n.title}`).join('\n');
+            const loadingId = 'loading-' + Date.now();
+            chatMessages.innerHTML += `<div id="${loadingId}" class="bg-white/5 p-3 self-start flex gap-1"><div class="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div></div>`;
+            chatMessages.scrollTop = chatMessages.scrollHeight;
 
-        function initCharts() {
-             const ctx = document.getElementById('predictiveChart');
-             if(ctx) new Chart(ctx, { type: 'line', data: { labels: ['A','B','C'], datasets: [{ label: 'Trend', data: [10, 20, 15], borderColor: '#D4AF37' }] } });
-        }
-    </script>
+            try {
+                const reply = await generateText(message, `أنت مساعد ذكي لصحيفة الحقيقة. أحدث الأخبار:\n${newsContext}`);
+                document.getElementById(loadingId).remove();
+                chatMessages.innerHTML += `<div class="bg-white/5 p-3 rounded-tr-xl rounded-bl-xl rounded-br-xl text-gray-300 self-start max-w-[90%]">${marked.parse(reply)}</div>`;
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+            } catch (e) {
+                document.getElementById(loadingId).remove();
+            }
+        }
+
+        // Feature 3: TTS (Smart Broadcaster)
+        async function speakNews(title, desc, btnId) {
+            const btn = document.getElementById(btnId);
+            const originalIcon = btn.innerHTML;
+            btn.innerHTML = `<div class="w-3 h-3 border-2 border-current border-t-transparent rounded-full animate-spin"></div>`;
+            btn.disabled = true;
+
+            try {
+                // Summarize first for better audio experience
+                const script = await generateText(`لخص هذا الخبر في جملتين قصيرتين مشوقتين للبث الإذاعي: ${title} - ${desc}`, "أنت مذيع أخبار محترف.");
+                const pcmData = await generateSpeech(script);
+                
+                if (pcmData) {
+                    const blob = pcmToWav(pcmData);
+                    const url = URL.createObjectURL(blob);
+                    const audio = document.getElementById('tts-player');
+                    audio.src = url;
+                    audio.play();
+                    
+                    btn.innerHTML = `<i data-lucide="volume-2" class="w-3 h-3 text-green-400 animate-pulse"></i>`;
+                    audio.onended = () => { 
+                        btn.innerHTML = originalIcon; 
+                        btn.disabled = false;
+                        lucide.createIcons();
+                    };
+                }
+            } catch (e) {
+                btn.innerHTML = originalIcon;
+                btn.disabled = false;
+                console.error(e);
+            }
+        }
+
+        // Feature 4: Quiz
+        async function startQuiz(title, desc) {
+            const modal = document.getElementById('quiz-modal');
+            modal.classList.remove('hidden'); modal.classList.add('flex');
+            setTimeout(() => { document.getElementById('quiz-modal-content').classList.remove('opacity-0', 'scale-95'); document.getElementById('quiz-modal-content').classList.add('opacity-100', 'scale-100'); }, 10);
+
+            const loader = document.getElementById('quiz-loader');
+            const container = document.getElementById('quiz-container');
+            loader.classList.remove('hidden'); container.classList.add('hidden'); container.innerHTML = '';
+
+            try {
+                const jsonStr = await generateText(
+                    `Generate 1 multiple choice question based on: "${title}: ${desc}". Format: JSON array with objects {question, options:[], correctIndex (0-3)}. Arabic language.`,
+                    "", true
+                );
+                const questions = JSON.parse(jsonStr);
+                const q = questions[0];
+
+                loader.classList.add('hidden');
+                container.classList.remove('hidden');
+                
+                let html = `
+                    <h4 class="text-white text-lg font-bold mb-4">${q.question}</h4>
+                    <div class="space-y-3">
+                `;
+                q.options.forEach((opt, idx) => {
+                    html += `
+                        <button onclick="checkAnswer(this, ${idx === q.correctIndex})" class="w-full text-right p-3 rounded-lg bg-white/5 border border-white/10 hover:bg-white/10 transition-all text-gray-300">
+                            ${opt}
+                        </button>
+                    `;
+                });
+                html += `</div><div id="quiz-feedback" class="mt-4 text-center font-bold h-6"></div>`;
+                container.innerHTML = html;
+
+            } catch (e) {
+                closeQuiz();
+            }
+        }
+
+        function checkAnswer(btn, isCorrect) {
+            const feedback = document.getElementById('quiz-feedback');
+            if (isCorrect) {
+                btn.classList.add('bg-green-500/20', 'border-green-500', 'text-green-400');
+                feedback.textContent = "إجابة صحيحة! أحسنت 🎉";
+                feedback.className = "mt-4 text-center font-bold h-6 text-green-400";
+            } else {
+                btn.classList.add('bg-red-500/20', 'border-red-500', 'text-red-400');
+                feedback.textContent = "إجابة خاطئة، حاول مرة أخرى.";
+                feedback.className = "mt-4 text-center font-bold h-6 text-red-400";
+            }
+        }
+
+
+        // --- RENDER LOGIC ---
+
+        function renderMockData() {
+            const mockNews = [
+                { title: "وزير البيئة يبحث تطوير مشاريع الخرج", img: "https://alhqyq.com/contents/newsth/17729_0.jpg", date: "29 نوفمبر", desc: "بحث وزير البيئة والمياه والزراعة سبل تطوير المشاريع التنموية في محافظة الخرج...", link: "#" },
+                { title: "برنامج رافد الحرمين يطلق خطة موسم الحج", img: "https://alhqyq.com/contents/newsth/17726_0.jpg", date: "29 نوفمبر", desc: "أعلن البرنامج عن جاهزية الكوادر البشرية لخدمة ضيوف الرحمن...", link: "#" },
+                { title: "تحديثات عاجلة لطائرات A320 في السعودية", img: "https://alhqyq.com/contents/newsth/17725_0.jpg", date: "29 نوفمبر", desc: "توجيهات جديدة بخصوص صيانة الطائرات لضمان أعلى معايير السلامة...", link: "#" },
+                { title: "الأهلي يبلغ نصف النهائي بعد فوز مثير", img: "https://alhqyq.com/contents/newsth/17727_0.jpg", date: "29 نوفمبر", desc: "مباراة حماسية انتهت بتفوق الأهلي وصعوده للدور القادم...", link: "#" },
+                { title: "غرفة جازان تعزّز تمكين مستفيدي صندوق الشهداء", img: "https://alhqyq.com/contents/newsth/17716_0.jpg", date: "28 نوفمبر", desc: "مبادرات نوعية لدعم أسر الشهداء وتوفير فرص العمل...", link: "#" }
+            ];
+            fetchedNewsData = mockNews;
+            renderSite(mockNews);
+            const myName = " • مرحبًا بك في صحيفة يوسف الإلكترونية";
+            document.getElementById('ticker-content').textContent = myName + "          " + mockNews.map(n => `• ${n.title}`).join('          ');
+        }
+
+        function renderSite(news) {
+            if (news.length === 0) return;
+            const safeStr = (str) => str.replace(/'/g, "\\'").replace(/"/g, '&quot;');
+            
+            // Hero
+            const heroMain = news[0];
+            const heroHTML = `
+                <article class="lg:col-span-8 relative group rounded-2xl overflow-hidden shadow-2xl shadow-black/50 h-[400px] lg:h-full">
+                    <img src="${heroMain.img}" class="w-full h-full object-cover img-scale transition-transform duration-700" onerror="this.src='https://alhqyq.com/contents/datastore/layouts/41/logos/logo.jpg'">
+                    <div class="absolute inset-0 hero-gradient"></div>
+                    <div class="absolute top-4 right-4 z-20 flex gap-2">
+                        <button onclick="speakNews('${safeStr(heroMain.title)}', '${safeStr(heroMain.desc)}', 'hero-tts-btn')" id="hero-tts-btn" class="bg-black/50 backdrop-blur border border-white/20 text-white p-2 rounded-full hover:bg-white hover:text-black transition-all" title="استمع للخبر">
+                            <i data-lucide="headphones" class="w-4 h-4"></i>
+                        </button>
+                        <button onclick="analyzeNews('${safeStr(heroMain.title)}', '${safeStr(heroMain.desc)}')" class="bg-black/50 backdrop-blur border border-gold-400/50 text-gold-400 px-3 py-1.5 rounded-full text-xs font-bold flex items-center gap-1 hover:bg-gold-400 hover:text-black transition-all">
+                            <i data-lucide="sparkles" class="w-3 h-3"></i> تحليل AI
+                        </button>
+                    </div>
+                    <div class="absolute bottom-0 p-8 w-full cursor-pointer" onclick="window.location='${heroMain.link}'">
+                        <span class="bg-gold-400 text-black text-xs font-bold px-3 py-1 rounded-full mb-3 inline-block">خبر رئيسي</span>
+                        <h1 class="text-2xl md:text-4xl font-bold leading-tight mb-3 group-hover:text-gold-400 transition-colors">${heroMain.title}</h1>
+                        <div class="flex items-center gap-4 text-gray-400 text-sm">
+                            <span class="flex items-center gap-1"><i data-lucide="calendar" class="w-3 h-3"></i> ${heroMain.date}</span>
+                        </div>
+                    </div>
+                </article>
+                <div class="lg:col-span-4 flex flex-col gap-4 h-[400px] lg:h-full">
+                    ${news.slice(1, 3).map(item => `
+                    <article class="flex-1 relative group rounded-xl overflow-hidden">
+                        <img src="${item.img}" class="w-full h-full object-cover img-scale transition-transform duration-700 opacity-60 group-hover:opacity-40" onerror="this.src='https://alhqyq.com/contents/datastore/layouts/41/logos/logo.jpg'">
+                        <div class="absolute inset-0 bg-gradient-to-t from-navy-900 via-transparent to-transparent"></div>
+                        <div class="absolute top-3 right-3 z-20 opacity-0 group-hover:opacity-100 transition-opacity flex gap-2">
+                             <button onclick="startQuiz('${safeStr(item.title)}', '${safeStr(item.desc)}')" class="bg-black/60 text-white p-1.5 rounded-full hover:bg-white hover:text-black" title="اختبر معلوماتك">
+                                <i data-lucide="help-circle" class="w-3 h-3"></i>
+                            </button>
+                        </div>
+                        <div class="absolute bottom-0 p-5 cursor-pointer" onclick="window.location='${item.link}'">
+                            <h3 class="text-lg font-bold leading-snug mb-1 group-hover:text-gold-400">${item.title}</h3>
+                        </div>
+                    </article>
+                    `).join('')}
+                </div>
+            `;
+            document.getElementById('hero-section').innerHTML = heroHTML;
+
+            // News Feed
+            const feedContainer = document.getElementById('news-container');
+            feedContainer.innerHTML = '';
+            news.slice(3, 10).forEach((item, idx) => {
+                const ttsBtnId = `tts-btn-${idx}`;
+                feedContainer.innerHTML += `
+                    <article class="flex gap-4 group bg-white/5 p-4 rounded-xl border border-white/5 hover:border-gold-400/30 transition-all relative">
+                        <div class="w-24 h-24 md:w-48 md:h-32 flex-shrink-0 overflow-hidden rounded-lg cursor-pointer" onclick="window.location='${item.link}'">
+                            <img src="${item.img}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" onerror="this.src='https://alhqyq.com/contents/datastore/layouts/41/logos/logo.jpg'">
+                        </div>
+                        <div class="flex flex-col justify-center flex-grow">
+                            <h3 class="text-base md:text-lg font-bold text-gray-200 group-hover:text-white leading-snug line-clamp-2 cursor-pointer" onclick="window.location='${item.link}'">${item.title}</h3>
+                            <p class="text-xs text-gray-500 mt-2 line-clamp-2">${item.desc}</p>
+                            <div class="mt-3 flex items-center justify-between">
+                                <div class="text-xs text-gray-400 flex items-center gap-2"><i data-lucide="clock" class="w-3 h-3"></i> ${item.date}</div>
+                                <div class="flex gap-2">
+                                    <button onclick="speakNews('${safeStr(item.title)}', '${safeStr(item.desc)}', '${ttsBtnId}')" id="${ttsBtnId}" class="text-xs text-gray-400 border border-white/10 px-2 py-1 rounded hover:bg-white hover:text-black transition-colors flex items-center gap-1" title="استماع">
+                                        <i data-lucide="headphones" class="w-3 h-3"></i>
+                                    </button>
+                                    <button onclick="startQuiz('${safeStr(item.title)}', '${safeStr(item.desc)}')" class="text-xs text-gray-400 border border-white/10 px-2 py-1 rounded hover:bg-white hover:text-black transition-colors flex items-center gap-1" title="اختبار">
+                                        <i data-lucide="help-circle" class="w-3 h-3"></i>
+                                    </button>
+                                    <button onclick="analyzeNews('${safeStr(item.title)}', '${safeStr(item.desc)}')" class="text-xs text-gold-400 border border-gold-400/30 px-2 py-1 rounded hover:bg-gold-400 hover:text-black transition-colors flex items-center gap-1">
+                                        <i data-lucide="sparkles" class="w-3 h-3"></i> تحليل
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </article>
+                `;
+            });
+            lucide.createIcons();
+        }
+
+        async function fetchNews() {
+            try {
+                const response = await fetch(RSS_URL);
+                if (!response.ok) throw new Error('Network error');
+                const str = await response.text();
+                const data = new window.DOMParser().parseFromString(str, "text/xml");
+                const items = data.querySelectorAll("item");
+                const getVal = (item, tag) => { const el = item.querySelector(tag); return el ? el.textContent : ""; };
+                const getImg = (item) => {
+                    const enc = item.querySelector("enclosure"); if(enc) return enc.getAttribute("url");
+                    const desc = getVal(item, "description"); const match = desc.match(/src="([^"]+)"/);
+                    return match ? match[1] : "https://alhqyq.com/contents/datastore/layouts/41/logos/logo.jpg";
+                };
+                fetchedNewsData = [];
+                items.forEach(item => {
+                    fetchedNewsData.push({
+                        title: getVal(item, "title"),
+                        link: getVal(item, "link"),
+                        date: new Date(getVal(item, "pubDate")).toLocaleDateString('ar-SA'),
+                        img: getImg(item),
+                        desc: getVal(item, "description").replace(/<[^>]*>?/gm, '').substring(0, 100) + "..."
+                    });
+                });
+                renderSite(fetchedNewsData);
+                const myName = " ";
+                document.getElementById('ticker-content').textContent = myName + "          " + fetchedNewsData.map(n => `• ${n.title}`).join('          ');
+            } catch (error) {
+                renderMockData();
+            }
+        }
+
+        fetchNews();
+        document.getElementById('chat-input').addEventListener('keypress', function (e) { if (e.key === 'Enter') sendMessage(); });
+    </script>
 </body>
 </html>
-
-
-
-<!DOCTYPE html>
-<html lang="ar" dir="rtl">
-<head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-    <title>صحيفة الحقيقة الذكية</title>
-
-    <!-- PWA -->
-    <link rel="manifest" href="manifest.json" />
-    <meta name="theme-color" content="#050510">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-
-    <!-- Tailwind & Fonts -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@100;200;300;400;500;600;700&display=swap" rel="stylesheet">
-    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
-    <!-- Firebase -->
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
-
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    fontFamily: { sans: ['IBM Plex Sans Arabic', 'sans-serif'] },
-                    colors: {
-                        navy: { 900: '#050510', 800: '#0f1219', 700: '#1a1d26' },
-                        gold: { 400: '#D4AF37', 500: '#C5A028' }
-                    },
-                    animation: { 'marquee': 'marquee 30s linear infinite' },
-                    keyframes: { marquee: { '0%': { transform: 'translateX(100%)' }, '100%': { transform: 'translateX(-100%)' } } }
-                }
-            }
-        }
-    </script>
-
-    <style>
-        body { background-color: #050510; color: #f3f4f6; overflow-x: hidden; -webkit-tap-highlight-color: transparent; }
-        
-        /* Scrollbar hide for menu */
-        .scrollbar-hide::-webkit-scrollbar { display: none; }
-        .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
-
-        /* Accordion Animation */
-        .accordion-content { transition: max-height 0.3s ease-out, opacity 0.3s ease-out; max-height: 0; opacity: 0; overflow: hidden; }
-        .accordion-content.open { max-height: 500px; opacity: 1; }
-        
-        /* Active Nav Item */
-        .nav-item.active { border-bottom: 2px solid #D4AF37; color: #D4AF37; }
-        
-        /* Sidebar Transition */
-        .sidebar { transition: transform 0.3s ease-in-out; transform: translateX(100%); }
-        .sidebar.open { transform: translateX(0); }
-        
-        .glass-header { background: rgba(5, 5, 16, 0.95); backdrop-filter: blur(10px); border-bottom: 1px solid rgba(255,255,255,0.05); }
-        .loader { border: 3px solid rgba(255,255,255,0.1); border-left-color: #D4AF37; width: 24px; height: 24px; border-radius: 50%; animation: spin 1s linear infinite; }
-        @keyframes spin { to { transform: rotate(360deg); } }
-    </style>
-</head>
-<body class="antialiased min-h-screen flex flex-col">
-
-    <!-- HEADER & NAVIGATION (Sticky) -->
-    <header class="fixed top-0 w-full z-50 glass-header">
-        <!-- Top Bar: Logo & Menu Trigger -->
-        <div class="container mx-auto px-4 h-16 flex justify-between items-center">
-            
-            <!-- Logo (Right) -->
-            <div class="flex items-center gap-3" onclick="window.location.reload()">
-                <div class="text-2xl font-black text-white tracking-tighter">
-                    الـحقيقة<span class="text-gold-400">.</span>
+<div class="hidden md:flex gap-8 text-sm font-medium text-gray-300">
+                <a href="https://yusuf-atti.github.io/alhqyqnews/2" class="hover:text-gold-400 transition-colors">الرئيسية</a> 
+                <a href="/news/l/2" class="hover:text-gold-400">أخبار محلية</a>
+                <a href="/news/l/9" class="hover:text-gold-400 transition-colors">تقارير</a>
+                <a href="/news/l/30" class="hover:text-gold-400 transition-colors">رياضة</a>
+                                <a href="https://yusuf-atti.github.io/alhqyqnews/23" class="hover:text-gold-400 transition-colors">الهيكل التنظيمي</a> 
+                <div class="relative group">
+                    <button onclick="openSettings()" class="text-gold-400 flex items-center gap-1 hover:text-white transition-colors">
+                        <i data-lucide="cpu" class="w-4 h-4"></i> إعدادات AI
+                    </button>
                 </div>
             </div>
-
-            <!-- Search & Menu (Left) -->
             <div class="flex items-center gap-4">
-                <button class="text-gray-400 hover:text-white"><i data-lucide="search" class="w-5 h-5"></i></button>
-                
-                <!-- Hamburger Menu Trigger -->
-                <button onclick="toggleSidebar()" class="text-white focus:outline-none">
-                    <i data-lucide="menu" class="w-7 h-7"></i>
-                </button>
+                <button class="p-2 hover:bg-white/5 rounded-full transition-colors"><i data-lucide="search" class="w-5 h-5 text-gray-400"></i></button>
+                                <a href="https://yusuf-atti.github.io/alhqyqnews/1" class="p-2 hover:bg-gold-400/20 rounded-full transition-colors text-gold-400" title="لوحة النشر"><i data-lucide="shield-check" class="w-5 h-5"></i></a>
             </div>
-        </div>
-
-        <!-- Horizontal Scroll Menu (Like Screenshot 1) -->
-        <div class="w-full overflow-x-auto scrollbar-hide bg-navy-800 border-b border-white/5">
-            <div class="flex px-4 min-w-max">
-                <button onclick="switchView('home', this)" class="nav-item active px-4 py-3 text-sm font-bold text-gray-300 whitespace-nowrap">الرئيسية</button>
-                <button onclick="switchView('features', this)" class="nav-item px-4 py-3 text-sm font-bold text-gray-300 whitespace-nowrap">الابتكارات الـ 15</button>
-                <button onclick="switchView('contract', this)" class="nav-item px-4 py-3 text-sm font-bold text-gray-300 whitespace-nowrap">توثيق العقد</button>
-                <button onclick="switchView('dashboard', this)" class="nav-item px-4 py-3 text-sm font-bold text-gray-300 whitespace-nowrap">لوحة الأثر</button>
-                <button onclick="switchView('admin', this)" class="nav-item px-4 py-3 text-sm font-bold text-gray-300 whitespace-nowrap">غرفة القيادة</button>
-            </div>
-        </div>
-    </header>
-
-    <!-- SIDEBAR MENU (Like Screenshot 2) -->
-    <aside id="main-sidebar" class="sidebar fixed inset-y-0 right-0 w-72 bg-[#1a1d26] z-[60] shadow-2xl border-l border-white/10 overflow-y-auto">
-        <div class="p-5 border-b border-white/10 flex justify-between items-center">
-            <h2 class="text-lg font-bold text-white">القائمة الرئيسية</h2>
-            <button onclick="toggleSidebar()" class="text-gray-400 hover:text-white"><i data-lucide="x" class="w-6 h-6"></i></button>
-        </div>
-
-        <div class="p-4 space-y-2">
-            <!-- Accordion Item 1: Admin -->
-            <div class="border-b border-white/5 pb-2">
-                <button onclick="toggleAccordion('acc-admin')" class="w-full flex justify-between items-center py-3 text-gray-300 hover:text-gold-400 font-bold">
-                    <span class="flex items-center gap-2"><i data-lucide="shield" class="w-4 h-4"></i> لوحة تحكم الإدارة</span>
-                    <i data-lucide="chevron-down" class="w-4 h-4 transition-transform duration-300" id="icon-acc-admin"></i>
-                </button>
-                <div id="acc-admin" class="accordion-content bg-black/20 rounded-lg">
-                    <a href="#" onclick="switchView('admin'); toggleSidebar()" class="block px-4 py-2 text-sm text-gray-400 hover:text-white hover:bg-white/5 rounded">المحرر الذكي</a>
-                    <a href="#" onclick="switchView('admin'); toggleSidebar()" class="block px-4 py-2 text-sm text-gray-400 hover:text-white hover:bg-white/5 rounded">إدارة الأعضاء (HR)</a>
-                    <a href="#" onclick="switchView('admin'); toggleSidebar()" class="block px-4 py-2 text-sm text-gray-400 hover:text-white hover:bg-white/5 rounded">الأرشيف</a>
-                </div>
-            </div>
-
-            <!-- Accordion Item 2: Settings -->
-            <div class="border-b border-white/5 pb-2">
-                <button onclick="toggleAccordion('acc-settings')" class="w-full flex justify-between items-center py-3 text-gray-300 hover:text-gold-400 font-bold">
-                    <span class="flex items-center gap-2"><i data-lucide="settings" class="w-4 h-4"></i> إعدادات</span>
-                    <i data-lucide="chevron-down" class="w-4 h-4 transition-transform duration-300" id="icon-acc-settings"></i>
-                </button>
-                <div id="acc-settings" class="accordion-content bg-black/20 rounded-lg">
-                    <a href="#" onclick="openSettings(); toggleSidebar()" class="block px-4 py-2 text-sm text-gray-400 hover:text-white hover:bg-white/5 rounded">مفتاح الذكاء الاصطناعي</a>
-                    <a href="#" onclick="toggleReaderAuth(); toggleSidebar()" class="block px-4 py-2 text-sm text-gray-400 hover:text-white hover:bg-white/5 rounded">حسابي</a>
-                </div>
-            </div>
-
-            <!-- Accordion Item 3: Modules -->
-            <div class="border-b border-white/5 pb-2">
-                <button onclick="toggleAccordion('acc-modules')" class="w-full flex justify-between items-center py-3 text-gray-300 hover:text-gold-400 font-bold">
-                    <span class="flex items-center gap-2"><i data-lucide="box" class="w-4 h-4"></i> الموديولات</span>
-                    <i data-lucide="chevron-down" class="w-4 h-4 transition-transform duration-300" id="icon-acc-modules"></i>
-                </button>
-                <div id="acc-modules" class="accordion-content bg-black/20 rounded-lg">
-                    <a href="#" class="block px-4 py-2 text-sm text-gray-400 hover:text-white hover:bg-white/5 rounded">البنرات الإعلانية</a>
-                    <a href="#" class="block px-4 py-2 text-sm text-gray-400 hover:text-white hover:bg-white/5 rounded">القوائم البريدية</a>
-                </div>
-            </div>
-            
-            <!-- Single Links -->
-            <button onclick="switchView('home'); toggleSidebar()" class="w-full flex items-center gap-2 py-3 text-gray-300 hover:text-gold-400 font-bold border-b border-white/5">
-                <i data-lucide="home" class="w-4 h-4"></i> الرئيسية
-            </button>
-            
-            <button onclick="logout()" class="w-full flex items-center gap-2 py-3 text-red-400 hover:text-red-300 font-bold mt-4">
-                <i data-lucide="log-out" class="w-4 h-4"></i> تسجيل خروج
-            </button>
-        </div>
-    </aside>
-
-    <!-- OVERLAY (Background Dim) -->
-    <div id="sidebar-overlay" onclick="toggleSidebar()" class="fixed inset-0 bg-black/50 z-50 hidden backdrop-blur-sm"></div>
-
-    <!-- MAIN CONTENT AREA -->
-    <main class="pt-32 pb-20 container mx-auto px-4 min-h-screen">
-        
-        <!-- 1. HOME VIEW (News) -->
-        <section id="view-home" class="view-section">
-            <!-- Ticker -->
-            <div class="bg-navy-800 border border-white/5 rounded-lg p-2 mb-6 flex items-center gap-3 shadow-lg">
-                <span class="bg-red-600 text-white text-[10px] font-bold px-2 py-0.5 rounded animate-pulse">عاجل</span>
-                <div class="w-full overflow-hidden relative h-5">
-                    <div id="ticker-content" class="absolute whitespace-nowrap animate-marquee text-xs text-gray-300 pt-0.5">
-                        الحقيقة الذكية | تصميم وإشراف: يوسف العتي ... جاري الاتصال...
-                    </div>
-                </div>
-            </div>
-
-            <div id="hero-section" class="mb-8 relative h-[400px] rounded-2xl bg-white/5 animate-pulse flex items-center justify-center border border-white/5">
-                <div class="loader"></div>
-            </div>
-
-            <div id="news-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                <!-- News Items -->
-            </div>
-        </section>
-
-        <!-- 2. FEATURES VIEW -->
-        <section id="view-features" class="view-section hidden">
-            <h2 class="text-2xl font-bold text-white mb-6 border-r-4 border-gold-400 pr-3">الابتكارات الـ 15</h2>
-            <div id="features-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
-        </section>
-
-        <!-- 3. CONTRACT VIEW -->
-        <section id="view-contract" class="view-section hidden max-w-2xl mx-auto">
-            <div class="bg-navy-800 border border-white/10 rounded-2xl p-6 shadow-2xl">
-                <h2 class="text-2xl font-bold text-white mb-4 text-center">عقد توظيف إلكتروني</h2>
-                <p class="text-gray-400 text-sm text-center mb-6">الرقم الوظيفي: <span class="text-gold-400 font-mono">HQ-GEN-01</span></p>
-                <form onsubmit="submitEmployeeContract(event)" class="space-y-4">
-                    <input type="text" id="rec-name" required class="w-full bg-black/50 border border-white/10 rounded-lg p-3 text-white focus:border-gold-400 outline-none" placeholder="الاسم الثلاثي">
-                    <input type="text" id="rec-id" required class="w-full bg-black/50 border border-white/10 rounded-lg p-3 text-white focus:border-gold-400 outline-none" placeholder="رقم الهوية (1xxxxxxxxx)">
-                    <button class="w-full bg-gold-400 text-black font-bold py-3 rounded-lg hover:bg-white transition">توثيق بالبصمة</button>
-                </form>
-            </div>
-        </section>
-
-        <!-- 4. DASHBOARD VIEW -->
-        <section id="view-dashboard" class="view-section hidden">
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-                <div class="bg-navy-800 p-4 rounded-xl border-t-4 border-gold-400 text-center"><h3 class="text-gray-400 text-xs">مؤشر التنبؤ</h3><p class="text-2xl font-bold text-white">85%</p></div>
-                <div class="bg-navy-800 p-4 rounded-xl border-t-4 border-blue-400 text-center"><h3 class="text-gray-400 text-xs">الأثر الاجتماعي</h3><p class="text-2xl font-bold text-white">12.5K</p></div>
-                <div class="bg-navy-800 p-4 rounded-xl border-t-4 border-green-400 text-center"><h3 class="text-gray-400 text-xs">المحررين النشطين</h3><p class="text-2xl font-bold text-white">12</p></div>
-            </div>
-            <div class="bg-navy-800 p-4 rounded-xl border border-white/5 h-64 flex items-center justify-center">
-                <canvas id="predictiveChart"></canvas>
-            </div>
-        </section>
-
-        <!-- 5. ADMIN VIEW (Internal) -->
-        <section id="view-admin" class="view-section hidden">
-            <div id="login-gate" class="max-w-md mx-auto mt-10 bg-navy-800 p-8 rounded-2xl border border-white/10 text-center">
-                <h2 class="text-2xl font-bold text-white mb-6">بوابة القيادة</h2>
-                <form onsubmit="handleRealLogin(event)" class="space-y-4">
-                    <input type="email" id="login-email" class="w-full bg-black/50 p-3 rounded text-white" placeholder="البريد">
-                    <input type="password" id="login-password" class="w-full bg-black/50 p-3 rounded text-white" placeholder="الرمز">
-                    <button class="w-full bg-gold-400 text-black font-bold py-3 rounded hover:bg-white">دخول</button>
-                </form>
-            </div>
-            <div id="admin-panel" class="hidden space-y-6">
-                <div class="flex justify-between items-center">
-                    <h2 class="text-2xl font-bold text-white">لوحة التحكم</h2>
-                    <button onclick="logout()" class="text-red-400 text-sm">خروج</button>
-                </div>
-                <!-- Editor -->
-                <div class="bg-navy-800 p-6 rounded-2xl border border-white/10">
-                    <input type="text" id="news-title" placeholder="عنوان الخبر..." class="w-full bg-transparent text-2xl font-bold text-white mb-4 border-b border-white/10 pb-2 outline-none">
-                    <textarea id="editor" class="w-full h-40 bg-black/30 rounded-lg p-3 text-white mb-4" placeholder="المحتوى..."></textarea>
-                    <div class="flex gap-2">
-                        <button onclick="triggerAI('title')" class="text-xs bg-white/10 text-gold-400 px-3 py-1 rounded">✨ AI عناوين</button>
-                        <button onclick="publishAction()" class="bg-gold-400 text-black px-6 py-2 rounded font-bold text-sm mr-auto">نشر</button>
-                    </div>
-                    <div id="ai-output" class="hidden mt-4 p-3 bg-white/5 rounded text-xs text-gray-300"></div>
-                </div>
-            </div>
-        </section>
-
-    </main>
-
-    <!-- Modals & Toasts -->
-    <div id="article-modal" class="fixed inset-0 z-[80] bg-black/95 hidden overflow-y-auto animate-fade-in">
-        <div class="min-h-screen p-4 md:p-8">
-            <button onclick="closeArticleModal()" class="fixed top-4 left-4 z-50 bg-white/10 text-white p-2 rounded-full hover:bg-red-500 transition"><i data-lucide="x" class="w-6 h-6"></i></button>
-            <div class="max-w-3xl mx-auto bg-navy-900 rounded-2xl overflow-hidden border border-white/10 shadow-2xl">
-                <img id="modal-img" src="" class="w-full h-64 object-cover">
-                <div class="p-6 md:p-10">
-                    <span id="modal-cat" class="text-gold-400 text-xs font-bold uppercase"></span>
-                    <h1 id="modal-title" class="text-2xl md:text-4xl font-bold text-white mt-2 mb-6 leading-tight"></h1>
-                    <div class="prose prose-invert max-w-none text-gray-300 leading-loose" id="modal-body"></div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div id="toast" class="fixed bottom-6 left-6 bg-green-600 text-white px-6 py-3 rounded-full shadow-2xl opacity-0 transition-all z-[100] font-bold flex items-center gap-2">
-        <i data-lucide="check-circle" class="w-5 h-5"></i> <span id="toast-msg">تم</span>
-    </div>
-
-    <div id="settings-modal" class="fixed inset-0 z-[90] bg-black/90 hidden items-center justify-center p-4">
-        <div class="bg-navy-900 w-full max-w-sm rounded-2xl border border-white/10 p-6">
-            <h3 class="text-lg font-bold text-white mb-4">إعدادات الذكاء الاصطناعي</h3>
-            <p class="text-sm text-gray-400 mb-4">لتفعيل ميزات AI، يرجى إدخال مفتاح Gemini API الخاص بك (يتم حفظه محلياً فقط).</p>
-            <input type="password" id="api-key-input" placeholder="Paste Gemini API Key here" class="w-full bg-black/50 border border-white/10 rounded-lg p-3 text-white mb-4 focus:border-gold-400 outline-none">
-            <div class="flex justify-end gap-3">
-                <button onclick="document.getElementById('settings-modal').classList.add('hidden')" class="px-4 py-2 text-gray-400 hover:text-white">إلغاء</button>
-                <button onclick="saveApiKey()" class="px-6 py-2 bg-gold-400 text-black font-bold rounded-lg hover:bg-gold-500">حفظ</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- JAVASCRIPT LOGIC -->
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            initApp();
-            initCharts();
-            initExplorer();
-        });
-        
-        let apiKey = localStorage.getItem('gemini_api_key') || "";
-        const sourceData = [
-            { title: "وزير البيئة يبحث تطوير مشاريع الخرج", category: "أخبار محلية", date: "29 نوفمبر", impact: 95 },
-            { title: "برنامج رافد الحرمين لموسم الحج", category: "أخبار محلية", date: "29 نوفمبر", impact: 88 },
-            { title: "تحديثات عاجلة لطائرات A320", category: "أخبار محلية", date: "29 نوفمبر", impact: 92 },
-            { title: "الاتحاد والشباب.. مواجهة ثالثة", category: "رياضة", date: "29 نوفمبر", impact: 90 },
-            { title: "الأهلي يبلغ نصف النهائي (كأس الملك)", category: "رياضة", date: "29 نوفمبر", impact: 85 },
-            { title: "عودة فعالية “بسطة الرياض”", category: "أخبار محلية", date: "28 نوفمبر", impact: 70 },
-            { title: "غرفة جازان وتمكين مستفيدي الصندوق", category: "اقتصاد", date: "28 نوفمبر", impact: 65 },
-            { title: "معرض قصص بلا ألوان بأبها", category: "ثقافة", date: "28 نوفمبر", impact: 60 },
-            { title: "تراجع إشغال الفنادق بالمملكة", category: "سياحة", date: "30 أكتوبر", impact: 75 },
-            { title: "صحة مكة وحقوق الإنسان", category: "صحة", date: "04 نوفمبر", impact: 55 },
-            { title: "الخلود يعبر أمواج الخليج", category: "رياضة", date: "28 نوفمبر", impact: 80 },
-            { title: "تفعيل المواقف المجانية بالسليمانية", category: "خدمات", date: "28 نوفمبر", impact: 72 }
-        ];
-
-        function initApp() {
-            initKPIs();
-            lucide.createIcons();
-        }
-
-        function switchView(viewId, btnElement) {
-            ['view-overview', 'view-analytics', 'view-explorer', 'view-insights'].forEach(id => {
-                document.getElementById(id).classList.add('hidden');
-            });
-            document.getElementById(`view-${viewId}`).classList.remove('hidden');
-
-            document.querySelectorAll('.nav-item').forEach(btn => {
-                btn.classList.remove('active-tab');
-            });
-            btnElement.classList.add('active-tab');
-        }
-
-        function initKPIs() {
-            document.getElementById('kpi-total').innerText = sourceData.length;
-            const counts = {};
-            sourceData.forEach(d => counts[d.category] = (counts[d.category] || 0) + 1);
-            const topCat = Object.keys(counts).reduce((a, b) => counts[a] > counts[b] ? a : b);
-            document.getElementById('kpi-top-cat').innerText = topCat;
-        }
-
-        function initCharts() {
-            const counts = {};
-            sourceData.forEach(d => counts[d.category] = (counts[d.category] || 0) + 1);
-            const ctxDist = document.getElementById('distChart').getContext('2d');
-            new Chart(ctxDist, {
-                type: 'doughnut',
-                data: { labels: Object.keys(counts), datasets: [{ data: Object.values(counts), backgroundColor: ['#0f172a', '#D4AF37', '#3b82f6', '#10b981', '#f59e0b', '#6366f1'], borderWidth: 0 }] },
-                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'right', labels: { font: { family: 'Tajawal' } } } } }
-            });
-
-            const sortedImpact = [...sourceData].sort((a,b) => b.impact - a.impact).slice(0, 5);
-            const ctxImp = document.getElementById('impactChart').getContext('2d');
-            new Chart(ctxImp, {
-                type: 'bar',
-                data: { labels: sortedImpact.map(i => i.title.substring(0, 15) + '...'), datasets: [{ label: 'مؤشر الأهمية', data: sortedImpact.map(i => i.impact), backgroundColor: '#D4AF37', borderRadius: 4 }] },
-                options: { responsive: true, maintainAspectRatio: false, indexAxis: 'y', scales: { x: { beginAtZero: true, max: 100 }, y: { grid: { display: false } } }, plugins: { legend: { display: false } } }
-            });
-        }
-
-        function initExplorer() {
-            const filters = document.getElementById('filters-container');
-            const categories = [...new Set(sourceData.map(d => d.category))];
-            
-            categories.forEach(cat => {
-                const btn = document.createElement('button');
-                btn.className = "filter-btn px-4 py-2 rounded-full border border-gray-300 text-gray-600 bg-white font-medium text-sm hover:border-[#0f172a] hover:text-[#0f172a]";
-                btn.innerText = cat;
-                btn.onclick = () => filterContent(cat, btn);
-                filters.appendChild(btn);
-            });
-
-            renderGrid(sourceData);
-        }
-
-        function filterContent(category, btn) {
-            const allBtns = document.getElementById('filters-container').children;
-            for(let b of allBtns) {
-                b.className = "filter-btn px-4 py-2 rounded-full border border-gray-300 text-gray-600 bg-white font-medium text-sm hover:border-[#0f172a] hover:text-[#0f172a]";
-            }
-            btn.classList.remove('bg-white', 'text-gray-600');
-            btn.className = "filter-btn active-filter px-4 py-2 rounded-full bg-[#0f172a] text-white font-bold text-sm shadow-lg border border-[#0f172a]";
-
-            const filtered = category === 'all' ? sourceData : sourceData.filter(d => d.category === category);
-            renderGrid(filtered);
-        }
-
-        function renderGrid(data) {
-            const container = document.getElementById('content-grid');
-            container.innerHTML = '';
-            
-            data.forEach(item => {
-                const card = document.createElement('div');
-                card.className = "glass-card p-5 rounded-xl border border-gray-100 flex flex-col justify-between h-40";
-                card.innerHTML = `
-                    <div>
-                        <div class="flex justify-between items-start mb-2">
-                            <span class="text-[10px] font-bold text-[#D4AF37] bg-[#D4AF37]/10 px-2 py-1 rounded">${item.category}</span>
-                            <span class="text-xs text-gray-400 font-mono">${item.date}</span>
-                        </div>
-                        <h3 class="font-bold text-[#0f172a] text-sm leading-snug line-clamp-2">${item.title}</h3>
-                    </div>
-                    <div class="w-full bg-gray-100 rounded-full h-1.5 mt-2 overflow-hidden">
-                        <div class="bg-[#0f172a] h-1.5 rounded-full transition-all duration-1000" style="width: ${item.impact}%"></div>
-                    </div>
-                `;
-                container.appendChild(card);
-            });
-        }
-        
-        // --- AI LOGIC ---
-
-        function checkAPIKey() {
-            if (!apiKey) {
-                document.getElementById('api-key-modal').classList.remove('hidden');
-                return false;
-            }
-            return true;
-        }
-
-        function saveApiKey() {
-            const key = document.getElementById('api-key-input').value;
-            if (key) {
-                localStorage.setItem('gemini_api_key', key);
-                apiKey = key;
-                document.getElementById('api-key-modal').classList.add('hidden');
-                alert("تم حفظ مفتاح API!");
-            }
-        }
-
-        async function callGemini(prompt, system) {
-            if (!checkAPIKey()) return null;
-            
-            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
-            try {
-                const response = await fetch(url, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }], systemInstruction: { parts: [{ text: system }] } })
-                });
-
-                const data = await response.json();
-                if (data.candidates && data.candidates[0] && data.candidates[0].content) {
-                    return data.candidates[0].content.parts[0].text;
-                }
-                return "فشل التحليل: استجابة فارغة.";
-            } catch (error) {
-                console.error("Gemini Error:", error);
-                return "فشل الاتصال بالذكاء الاصطناعي.";
-            }
-        }
-
-        async function analyzeTrends() {
-            if (!checkAPIKey()) return;
-            const btn = document.getElementById('btn-analyze-trends');
-            const originalHTML = btn.innerHTML;
-            btn.innerHTML = '<div class="loader"></div> جاري تحليل التوجهات...';
-            btn.disabled = true;
-
-            const contentSummary = sourceData.map(d => `${d.category}: ${d.title} (Impact: ${d.impact})`).join('; ');
-            const prompt = `
-                حلل بيانات المحتوى التالية لصحيفة 'الحقيقة'. بناءً على التوزيع ونقاط التأثير، استنتج ما يجب أن تكون عليه التوجهات التحريرية للأسبوع القادم.
-                البيانات الحالية: ${contentSummary}
-
-                المطلوب: تقرير موجز (Markdown) يشمل:
-                1. تحليل التوزيع الحالي (ما هي الأقسام المهيمنة).
-                2. 3 مواضيع مقترحة (Topics) يجب زيادتها.
-                3. اقتراح إجرائي واحد لتحسين التفاعل.
-            `;
-            const analysis = await callGemini(prompt, "أنت محلل بيانات إخباري خبير.");
-
-            document.getElementById('trends-content').innerHTML = analysis ? marked.parse(analysis) : "فشل تحليل البيانات.";
-            document.getElementById('trends-output').classList.remove('hidden');
-            
-            btn.innerHTML = originalHTML;
-            btn.disabled = false;
-        }
-
-        async function generateStrategy() {
-            if (!checkAPIKey()) return;
-            const btn = document.getElementById('btn-generate-strategy');
-            const originalHTML = btn.innerHTML;
-            btn.innerHTML = '<div class="loader"></div> جاري صياغة الخطة...';
-            btn.disabled = true;
-
-            const strengths = "تغطية فورية للرياضة، اهتمام بالثقافة، تنوع جغرافي.";
-            const weaknesses = "نقص محتوى التقنية، الحاجة لكتاب رأي جدد، ضعف استخدام الرسوم البيانية.";
-            
-            const prompt = `
-                بناءً على التحليل التالي، قم بإنشاء خطة عمل تنفيذية أسبوعية (Roadmap) في 5 نقاط (Markdown). يجب أن تكون الخطة قابلة للتنفيذ وتصحح الضعف.
-
-                - نقاط القوة: ${strengths}
-                - نقاط الضعف: ${weaknesses}
-
-                المطلوب: خطة أسبوعية تتضمن الإجراء، المسؤول، والموعد.
-            `;
-            const strategy = await callGemini(prompt, "أنت مدير مشروع خبير.");
-
-            document.getElementById('strategy-content').innerHTML = strategy ? marked.parse(strategy) : "فشل صياغة الخطة.";
-            document.getElementById('strategy-output').classList.remove('hidden');
-
-            btn.innerHTML = originalHTML;
-            btn.disabled = false;
-        }
-    </script>
-</body>
-</html>
