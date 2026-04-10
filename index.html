@@ -324,9 +324,17 @@ function AdminPanel({ isDarkMode, fontStyles, members, setMembers }) {
     const link = `${window.location.origin}/registerLink?token=${token}`;
     setGeneratedLink(link);
 
-    navigator.clipboard.writeText(link).then(() => {
+    try {
+      const el = document.createElement('textarea');
+      el.value = link;
+      document.body.appendChild(el);
+      el.select();
+      document.execCommand('copy');
+      document.body.removeChild(el);
       toast.success("تم توليد الرابط ونسخه بنجاح (صالح 48 ساعة)");
-    });
+    } catch (err) {
+      toast.info("تم توليد الرابط. يرجى نسخه يدوياً.");
+    }
   };
 
   const renewContract = (id) => {
@@ -406,7 +414,7 @@ function MemberCard({ member, isDarkMode, onRenew }) {
 }
 
 // ==========================================
-// REGISTRATION PAGE (المحسّنة بالكامل)
+// REGISTRATION PAGE
 // ==========================================
 function RegistrationPage({ isDarkMode, fontStyles, setCurrentView, members, setMembers }) {
   const [step, setStep] = useState(0); // 0: Token, 1: Form, 2: Sign, 3: Success
