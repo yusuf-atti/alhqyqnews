@@ -1,543 +1,138 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { 
-  Moon, Sun, Menu, User, Settings, Shield, Link as LinkIcon,
-  CheckCircle, Play, Zap, BrainCircuit, Clock, AlertCircle,
-  ChevronLeft, LogIn, UserPlus, FileSignature, Download,
-  Sparkles, X, Loader2, PenTool, Users, Trash2
-} from 'lucide-react';
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>صحيفة الحقيقة الذكية</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;900&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
-const ADMIN_PASSWORD = "Yousif1400@";
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;900&display=swap');
+        body { font-family: 'Tajawal', sans-serif; }
+        .glass { background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(12px); }
+        .gold-gradient { background: linear-gradient(to right, #D4AF37, #F5E050); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    </style>
+</head>
+<body class="bg-[#0B132B] text-slate-200 min-h-screen">
 
-export default function App() {
-  const [isDarkMode, setIsDarkMode] = useState(true);
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [currentView, setCurrentView] = useState('home');
-  const [passwordInput, setPasswordInput] = useState('');
-  const [loginError, setLoginError] = useState('');
+    <!-- Navbar -->
+    <nav class="fixed top-0 w-full z-50 glass border-b border-slate-700">
+        <div class="max-w-7xl mx-auto px-6 py-5 flex justify-between items-center">
+            <div class="flex items-center gap-4 cursor-pointer" onclick="goHome()">
+                <div class="w-10 h-10 bg-gradient-to-br from-[#D4AF37] to-yellow-500 rounded-2xl flex items-center justify-center">
+                    <span class="text-black font-bold text-2xl">ح</span>
+                </div>
+                <div>
+                    <h1 class="text-2xl font-bold tracking-tight">صحيفة الحقيقة الذكية</h1>
+                    <p class="text-xs text-slate-400 -mt-1">الحقيقة... بذكاء لا يُضاهى</p>
+                </div>
+            </div>
 
-  const [members, setMembers] = useState([
-    { id: 'EMP-1001', name: 'سالم المحمود', idNum: '1000111222', email: 'salem@alhaqiqa.com', role: 'محرر رئيسي', office: 'الرياض', endDate: Date.now() + 8 * 86400000 },
-    { id: 'EMP-1002', name: 'ريم العبدالله', idNum: '1000333444', email: 'reem@alhaqiqa.com', role: 'مراسلة', office: 'لندن', endDate: Date.now() + 25 * 86400000 },
-    { id: 'EMP-1003', name: 'طارق زياد', idNum: '1000555666', email: 'tariq@alhaqiqa.com', role: 'محلل بيانات', office: 'دبي', endDate: Date.now() + 2 * 86400000 },
-  ]);
+            <div class="flex items-center gap-6">
+                <button onclick="toggleDarkMode()" class="p-2 hover:bg-slate-800 rounded-xl">
+                    <i data-lucide="sun" id="theme-icon" class="w-5 h-5"></i>
+                </button>
 
-  // تحميل مكتبة html2pdf
-  useEffect(() => {
-    if (!document.getElementById('html2pdf-script')) {
-      const script = document.createElement('script');
-      script.id = 'html2pdf-script';
-      script.src = "https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js";
-      document.body.appendChild(script);
-    }
-  }, []);
+                <button onclick="showLoginModal()" id="admin-btn"
+                    class="flex items-center gap-2 px-5 py-2.5 bg-red-600 hover:bg-red-700 rounded-2xl font-bold text-sm transition-all">
+                    <i data-lucide="shield" class="w-4 h-4"></i>
+                    <span>الإدارة العليا</span>
+                </button>
+            </div>
+        </div>
+    </nav>
 
-  useEffect(() => {
-    isDarkMode ? document.documentElement.classList.add('dark') : document.documentElement.classList.remove('dark');
-  }, [isDarkMode]);
-
-  const fontStyles = {
-    tajawal: { fontFamily: "'Tajawal', sans-serif" },
-    cairo: { fontFamily: "'Cairo', sans-serif" }
-  };
-
-  return (
-    <div dir="rtl" className={`min-h-screen transition-colors duration-500 ${isDarkMode ? 'bg-[#0B132B] text-slate-200' : 'bg-slate-50 text-slate-800'}`} style={fontStyles.cairo}>
-      <style dangerouslySetInnerHTML={{__html: `
-        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Tajawal:wght@500;700;800&display=swap');
-        .glass-panel { background: ${isDarkMode ? 'rgba(30,41,59,0.85)' : 'rgba(255,255,255,0.85)'}; backdrop-filter: blur(16px); border: 1px solid ${isDarkMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.08)'}; }
-      `}} />
-
-      <ToastContainer />
-
-      {/* صفحة تسجيل الدخول للإدارة العليا */}
-      {!isLoggedIn && currentView === 'admin' ? (
-        <LoginScreen 
-          passwordInput={passwordInput}
-          setPasswordInput={setPasswordInput}
-          handleLogin={(e) => {
-            e.preventDefault();
-            if (passwordInput === ADMIN_PASSWORD) {
-              setIsLoggedIn(true);
-              setLoginError('');
-              toast.success("تم تسجيل الدخول بنجاح إلى الإدارة العليا");
-            } else {
-              setLoginError("كلمة المرور غير صحيحة");
-            }
-          }}
-          loginError={loginError}
-          isDarkMode={isDarkMode}
-          setCurrentView={setCurrentView}
-        />
-      ) : (
-        <>
-          <Header 
-            isDarkMode={isDarkMode} 
-            setIsDarkMode={setIsDarkMode} 
-            isLoggedIn={isLoggedIn} 
-            setIsLoggedIn={setIsLoggedIn} 
-            setCurrentView={setCurrentView} 
-          />
-
-          <main className="pt-24 pb-12 min-h-screen">
-            {currentView === 'home' && <HomePage isDarkMode={isDarkMode} fontStyles={fontStyles} />}
-            {currentView === 'admin' && isLoggedIn && <AdminPanel isDarkMode={isDarkMode} fontStyles={fontStyles} members={members} setMembers={setMembers} />}
-            {currentView === 'registerLink' && <RegistrationPage isDarkMode={isDarkMode} fontStyles={fontStyles} setCurrentView={setCurrentView} members={members} setMembers={setMembers} />}
-          </main>
-
-          <Footer isDarkMode={isDarkMode} fontStyles={fontStyles} />
-        </>
-      )}
-    </div>
-  );
-}
-
-// ==========================================
-// LOGIN SCREEN
-// ==========================================
-function LoginScreen({ passwordInput, setPasswordInput, handleLogin, loginError, isDarkMode, setCurrentView }) {
-  return (
-    <div className="min-h-screen flex items-center justify-center p-6 bg-[#0B132B]">
-      <div className="w-full max-w-md bg-slate-900 p-10 rounded-3xl border border-slate-700 shadow-2xl">
-        <div className="text-center mb-10">
-          <Shield size={80} className="mx-auto mb-6 text-[#D4AF37]" />
-          <h1 className="text-3xl font-bold text-white">الإدارة العليا</h1>
-          <p className="text-slate-400 mt-3">أدخل كلمة المرور للوصول</p>
+    <!-- Main Content -->
+    <main class="pt-28 pb-20 max-w-5xl mx-auto px-6">
+        <div class="text-center mb-16">
+            <h1 class="text-5xl font-bold gold-gradient mb-4">مرحباً بك في صحيفة الحقيقة الذكية</h1>
+            <p class="text-slate-400 text-lg">منصة إعلامية ذكية تعتمد على الذكاء الاصطناعي</p>
         </div>
 
-        <form onSubmit={handleLogin}>
-          <input 
-            type="password"
-            value={passwordInput}
-            onChange={(e) => setPasswordInput(e.target.value)}
-            placeholder="كلمة المرور"
-            className="w-full p-5 rounded-2xl bg-slate-800 border border-slate-700 text-white text-center text-lg mb-6 focus:border-[#D4AF37] outline-none"
-            required
-          />
-          {loginError && <p className="text-red-500 text-center mb-4 font-bold">{loginError}</p>}
-          
-          <button 
-            type="submit"
-            className="w-full py-5 bg-[#D4AF37] text-black font-bold rounded-2xl text-xl hover:bg-yellow-400 transition-all"
-          >
-            دخول إلى الإدارة العليا
-          </button>
-        </form>
-
-        <button 
-          onClick={() => setCurrentView('home')}
-          className="mt-6 w-full text-slate-400 hover:text-white transition-colors"
-        >
-          العودة للصفحة الرئيسية
-        </button>
-      </div>
-    </div>
-  );
-}
-
-// ==========================================
-// TOAST CONTAINER
-// ==========================================
-function ToastContainer() {
-  const [toasts, setToasts] = useState([]);
-
-  useEffect(() => {
-    const handler = (e) => {
-      const id = Date.now();
-      setToasts(prev => [...prev, { id, ...e.detail }]);
-      setTimeout(() => setToasts(p => p.filter(t => t.id !== id)), 5000);
-    };
-    window.addEventListener('add-toast', handler);
-    return () => window.removeEventListener('add-toast', handler);
-  }, []);
-
-  return (
-    <div className="fixed top-24 left-4 z-[100] flex flex-col gap-3 max-w-sm w-full pointer-events-none">
-      {toasts.map(t => (
-        <div key={t.id} className={`pointer-events-auto p-4 rounded-2xl shadow-2xl flex items-start gap-3 text-white animate-in slide-in-from-left border backdrop-blur-xl
-          ${t.type === 'success' ? 'bg-emerald-600 border-emerald-400' : 
-            t.type === 'error' ? 'bg-red-600 border-red-400' : 
-            t.type === 'warning' ? 'bg-amber-600 border-amber-400' : 'bg-blue-600 border-blue-400'}`}>
-          {t.type === 'success' && <CheckCircle size={22} />}
-          {t.type === 'error' && <AlertTriangle size={22} />}
-          {t.type === 'warning' && <AlertCircle size={22} />}
-          {t.type === 'info' && <Info size={22} />}
-          <div className="flex-1 text-sm font-semibold">{t.msg}</div>
-          <button onClick={() => setToasts(p => p.filter(x => x.id !== t.id))} className="opacity-70 hover:opacity-100"><X size={18} /></button>
-        </div>
-      ))}
-    </div>
-  );
-}
-
-// ==========================================
-// HEADER
-// ==========================================
-function Header({ isDarkMode, setIsDarkMode, isLoggedIn, setIsLoggedIn, setCurrentView }) {
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-
-  return (
-    <header className={`fixed top-0 w-full z-50 ${isDarkMode ? 'bg-[#0B132B]/95 border-b border-slate-800' : 'bg-white/95 border-b border-slate-200'} backdrop-blur-xl`}>
-      <div className="container mx-auto px-4 lg:px-8">
-        <div className="flex items-center justify-between h-20">
-          <div className="flex items-center gap-3 cursor-pointer" onClick={() => setCurrentView('home')}>
-            <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-[#D4AF37] to-yellow-600 flex items-center justify-center shadow-lg">
-              <Zap size={26} className="text-[#0B132B]" />
-            </div>
-            <div>
-              <h1 className="text-2xl font-bold text-[#D4AF37]">صحيفة الحقيقة الذكية</h1>
-              <p className={`text-xs ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>الحقيقة... بذكاء لا يُضاهى</p>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-4">
-            <button onClick={() => setIsDarkMode(!isDarkMode)} className="p-2 rounded-xl hover:bg-slate-800/50">
-              {isDarkMode ? <Sun size={22} className="text-yellow-400" /> : <Moon size={22} />}
+        <!-- Admin Access Button for Testing -->
+        <div class="flex justify-center mb-12">
+            <button onclick="showLoginModal()" 
+                class="px-8 py-4 bg-gradient-to-r from-red-600 to-red-500 text-white font-bold rounded-2xl flex items-center gap-3 hover:scale-105 transition-all">
+                <i data-lucide="shield-check" class="w-5 h-5"></i>
+                الدخول إلى الإدارة العليا
             </button>
-
-            {isLoggedIn && (
-              <button 
-                onClick={() => { setIsLoggedIn(false); setCurrentView('home'); }}
-                className="px-5 py-2.5 rounded-xl font-bold bg-red-600 text-white text-sm"
-              >
-                تسجيل خروج
-              </button>
-            )}
-
-            <button className="lg:hidden" onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}>
-              {isMobileMenuOpen ? <X size={28} /> : <Menu size={28} />}
-            </button>
-          </div>
         </div>
-      </div>
-    </header>
-  );
-}
+    </main>
 
-// ==========================================
-// HOME PAGE (مبسط)
-// ==========================================
-function HomePage({ isDarkMode }) {
-  return (
-    <div className="container mx-auto px-4 text-center py-20">
-      <h1 className="text-5xl font-bold text-[#D4AF37] mb-6">مرحباً بك في صحيفة الحقيقة الذكية</h1>
-      <p className="text-xl text-slate-400 max-w-2xl mx-auto">أول منصة إعلامية عربية تدار بمنظومة ذكاء اصطناعي متكاملة.</p>
-    </div>
-  );
-}
-
-// ==========================================
-// ADMIN PANEL
-// ==========================================
-function AdminPanel({ isDarkMode, members, setMembers }) {
-  const handleGenerateOTL = () => {
-    const token = crypto.randomUUID();
-    const expiry = Date.now() + 48 * 60 * 60 * 1000;
-
-    const tokens = JSON.parse(localStorage.getItem('hq_invite_tokens') || '{}');
-    tokens[token] = { expiry, used: false };
-    localStorage.setItem('hq_invite_tokens', JSON.stringify(tokens));
-
-    const link = `${window.location.origin}/alhqyqnews/#/registerLink?token=${token}`;
-    navigator.clipboard.writeText(link).then(() => {
-      toast.success("تم توليد الرابط ونسخه بنجاح (صالح 48 ساعة)");
-    });
-  };
-
-  return (
-    <div className="container mx-auto px-4 py-10">
-      <h2 className="text-4xl font-bold text-[#D4AF37] mb-10">لوحة الإدارة العليا</h2>
-      
-      <button 
-        onClick={handleGenerateOTL}
-        className="px-8 py-5 bg-[#D4AF37] text-black font-bold rounded-2xl text-lg hover:scale-105 transition-all mb-8"
-      >
-        إنشاء رابط توظيف جديد
-      </button>
-
-      <h3 className="text-2xl font-bold mb-6">الكادر الإعلامي الحالي</h3>
-      <div className="space-y-4">
-        {members.map(member => (
-          <div key={member.id} className="p-6 bg-slate-900 rounded-2xl border border-slate-700 flex justify-between items-center">
-            <div>
-              <p className="font-bold">{member.name}</p>
-              <p className="text-sm text-slate-400">{member.role} — {member.office}</p>
-            </div>
-            <div className="text-right">
-              <p className="text-xs text-slate-500">الرقم الوظيفي</p>
-              <p className="font-mono text-[#D4AF37]">{member.id}</p>
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-// ==========================================
-// REGISTRATION PAGE
-// ==========================================
-function RegistrationPage({ isDarkMode, setCurrentView, members, setMembers }) {
-  const [step, setStep] = useState(0);
-  const [token, setToken] = useState('');
-  const [formData, setFormData] = useState({ name: '', idNum: '', email: '', office: 'الرياض' });
-  const [generatedEmpId, setGeneratedEmpId] = useState('');
-  const [signatureDataUrl, setSignatureDataUrl] = useState('');
-
-  const canvasRef = useRef(null);
-  const [isDrawing, setIsDrawing] = useState(false);
-
-  // قراءة التوكن من الـ URL
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const urlToken = params.get('token');
-    if (urlToken) setToken(urlToken);
-  }, []);
-
-  const verifyToken = () => {
-    if (!token) return toast.error("يرجى إدخال رمز الدعوة");
-
-    const tokens = JSON.parse(localStorage.getItem('hq_invite_tokens') || '{}');
-    const data = tokens[token];
-
-    if (!data) return toast.error("الرمز غير صالح");
-    if (data.used) return toast.error("تم استخدام هذا الرمز مسبقاً");
-    if (Date.now() > data.expiry) return toast.error("انتهت صلاحية الرمز");
-
-    setStep(1);
-    toast.success("تم التحقق من الرمز بنجاح");
-  };
-
-  const handleProceed = (e) => {
-    e.preventDefault();
-    if (members.some(m => m.idNum === formData.idNum || m.email === formData.email)) {
-      return toast.error("رقم الهوية أو البريد مسجل مسبقاً");
-    }
-    setGeneratedEmpId(`EMP-${1000 + Math.floor(Math.random() * 9000)}`);
-    setStep(2);
-  };
-
-  const startDrawing = (e) => { setIsDrawing(true); draw(e); };
-  const draw = (e) => {
-    if (!isDrawing) return;
-    const canvas = canvasRef.current;
-    const ctx = canvas.getContext('2d');
-    const rect = canvas.getBoundingClientRect();
-    const x = (e.clientX || e.touches[0].clientX) - rect.left;
-    const y = (e.clientY || e.touches[0].clientY) - rect.top;
-    ctx.lineTo(x, y);
-    ctx.stroke();
-    setSignatureDataUrl(canvas.toDataURL('image/png'));
-  };
-  const stopDrawing = () => setIsDrawing(false);
-
-  const clearSignature = () => {
-    const canvas = canvasRef.current;
-    if (canvas) canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height);
-    setSignatureDataUrl('');
-  };
-
-  const handleSignContract = () => {
-    if (!signatureDataUrl) return toast.error("يرجى رسم توقيعك");
-
-    const tokens = JSON.parse(localStorage.getItem('hq_invite_tokens') || '{}');
-    if (tokens[token]) tokens[token].used = true;
-    localStorage.setItem('hq_invite_tokens', JSON.stringify(tokens));
-
-    setMembers(prev => [...prev, {
-      id: generatedEmpId,
-      name: formData.name,
-      idNum: formData.idNum,
-      email: formData.email,
-      role: 'عضو جديد',
-      office: formData.office,
-      endDate: Date.now() + 365 * 86400000
-    }]);
-
-    setStep(3);
-    toast.success("تم تسجيل العضو بنجاح!");
-  };
-
-  const exportPDF = async () => {
-    if (!window.html2pdf) return toast.error("مكتبة PDF غير محملة");
-
-    const element = document.createElement("div");
-    element.style.cssText = `width: 210mm; padding: 30mm 20mm; background: white; color: black; font-family: 'Cairo', sans-serif; direction: rtl; line-height: 1.8;`;
-
-    element.innerHTML = `
-      <div style="text-align:center; margin-bottom:40px; border-bottom:4px solid #D4AF37;">
-        <h1 style="font-size:28px; color:#0B132B;">صحيفة الحقيقة الذكية</h1>
-        <p style="color:#555;">عقد عمل إعلامي رسمي</p>
-      </div>
-      <table style="width:100%; border-collapse:collapse; margin:30px 0;">
-        <tr><td style="padding:12px; border:1px solid #ddd; font-weight:bold;">الرقم الوظيفي</td><td style="padding:12px; border:1px solid #ddd;">${generatedEmpId}</td></tr>
-        <tr><td style="padding:12px; border:1px solid #ddd; font-weight:bold;">الاسم</td><td style="padding:12px; border:1px solid #ddd;">${formData.name}</td></tr>
-        <tr><td style="padding:12px; border:1px solid #ddd; font-weight:bold;">رقم الهوية</td><td style="padding:12px; border:1px solid #ddd;">${formData.idNum}</td></tr>
-        <tr><td style="padding:12px; border:1px solid #ddd; font-weight:bold;">البريد</td><td style="padding:12px; border:1px solid #ddd;">${formData.email}</td></tr>
-        <tr><td style="padding:12px; border:1px solid #ddd; font-weight:bold;">المكتب</td><td style="padding:12px; border:1px solid #ddd;">${formData.office}</td></tr>
-        <tr><td style="padding:12px; border:1px solid #ddd; font-weight:bold;">تاريخ التوقيع</td><td style="padding:12px; border:1px solid #ddd;">${new Date().toLocaleString('ar-EG')}</td></tr>
-      </table>
-      <div style="margin:40px 0; padding:25px; background:#f8f9fa; border:1px solid #ddd;">
-        أقر أنا الموقع أدناه بالتزامي بكافة شروط العقد.
-      </div>
-      <div style="text-align:center; margin-top:50px;">
-        <p style="font-weight:bold;">التوقيع:</p>
-        ${signatureDataUrl ? `<img src="${signatureDataUrl}" style="max-width:280px;" alt="توقيع"/>` : ''}
-      </div>
-    `;
-
-    document.body.appendChild(element);
-
-    const opt = {
-      margin: 15,
-      filename: `عقد_${generatedEmpId}.pdf`,
-      image: { type: 'jpeg', quality: 0.98 },
-      html2canvas: { scale: 2 },
-      jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-    };
-
-    window.html2pdf().set(opt).from(element).save().then(() => {
-      document.body.removeChild(element);
-      toast.success("تم تحميل العقد بنجاح");
-    }).catch(() => {
-      document.body.removeChild(element);
-      toast.error("حدث خطأ أثناء التصدير");
-    });
-  };
-
-  return (
-    <div className="container mx-auto px-4 mt-10 max-w-3xl">
-      <div className={`rounded-3xl shadow-2xl overflow-hidden ${isDarkMode ? 'bg-slate-900 border border-slate-700' : 'bg-white'}`}>
-        <div className="bg-gradient-to-r from-[#0B132B] to-slate-900 p-10 text-center border-b-4 border-[#D4AF37]">
-          <h2 className="text-3xl font-bold text-[#D4AF37]">بوابة الانضمام الآمنة</h2>
-        </div>
-
-        <div className="p-10">
-          {step === 0 && (
-            <div className="max-w-md mx-auto text-center">
-              <Shield size={70} className="mx-auto mb-6 text-[#D4AF37]" />
-              <h3 className="text-2xl font-bold mb-4">التحقق من رمز الدعوة</h3>
-              <input 
-                type="text" 
-                value={token} 
-                onChange={(e) => setToken(e.target.value)}
-                placeholder="الصق رمز الدعوة هنا"
-                className="w-full p-5 rounded-2xl border-2 border-slate-700 bg-slate-950 text-center font-mono text-lg mb-6"
-              />
-              <button onClick={verifyToken} className="w-full py-4 bg-[#D4AF37] text-black font-bold rounded-2xl">التحقق والمتابعة</button>
-            </div>
-          )}
-
-          {step === 1 && (
-            <form onSubmit={handleProceed} className="space-y-8">
-              <h3 className="text-2xl font-bold text-center mb-8">البيانات الشخصية</h3>
-              <div className="grid md:grid-cols-2 gap-6">
-                <div><label className="block mb-2 font-bold">الاسم الرباعي</label>
-                  <input required value={formData.name} onChange={(e) => setFormData({...formData, name: e.target.value})} className="w-full p-4 rounded-2xl border border-slate-700 bg-slate-950" />
+    <!-- Login Modal -->
+    <div id="login-modal" class="fixed inset-0 bg-black/80 hidden items-center justify-center z-[100]">
+        <div class="bg-slate-900 rounded-3xl p-10 w-full max-w-md border border-slate-700">
+            <h2 class="text-2xl font-bold text-center mb-8 text-white">تسجيل الدخول - الإدارة العليا</h2>
+            
+            <form onsubmit="handleAdminLogin(event)" class="space-y-6">
+                <div>
+                    <label class="block text-sm font-medium text-slate-400 mb-2">كلمة المرور</label>
+                    <input type="password" id="admin-password" 
+                        class="w-full bg-slate-800 border border-slate-700 rounded-2xl px-5 py-4 text-white focus:border-[#D4AF37] outline-none"
+                        placeholder="أدخل كلمة المرور">
                 </div>
-                <div><label className="block mb-2 font-bold">رقم الهوية</label>
-                  <input required value={formData.idNum} onChange={(e) => setFormData({...formData, idNum: e.target.value})} type="number" className="w-full p-4 rounded-2xl border border-slate-700 bg-slate-950" />
-                </div>
-                <div><label className="block mb-2 font-bold">البريد الإلكتروني</label>
-                  <input required value={formData.email} onChange={(e) => setFormData({...formData, email: e.target.value})} type="email" className="w-full p-4 rounded-2xl border border-slate-700 bg-slate-950" />
-                </div>
-                <div><label className="block mb-2 font-bold">المكتب الإقليمي</label>
-                  <select value={formData.office} onChange={(e) => setFormData({...formData, office: e.target.value})} className="w-full p-4 rounded-2xl border border-slate-700 bg-slate-950">
-                    <option>الرياض</option><option>دبي</option><option>لندن</option><option>واشنطن</option>
-                  </select>
-                </div>
-              </div>
-              <button type="submit" className="w-full py-5 bg-[#D4AF37] text-black font-bold rounded-2xl text-lg">متابعة للتوقيع</button>
+
+                <div id="login-error" class="text-red-500 text-center text-sm hidden"></div>
+
+                <button type="submit"
+                    class="w-full py-4 bg-[#D4AF37] hover:bg-yellow-400 text-black font-bold rounded-2xl transition-all">
+                    دخول
+                </button>
             </form>
-          )}
 
-          {step === 2 && (
-            <div>
-              <h3 className="text-2xl font-bold mb-8 text-center">توقيع العقد الإلكتروني</h3>
-              <div className="mb-8">
-                <div className="flex justify-between mb-3">
-                  <label className="font-bold">منطقة التوقيع</label>
-                  <button onClick={clearSignature} className="text-red-500 text-sm flex items-center gap-1"><Trash2 size={16} /> مسح</button>
-                </div>
-                <div className={`h-56 rounded-3xl border-2 border-dashed overflow-hidden ${isDarkMode ? 'border-slate-600 bg-slate-950' : 'border-slate-300 bg-slate-50'}`}>
-                  <canvas 
-                    ref={canvasRef}
-                    onMouseDown={startDrawing}
-                    onMouseMove={draw}
-                    onMouseUp={stopDrawing}
-                    onMouseLeave={stopDrawing}
-                    onTouchStart={startDrawing}
-                    onTouchMove={draw}
-                    onTouchEnd={stopDrawing}
-                    className="w-full h-full cursor-crosshair"
-                  />
-                </div>
-              </div>
-
-              <div className="flex gap-4">
-                <button onClick={() => setStep(1)} className="flex-1 py-4 border border-slate-600 rounded-2xl font-bold">رجوع</button>
-                <button onClick={handleSignContract} className="flex-1 py-4 bg-green-600 text-white rounded-2xl font-bold">اعتماد التوقيع والتسجيل</button>
-              </div>
-            </div>
-          )}
-
-          {step === 3 && (
-            <div className="text-center py-12">
-              <CheckCircle size={90} className="mx-auto text-green-500 mb-6" />
-              <h2 className="text-4xl font-bold mb-4">تم التسجيل بنجاح!</h2>
-              <div className="flex flex-col gap-4 max-w-xs mx-auto mt-10">
-                <button onClick={exportPDF} className="py-5 bg-[#D4AF37] text-black font-bold rounded-2xl text-lg">تحميل العقد (PDF)</button>
-                <button onClick={() => setCurrentView('home')} className="py-5 border border-slate-600 rounded-2xl font-bold">العودة للرئيسية</button>
-              </div>
-            </div>
-          )}
+            <button onclick="hideLoginModal()" 
+                class="mt-6 w-full text-slate-400 hover:text-white text-sm">
+                إغلاق
+            </button>
         </div>
-      </div>
     </div>
-  );
-}
 
-// ==========================================
-// FOOTER
-// ==========================================
-function Footer({ isDarkMode }) {
-  return (
-    <footer className={`py-16 text-center ${isDarkMode ? 'bg-[#0B132B] border-t border-slate-800' : 'bg-slate-900'} text-slate-400`}>
-      <p className="font-bold">جميع الحقوق محفوظة © {new Date().getFullYear()} صحيفة الحقيقة الذكية</p>
-    </footer>
-  );
-}
+    <script>
+        lucide.createIcons();
 
-// ==========================================
-// TOAST CONTAINER (مكررة هنا للاختصار)
-// ==========================================
-function ToastContainer() {
-  const [toasts, setToasts] = useState([]);
+        function toggleDarkMode() {
+            document.documentElement.classList.toggle('dark');
+        }
 
-  useEffect(() => {
-    const handler = (e) => {
-      const id = Date.now();
-      setToasts(prev => [...prev, { id, ...e.detail }]);
-      setTimeout(() => setToasts(p => p.filter(t => t.id !== id)), 5000);
-    };
-    window.addEventListener('add-toast', handler);
-    return () => window.removeEventListener('add-toast', handler);
-  }, []);
+        function showLoginModal() {
+            document.getElementById('login-modal').classList.remove('hidden');
+            document.getElementById('login-modal').classList.add('flex');
+            document.getElementById('admin-password').focus();
+        }
 
-  return (
-    <div className="fixed top-24 left-4 z-[100] flex flex-col gap-3 max-w-sm w-full pointer-events-none">
-      {toasts.map(t => (
-        <div key={t.id} className={`pointer-events-auto p-4 rounded-2xl shadow-2xl flex items-start gap-3 text-white animate-in slide-in-from-left border backdrop-blur-xl
-          ${t.type === 'success' ? 'bg-emerald-600 border-emerald-400' : 
-            t.type === 'error' ? 'bg-red-600 border-red-400' : 
-            t.type === 'warning' ? 'bg-amber-600 border-amber-400' : 'bg-blue-600 border-blue-400'}`}>
-          {t.type === 'success' && <CheckCircle size={22} />}
-          {t.type === 'error' && <AlertTriangle size={22} />}
-          {t.type === 'warning' && <AlertCircle size={22} />}
-          {t.type === 'info' && <Info size={22} />}
-          <div className="flex-1 text-sm font-semibold">{t.msg}</div>
-          <button onClick={() => setToasts(p => p.filter(x => x.id !== t.id))} className="opacity-70 hover:opacity-100"><X size={18} /></button>
-        </div>
-      ))}
-    </div>
-  );
-}
+        function hideLoginModal() {
+            document.getElementById('login-modal').classList.add('hidden');
+            document.getElementById('login-modal').classList.remove('flex');
+        }
+
+        function handleAdminLogin(e) {
+            e.preventDefault();
+            const password = document.getElementById('admin-password').value.trim();
+            const errorDiv = document.getElementById('login-error');
+
+            if (password === "Yousif1400@") {
+                hideLoginModal();
+                alert("✅ تم تسجيل الدخول بنجاح!\n\nأنت الآن داخل الإدارة العليا.\n\n(في النسخة الكاملة سيتم توجيهك إلى لوحة التحكم)");
+                // هنا يمكنك إضافة توجيه إلى صفحة الإدارة لاحقاً
+            } else {
+                errorDiv.textContent = "كلمة المرور غير صحيحة";
+                errorDiv.classList.remove('hidden');
+                setTimeout(() => errorDiv.classList.add('hidden'), 3000);
+            }
+        }
+
+        function goHome() {
+            window.location.reload();
+        }
+
+        // تهيئة Lucide
+        window.onload = () => {
+            lucide.createIcons();
+        };
+    </script>
+</body>
+</html>
