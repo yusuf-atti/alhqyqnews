@@ -13,8 +13,9 @@
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;900&display=swap');
         body { font-family: 'Tajawal', sans-serif; }
-        .glass { background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(12px); }
+        .glass { background: rgba(15, 23, 42, 0.92); backdrop-filter: blur(16px); }
         .gold-gradient { background: linear-gradient(to right, #D4AF37, #F5E050); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .hero-bg { background: linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.9)), url('https://source.unsplash.com/random/1920x1080/?news') center/cover no-repeat; }
     </style>
 </head>
 <body class="bg-[#0B132B] text-slate-200 min-h-screen">
@@ -22,10 +23,8 @@
     <!-- Navbar -->
     <nav class="fixed top-0 w-full z-50 glass border-b border-slate-700">
         <div class="max-w-7xl mx-auto px-6 py-5 flex justify-between items-center">
-            <div class="flex items-center gap-4 cursor-pointer" onclick="goHome()">
-                <div class="w-10 h-10 bg-gradient-to-br from-[#D4AF37] to-yellow-500 rounded-2xl flex items-center justify-center">
-                    <span class="text-black font-bold text-2xl">ح</span>
-                </div>
+            <div onclick="goHome()" class="flex items-center gap-4 cursor-pointer">
+                <div class="w-10 h-10 bg-gradient-to-br from-[#D4AF37] to-yellow-500 rounded-2xl flex items-center justify-center text-black font-bold text-3xl">ح</div>
                 <div>
                     <h1 class="text-2xl font-bold tracking-tight">صحيفة الحقيقة الذكية</h1>
                     <p class="text-xs text-slate-400 -mt-1">الحقيقة... بذكاء لا يُضاهى</p>
@@ -33,63 +32,82 @@
             </div>
 
             <div class="flex items-center gap-6">
-                <button onclick="toggleDarkMode()" class="p-2 hover:bg-slate-800 rounded-xl">
+                <button onclick="toggleDarkMode()" class="p-3 hover:bg-slate-800 rounded-2xl transition-colors">
                     <i data-lucide="sun" id="theme-icon" class="w-5 h-5"></i>
                 </button>
 
-                <button onclick="showLoginModal()" id="admin-btn"
-                    class="flex items-center gap-2 px-5 py-2.5 bg-red-600 hover:bg-red-700 rounded-2xl font-bold text-sm transition-all">
-                    <i data-lucide="shield" class="w-4 h-4"></i>
+                <button onclick="showLoginModal()" 
+                    class="flex items-center gap-3 px-6 py-3 bg-red-600 hover:bg-red-700 rounded-2xl font-bold transition-all">
+                    <i data-lucide="shield" class="w-5 h-5"></i>
                     <span>الإدارة العليا</span>
                 </button>
             </div>
         </div>
     </nav>
 
-    <!-- Main Content -->
-    <main class="pt-28 pb-20 max-w-5xl mx-auto px-6">
-        <div class="text-center mb-16">
-            <h1 class="text-5xl font-bold gold-gradient mb-4">مرحباً بك في صحيفة الحقيقة الذكية</h1>
-            <p class="text-slate-400 text-lg">منصة إعلامية ذكية تعتمد على الذكاء الاصطناعي</p>
+    <!-- Hero -->
+    <section class="hero-bg h-screen flex items-center justify-center text-center relative">
+        <div class="max-w-4xl px-6">
+            <h1 class="text-6xl md:text-7xl font-black mb-6 leading-tight gold-gradient">
+                الحقيقة<br>بذكاء لا يُضاهى
+            </h1>
+            <p class="text-xl text-slate-300 mb-10">أول منصة إعلامية عربية تعتمد على الذكاء الاصطناعي لتقديم الأخبار الموثوقة</p>
+            
+            <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                <button onclick="showLoginModal()" 
+                    class="px-10 py-5 bg-[#D4AF37] text-black font-bold rounded-2xl text-lg hover:scale-105 transition-all">
+                    الدخول إلى الإدارة العليا
+                </button>
+                <button onclick="window.location.href='#register-section'" 
+                    class="px-10 py-5 border-2 border-slate-400 hover:border-white rounded-2xl text-lg transition-all">
+                    انضم إلينا
+                </button>
+            </div>
         </div>
-
-        <!-- Admin Access Button for Testing -->
-        <div class="flex justify-center mb-12">
-            <button onclick="showLoginModal()" 
-                class="px-8 py-4 bg-gradient-to-r from-red-600 to-red-500 text-white font-bold rounded-2xl flex items-center gap-3 hover:scale-105 transition-all">
-                <i data-lucide="shield-check" class="w-5 h-5"></i>
-                الدخول إلى الإدارة العليا
-            </button>
-        </div>
-    </main>
+    </section>
 
     <!-- Login Modal -->
-    <div id="login-modal" class="fixed inset-0 bg-black/80 hidden items-center justify-center z-[100]">
+    <div id="login-modal" class="fixed inset-0 bg-black/90 hidden items-center justify-center z-[100]">
         <div class="bg-slate-900 rounded-3xl p-10 w-full max-w-md border border-slate-700">
-            <h2 class="text-2xl font-bold text-center mb-8 text-white">تسجيل الدخول - الإدارة العليا</h2>
+            <div class="text-center mb-8">
+                <Shield size={70} class="mx-auto mb-4 text-[#D4AF37]" />
+                <h2 class="text-3xl font-bold text-white">الإدارة العليا</h2>
+            </div>
             
             <form onsubmit="handleAdminLogin(event)" class="space-y-6">
-                <div>
-                    <label class="block text-sm font-medium text-slate-400 mb-2">كلمة المرور</label>
-                    <input type="password" id="admin-password" 
-                        class="w-full bg-slate-800 border border-slate-700 rounded-2xl px-5 py-4 text-white focus:border-[#D4AF37] outline-none"
-                        placeholder="أدخل كلمة المرور">
-                </div>
-
-                <div id="login-error" class="text-red-500 text-center text-sm hidden"></div>
-
-                <button type="submit"
-                    class="w-full py-4 bg-[#D4AF37] hover:bg-yellow-400 text-black font-bold rounded-2xl transition-all">
+                <input type="password" id="admin-password" placeholder="كلمة المرور" 
+                    class="w-full p-5 rounded-2xl bg-slate-800 border border-slate-700 text-white text-center text-lg focus:border-[#D4AF37]">
+                
+                <div id="login-error" class="text-red-500 text-center hidden"></div>
+                
+                <button type="submit" 
+                    class="w-full py-5 bg-[#D4AF37] text-black font-bold rounded-2xl text-xl hover:bg-yellow-400 transition-all">
                     دخول
                 </button>
             </form>
 
-            <button onclick="hideLoginModal()" 
-                class="mt-6 w-full text-slate-400 hover:text-white text-sm">
+            <button onclick="hideLoginModal()" class="mt-6 w-full text-slate-400 hover:text-white">
                 إغلاق
             </button>
         </div>
     </div>
+
+    <!-- Registration Section -->
+    <section id="register-section" class="py-20 bg-slate-900">
+        <div class="max-w-3xl mx-auto px-6 text-center">
+            <h2 class="text-4xl font-bold mb-6">انضم إلى فريقنا</h2>
+            <p class="text-slate-400 mb-10">إذا كان لديك رابط دعوة من الإدارة، يمكنك التسجيل الآن</p>
+            
+            <button onclick="goToRegister()" 
+                class="px-10 py-5 bg-green-600 hover:bg-green-500 rounded-2xl font-bold text-lg transition-all">
+                ابدأ التسجيل عبر رابط الدعوة
+            </button>
+        </div>
+    </section>
+
+    <footer class="bg-[#050510] py-12 text-center text-slate-500 text-sm">
+        © 2026 صحيفة الحقيقة الذكية - جميع الحقوق محفوظة
+    </footer>
 
     <script>
         lucide.createIcons();
@@ -105,8 +123,9 @@
         }
 
         function hideLoginModal() {
-            document.getElementById('login-modal').classList.add('hidden');
-            document.getElementById('login-modal').classList.remove('flex');
+            const modal = document.getElementById('login-modal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
         }
 
         function handleAdminLogin(e) {
@@ -116,17 +135,22 @@
 
             if (password === "Yousif1400@") {
                 hideLoginModal();
-                alert("✅ تم تسجيل الدخول بنجاح!\n\nأنت الآن داخل الإدارة العليا.\n\n(في النسخة الكاملة سيتم توجيهك إلى لوحة التحكم)");
-                // هنا يمكنك إضافة توجيه إلى صفحة الإدارة لاحقاً
+                alert("✅ تم تسجيل الدخول بنجاح!\n\nأنت الآن داخل الإدارة العليا.\n\n(يمكنك الآن توليد روابط الدعوة وإدارة الأعضاء)");
+                // هنا يمكنك إضافة توجيه إلى صفحة الإدارة في المستقبل
             } else {
                 errorDiv.textContent = "كلمة المرور غير صحيحة";
                 errorDiv.classList.remove('hidden');
-                setTimeout(() => errorDiv.classList.add('hidden'), 3000);
+                setTimeout(() => errorDiv.classList.add('hidden'), 4000);
             }
         }
 
         function goHome() {
-            window.location.reload();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function goToRegister() {
+            alert("سيتم توجيهك إلى صفحة التسجيل عبر رابط الدعوة.\n\nفي النسخة الكاملة سيتم فتح صفحة التسجيل مباشرة.");
+            // window.location.href = "#"; // يمكنك إضافة رابط حقيقي هنا
         }
 
         // تهيئة Lucide
