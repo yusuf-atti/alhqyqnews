@@ -81,7 +81,7 @@
 </head>
 <body class="antialiased dark selection:bg-gold-400 selection:text-black">
 
-    <!-- Navbar (مصحح 100% لـ GitHub Pages) -->
+    <!-- Navbar -->
     <nav class="fixed w-full z-50 glass-nav transition-all duration-300">
         <div class="container mx-auto px-6 h-20 flex justify-between items-center">
             <!-- Logo -->
@@ -275,12 +275,12 @@
     <div id="settings-modal" class="fixed inset-0 z-[70] bg-black/90 hidden items-center justify-center p-4">
         <div class="bg-navy-800 w-full max-w-md rounded-xl border border-white/10 p-6">
             <h3 class="text-lg font-bold text-white mb-4">إعدادات الذكاء الاصطناعي</h3>
-            <p class="text-sm text-gray-400 mb-4">أدخل مفتاح Gemini API (يُحفظ محليًا فقط)</p>
-            <input type="password" id="api-key-input" placeholder="Gemini API Key" 
-                   class="w-full bg-black/50 border border-white/10 rounded-lg p-3 text-white mb-4 focus:border-gold-400 outline-none">
+            <p class="text-sm text-gray-400 mb-4">بيئة التشغيل تقوم بحقن مفتاح Gemini API تلقائياً.</p>
+            <input type="password" id="api-key-input" value="مفتاح API مُدار تلقائياً بواسطة النظام" disabled 
+                   class="w-full bg-black/50 border border-white/10 rounded-lg p-3 text-white/50 mb-4 focus:outline-none cursor-not-allowed">
             <div class="flex justify-end gap-3">
                 <button onclick="document.getElementById('settings-modal').classList.add('hidden')" class="px-4 py-2 text-gray-400 hover:text-white">إلغاء</button>
-                <button onclick="saveApiKey()" class="px-6 py-2 bg-gold-400 text-black font-bold rounded-lg hover:bg-gold-500">حفظ</button>
+                <button onclick="saveApiKey()" class="px-6 py-2 bg-gold-400 text-black font-bold rounded-lg hover:bg-gold-500">حسناً</button>
             </div>
         </div>
     </div>
@@ -300,7 +300,8 @@
     <script>
         lucide.createIcons();
 
-        let userApiKey = localStorage.getItem('gemini_api_key') || "";
+        // بيئة التشغيل توفر المفتاح تلقائياً (يجب أن يبقى فارغاً في الكود)
+        const apiKey = ""; 
         const RSS_URL = "https://alhqyq.com/rss-action-feed-m-news-id-0-feed-rss20.xml";
         let fetchedNewsData = [];
 
@@ -322,16 +323,10 @@
         // Settings
         function openSettings() {
             document.getElementById('settings-modal').classList.remove('hidden');
-            document.getElementById('api-key-input').value = userApiKey;
         }
         function saveApiKey() {
-            const key = document.getElementById('api-key-input').value.trim();
-            if (key) {
-                userApiKey = key;
-                localStorage.setItem('gemini_api_key', key);
-                document.getElementById('settings-modal').classList.add('hidden');
-                alert("✅ تم حفظ مفتاح Gemini API بنجاح!");
-            }
+            document.getElementById('settings-modal').classList.add('hidden');
+            alert("✅ يتم إدارة المفتاح تلقائياً في هذه البيئة!");
         }
 
         // Toggle Chat
@@ -379,16 +374,9 @@
             return new Blob([wavBytes], { type: 'audio/wav' });
         }
 
-        // Gemini API Key
-        const getKey = () => {
-            const k = userApiKey;
-            if (!k) { openSettings(); throw new Error("No API Key"); }
-            return k;
-        };
-
         // Generate Text
         async function generateText(prompt, systemPrompt = "", jsonMode = false) {
-            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${getKey()}`;
+            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
             const payload = {
                 contents: [{ parts: [{ text: prompt }] }],
                 systemInstruction: systemPrompt ? { parts: [{ text: systemPrompt }] } : undefined,
@@ -402,7 +390,7 @@
 
         // TTS
         async function generateSpeech(text) {
-            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-tts:generateContent?key=${getKey()}`;
+            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-tts:generateContent?key=${apiKey}`;
             const payload = {
                 contents: [{ parts: [{ text }] }],
                 generationConfig: { responseModalities: ["AUDIO"], speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName: "Kore" } } } }
