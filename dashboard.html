@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>لوحة التحكم — ابتكر</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <header class="site-header container header-inner">
+    <a class="brand" href="index.html">ابتكر</a>
+    <a class="btn small" href="profile.html">حسابي</a>
+  </header>
+
+  <main class="container">
+    <h2>لوحة التحكم</h2>
+    <div class="glass" style="display:flex;gap:1rem;flex-wrap:wrap">
+      <div style="flex:1" class="glass">
+        <h3>الإحصائيات</h3>
+        <div>الطلبات اليوم: <strong>12</strong></div>
+        <div>إجمالي الأرباح (شهر): <strong>23,450 ر.س</strong></div>
+      </div>
+      <div style="flex:1" class="glass">
+        <h3>المنتجات</h3>
+        <div>إجمالي المنتجات: <strong id="dash-products-count">0</strong></div>
+      </div>
+    </div>
+  </main>
+
+  <script src="js/products.js"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", ()=> {
+      document.getElementById("dash-products-count").textContent = PRODUCTS.length;
+    });
+  </script>
+</body>
+</html>

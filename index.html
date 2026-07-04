@@ -1,114 +1,171 @@
-```html name=ai.html
 <!doctype html>
 <html lang="ar" dir="rtl">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>أدوات الذكاء الاصطناعي — ابتكر</title>
+  <title>ابتكر | Ibtakir — المتجر للأسر المنتجة</title>
+
+  <!-- أساسي: استخدم ملفات محلية فقط -->
   <link rel="stylesheet" href="css/style.css">
 </head>
-<body>
-  <header class="site-header container header-inner">
-    <a class="brand" href="index.html">ابتكر</a>
-    <a href="dashboard.html" class="btn small">لوحة التحكم</a>
+<body class="light" data-theme="light">
+
+  <!-- NAV -->
+  <header class="site-header">
+    <div class="container header-inner">
+      <a class="brand" href="index.html">
+        <span class="logo-mark">ابتكر</span>
+        <span class="brand-sub">Ibtakir</span>
+      </a>
+
+      <div class="search-wrap">
+        <input id="global-search" type="search" placeholder="ابحث عن منتجات أو أسر..." />
+        <button id="search-btn">بحث</button>
+      </div>
+
+      <nav class="actions">
+        <button id="mode-toggle" aria-label="تبديل الوضع">🌙</button>
+        <button id="rtl-toggle" aria-label="تبديل اتجاه">↔</button>
+        <a href="login.html" class="btn small">دخول</a>
+        <a href="cart.html" class="btn small">السلة <span id="cart-count">0</span></a>
+      </nav>
+    </div>
   </header>
 
-  <main class="container">
-    <h2>أدوات مساعدة بالذكاء الاصطناعي</h2>
+  <!-- HERO -->
+  <main>
+    <section class="hero">
+      <div class="hero-content container">
+        <h1>منصة ابتكار للأسر المنتجة</h1>
+        <p>منتجات يدوية، هوية عربية عصرية، ودعم لكل أسرة لتصل لعملائها.</p>
+        <div class="hero-cta">
+          <a class="btn primary" href="products.html">تسوّق الآن</a>
+          <a class="btn ghost" href="ai.html">أدوات مساعدة بالذكاء الاصطناعي</a>
+        </div>
+      </div>
 
-    <section class="glass">
-      <h3>اقتراح أسماء للعلامة التجارية</h3>
-      <input id="ai-brand-key" placeholder="ادخل وصف قصير للمنتج أو الفكرة (مثلاً: مربي طبيعي/حرف يدوية)"/>
-      <button id="ai-brand-btn" class="btn">اقتراح أسماء</button>
-      <div id="ai-brand-result"></div>
+      <div class="hero-carousel">
+        <!-- صور بتحميل كسول -->
+        <img class="lazy" data-src="images/hero1.jpg" alt="صناعة يدوية">
+        <img class="lazy" data-src="images/hero2.jpg" alt="أسرة منتجة">
+        <div class="hero-overlay glass"></div>
+      </div>
     </section>
 
-    <section class="glass">
-      <h3>كتابة وصف احترافي للمنتج</h3>
-      <textarea id="ai-desc-key" placeholder="أدخل مميزات المنتج باختصار"></textarea>
-      <button id="ai-desc-btn" class="btn">إنشاء وصف</button>
-      <div id="ai-desc-result"></div>
+    <!-- أقسام -->
+    <section class="sections container">
+      <h2>الأقسام</h2>
+      <div class="categories">
+        <a href="products.html?cat=طعام" class="category-card">مأكولات</a>
+        <a href="products.html?cat=حرف" class="category-card">حرف يدوية</a>
+        <a href="products.html?cat=ملابس" class="category-card">ملابس</a>
+        <a href="products.html?cat=أطفال" class="category-card">منتجات الأطفال</a>
+      </div>
     </section>
 
-    <section class="glass">
-      <h3>اقتراح سعر البيع وحساب هامش الربح</h3>
-      <label>تكلفة الإنتاج (ر.س)<input id="ai-cost" type="number" value="30"></label>
-      <label>نسبة الربح المرغوبة (%)<input id="ai-margin" type="number" value="50"></label>
-      <button id="ai-price-btn" class="btn">اقتراح سعر</button>
-      <div id="ai-price-result"></div>
+    <!-- منتجات مميزة -->
+    <section class="featured container" id="featured-products">
+      <h2>منتجات مميزة</h2>
+      <div class="products-grid" id="featured-grid">
+        <!-- تُملأ بواسطة JS -->
+      </div>
     </section>
 
-    <section class="glass">
-      <h3>خطة تسويق قصيرة</h3>
-      <input id="ai-marketing-key" placeholder="نوع المنتج والجمهور المستهدف">
-      <button id="ai-marketing-btn" class="btn">إنشاء خطة</button>
-      <div id="ai-marketing-result"></div>
+    <!-- الأسر المنتجة -->
+    <section class="producers container">
+      <h2>الأسر المنتجة</h2>
+      <div class="producers-list" id="producers-list">
+        <!-- بطاقة عينة -->
+        <article class="producer-card glass">
+          <img src="images/producer-sample.jpg" alt="أسرة" loading="lazy">
+          <h3>أسرة المبدعون</h3>
+          <p>حلويات تقليدية وصناعات يدوية</p>
+          <a class="btn" href="profile.html">زيارة الصفحة</a>
+        </article>
+      </div>
+    </section>
+
+    <!-- إحصائيات -->
+    <section class="stats container">
+      <h2>إحصائيات</h2>
+      <div class="stats-grid">
+        <div class="stat glass">
+          <h3 id="stat-sellers">125</h3>
+          <p>أسرة منتجة</p>
+        </div>
+        <div class="stat glass">
+          <h3 id="stat-products">1,240</h3>
+          <p>منتج</p>
+        </div>
+        <div class="stat glass">
+          <h3 id="stat-orders">8,532</h3>
+          <p>أمر شحن</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- تقييمات -->
+    <section class="testimonials container">
+      <h2>تقييمات العملاء</h2>
+      <div class="testimonials-list" id="testimonials">
+        <blockquote class="glass">
+          <p>خدمة رائعة ومنتجات ذات جودة عالية — شكراً لابتكر!</p>
+          <cite>أ. سارة</cite>
+        </blockquote>
+      </div>
+    </section>
+
+    <!-- المدونة و الأسئلة -->
+    <section class="blog-faq container">
+      <div class="blog">
+        <h3>المدونة</h3>
+        <article class="post glass">
+          <h4>كيف تبدأ أسرتك في البيع عبر الإنترنت</h4>
+          <p>نصائح عملية لتعزيز وجودك الرقمي.</p>
+          <a href="about.html">اقرأ المزيد</a>
+        </article>
+      </div>
+
+      <div class="faq">
+        <h3>الأسئلة الشائعة</h3>
+        <details class="glass"><summary>كيف أفتح متجرًا على ابتكر؟</summary><p>سهل — سجل حساباً ثم أضف منتجاتك من لوحة التحكم.</p></details>
+      </div>
+    </section>
+
+    <!-- شركاء -->
+    <section class="partners container">
+      <h2>شركاؤنا</h2>
+      <div class="partners-row">
+        <img src="images/partner1.png" alt="شريك" loading="lazy">
+        <img src="images/partner2.png" alt="شريك" loading="lazy">
+      </div>
     </section>
   </main>
 
-  <footer class="site-footer container">© 2026 Ibtakir</footer>
+  <!-- FOOTER -->
+  <footer class="site-footer">
+    <div class="container footer-inner">
+      <div class="brand-col">
+        <h3>ابتكر | Ibtakir</h3>
+        <p>دعم الأسر المنتجة للوصول للعالمية.</p>
+      </div>
+      <div class="links-col">
+        <a href="about.html">من نحن</a>
+        <a href="contact.html">تواصل معنا</a>
+        <a href="ai.html">أدوات AI</a>
+      </div>
+      <div class="social-col">
+        <p>© 2026 Ibtakir</p>
+      </div>
+    </div>
+  </footer>
 
-  <script>
-    // وظائف AI محلية تعتمد على قواعد بسيطة لتوليد محتوى تجريبي.
-    function suggestBrandNames(seed){
-      seed = (seed||"").trim();
-      const base = seed.split(" ")[0] || "ابتكر";
-      return [
-        `${base} الأصلي`,
-        `بيت ${base}`,
-        `${base} بلمسة محلية`,
-        `${base} × جودة`,
-        `${base} الذهبي`
-      ];
-    }
-    function createDescription(features){
-      return `وصف احترافي: ${features}. منتج مصنوع يدوياً بجودة عالية ومراعاة للتفاصيل، مناسب للهدايا والاستخدام اليومي. يأتي من أسر منتجة تضمن أصالة المكونات والاهتمام بالتغليف.`;
-    }
-    function suggestPrice(cost, marginPercent){
-      const target = cost * (1 + marginPercent/100);
-      const rounded = Math.round(target/5)*5;
-      const profit = rounded - cost;
-      return {price:rounded, profit, margin: (profit/rounded*100).toFixed(1)};
-    }
-    function marketingPlan(seed){
-      return `خطة تسويق قصيرة لــ ${seed}:
-- تحديد الجمهور: مهتمون بالمنتجات الحرفية والهدايا.
-- منصات: إنستغرام، سناب، مجموعات واتساب محلية.
-- محتوى: صور عالية الجودة، فيديوهات تصنيع قصيرة، شهادات العملاء.
-- عروض: كوبونات إطلاق، شحن مجاني لأول طلب.`;
-    }
+  <!-- Modals & Toast container -->
+  <div id="toast-container" aria-live="polite"></div>
 
-    document.getElementById("ai-brand-btn").addEventListener("click", ()=>{
-      const seed = document.getElementById("ai-brand-key").value;
-      const names = suggestBrandNames(seed).map(n=>`<div class="glass" style="margin:6px;padding:8px">${n} <button class="btn small" onclick="copyText('${escape(n)}')">نسخ</button></div>`).join("");
-      document.getElementById("ai-brand-result").innerHTML = names;
-    });
-
-    document.getElementById("ai-desc-btn").addEventListener("click", ()=>{
-      const f = document.getElementById("ai-desc-key").value;
-      document.getElementById("ai-desc-result").innerHTML = `<div class="glass">${createDescription(f)} <button class="btn small" onclick="copyText('${escape(createDescription(f))}')">نسخ</button></div>`;
-    });
-
-    document.getElementById("ai-price-btn").addEventListener("click", ()=>{
-      const cost = Number(document.getElementById("ai-cost").value||0);
-      const margin = Number(document.getElementById("ai-margin").value||0);
-      const r = suggestPrice(cost, margin);
-      document.getElementById("ai-price-result").innerHTML = `<div class="glass">سعر مقترح: <strong>${r.price} ر.س</strong> — هامش ربح: ${r.margin}% (ربح ${r.profit} ر.س)</div>`;
-    });
-
-    document.getElementById("ai-marketing-btn").addEventListener("click", ()=>{
-      const k = document.getElementById("ai-marketing-key").value;
-      document.getElementById("ai-marketing-result").innerHTML = `<div class="glass">${marketingPlan(k)}</div>`;
-    });
-
-    function copyText(s){
-      try{
-        const txt = unescape(s);
-        navigator.clipboard?.writeText(txt);
-        alert("تم نسخ النص");
-      }catch(e){ alert("نسخ غير متاح"); }
-    }
-  </script>
+  <!-- سكربتات -->
+  <script src="js/products.js"></script>
+  <script src="js/cart.js"></script>
+  <script src="js/main.js"></script>
 </body>
 </html>
-```

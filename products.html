@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>ابتكر — المتجر</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <header class="site-header">
+    <div class="container header-inner">
+      <a class="brand" href="index.html">ابتكر | Ibtakir</a>
+      <div class="search-wrap">
+        <input id="page-search" type="search" placeholder="ابحث داخل المتجر..." />
+        <button id="page-search-btn">بحث</button>
+      </div>
+      <nav class="actions">
+        <a href="cart.html" class="btn small">السلة <span id="cart-count">0</span></a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <section class="filters glass">
+      <h3>فلاتر</h3>
+      <label>الفئة:
+        <select id="filter-cat">
+          <option value="">الكل</option>
+          <option>طعام</option>
+          <option>حرف</option>
+          <option>ملابس</option>
+        </select>
+      </label>
+      <label>الحد الأقصى للسعر:
+        <input type="range" id="filter-price" min="10" max="500" value="500">
+        <span id="filter-price-val">500</span>
+      </label>
+    </section>
+
+    <section class="products-grid" id="products-grid"></section>
+  </main>
+
+  <footer class="site-footer container">
+    © 2026 Ibtakir
+  </footer>
+
+  <script src="js/products.js"></script>
+  <script src="js/cart.js"></script>
+  <script>
+    // بسيط: عرض المنتجات وتطبيق الفلاتر
+    const grid = document.getElementById("products-grid");
+    const cat = document.getElementById("filter-cat");
+    const price = document.getElementById("filter-price");
+    const priceVal = document.getElementById("filter-price-val");
+    const search = new URLSearchParams(location.search).get("q") || "";
+
+    priceVal.textContent = price.value;
+
+    function render(list){
+      grid.innerHTML = list.map(p=>`
+        <article class="product-card">
+          <img data-src="${p.images[0]||'images/placeholder.png'}" class="lazy" alt="${p.title}">
+          <h4>${p.title}</h4>
+          <p class="text-muted">${p.vendor} • ${p.category}</p>
+          <div class="price">${p.price.toFixed(2)} ر.س</div>
+          <div style="margin-top:0.6rem">
+            <button class="btn small" onclick="addToCart('${p.id}',1)">أضف للسلة</button>
+            <a class="btn small" href="product.html?id=${p.id}">تفاصيل</a>
+          </div>
+        </article>
+      `).join("");
+      // lazy load init
+      setTimeout(()=> {
+        document.querySelectorAll("img.lazy").forEach(img=>{
+          img.src = img.dataset.src;
+          img.classList.add("show");
+        });
+      }, 50);
+    }
+
+    function applyFilters(){
+      let list = PRODUCTS.slice();
+      const qc = (document.getElementById("page-search")?.value || search || "").trim().toLowerCase();
+      if(qc){
+        list = list.filter(p=>p.title.toLowerCase().includes(qc) || p.description.toLowerCase().includes(qc));
+      }
+      const c = cat.value;
+      if(c) list = list.filter(p=>p.category === c);
+      const maxp = Number(price.value);
+      list = list.filter(p=>p.price <= maxp);
+      render(list);
+    }
+
+    document.addEventListener("DOMContentLoaded", ()=> {
+      // prefill search if present
+      if(search) document.getElementById("page-search").value = search;
+      applyFilters();
+      cat.addEventListener("change", applyFilters);
+      price.addEventListener("input", ()=>{ priceVal.textContent = price.value; applyFilters() });
+      document.getElementById("page-search-btn").addEventListener("click", applyFilters);
+    });
+  </script>
+</body>
+</html>

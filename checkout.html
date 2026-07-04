@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>الدفع — ابتكر</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <header class="site-header container header-inner">
+    <a class="brand" href="index.html">ابتكر</a>
+  </header>
+
+  <main class="container">
+    <h2>الدفع</h2>
+    <form id="checkout-form" class="glass">
+      <label>الاسم الكامل<input name="name" required></label>
+      <label>الجوال<input name="phone" required></label>
+      <label>العنوان<input name="address" required></label>
+      <button class="btn primary" type="submit">إتمام الطلب</button>
+    </form>
+    <div id="order-result" style="margin-top:1rem"></div>
+  </main>
+
+  <script src="js/cart.js"></script>
+  <script>
+    document.getElementById("checkout-form").addEventListener("submit", (e)=>{
+      e.preventDefault();
+      // معالجة محلية فقط — توليد طلب تجريبي
+      const id = "ORD-"+Date.now();
+      clearCart();
+      document.getElementById("order-result").innerHTML = `<div class="glass"><h3>تم إنشاء الطلب</h3><p>رقم الطلب: <strong>${id}</strong></p><p>شكراً لك! سيتم التواصل معك لتأكيد الشحنة.</p></div>`;
+    });
+  </script>
+</body>
+</html>

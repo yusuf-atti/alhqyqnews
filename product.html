@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>تفاصيل المنتج — ابتكر</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <header class="site-header container header-inner">
+    <a class="brand" href="index.html">ابتكر</a>
+    <a href="cart.html" class="btn small">السلة <span id="cart-count">0</span></a>
+  </header>
+
+  <main class="container" id="main-content">
+    <!-- المحتوى يُملأ بواسطة JS -->
+  </main>
+
+  <footer class="site-footer container">© 2026 Ibtakir</footer>
+
+  <script src="js/products.js"></script>
+  <script src="js/cart.js"></script>
+  <script>
+    function getParam(k){ return new URLSearchParams(location.search).get(k); }
+    const id = getParam("id");
+    const main = document.getElementById("main-content");
+    const p = PRODUCTS.find(x=>x.id===id) || PRODUCTS[0];
+
+    main.innerHTML = `
+      <section class="product-detail container glass">
+        <div style="display:flex;gap:1rem;flex-wrap:wrap">
+          <div style="flex:1 1 320px">
+            <img src="${p.images[0]||'images/placeholder.png'}" alt="${p.title}" style="width:100%;border-radius:10px">
+            <div style="display:flex;gap:0.5rem;margin-top:0.5rem">
+              ${p.images.map(i=>`<img src="${i}" style="width:64px;height:64px;object-fit:cover;border-radius:8px">`).join("")}
+            </div>
+          </div>
+          <div style="flex:1 1 360px">
+            <h2>${p.title}</h2>
+            <p class="text-muted">بواسطة ${p.vendor} • فئة ${p.category}</p>
+            <div class="price">${p.price.toFixed(2)} ر.س ${p.oldPrice?'<span class="text-muted" style="text-decoration:line-through;margin-right:8px>'+p.oldPrice.toFixed(2)+' ر.س</span>':''}</div>
+            <p style="margin-top:0.6rem">${p.description}</p>
+            <div style="margin-top:1rem;display:flex;gap:0.5rem">
+              <button class="btn primary" onclick="addToCart('${p.id}',1)">أضف للسلة</button>
+              <button class="btn" onclick="toggleFavorite('${p.id}')">❤ مفضلات</button>
+              <button class="btn" onclick="toggleCompare('${p.id}')">مقارنة</button>
+            </div>
+          </div>
+        </div>
+      </section>
+    `;
+  </script>
+</body>
+</html>

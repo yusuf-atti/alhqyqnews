@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>سلة المشتريات — ابتكر</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <header class="site-header container header-inner">
+    <a class="brand" href="index.html">ابتكر</a>
+  </header>
+
+  <main class="container">
+    <h2>سلة المشتريات</h2>
+    <div id="cart-area" class="glass"></div>
+
+    <section style="margin-top:1rem" class="glass">
+      <h3>تطبيق كوبون</h3>
+      <input id="coupon-input" placeholder="أدخل الكود" />
+      <button id="apply-coupon" class="btn">تطبيق</button>
+    </section>
+
+    <a id="checkout-btn" class="btn primary" href="checkout.html">الدفع والشراء</a>
+  </main>
+
+  <footer class="site-footer container">© 2026 Ibtakir</footer>
+
+  <script src="js/products.js"></script>
+  <script src="js/cart.js"></script>
+  <script>
+    function renderCart(){
+      const area = document.getElementById("cart-area");
+      const items = getCart();
+      if(!items.length){ area.innerHTML = "<p>السلة فارغة</p>"; return; }
+      const rows = items.map(it=>{
+        const prod = PRODUCTS.find(p=>p.id===it.id) || {title:'منتج غير معروف',price:0};
+        return `<div style="display:flex;gap:1rem;align-items:center;margin-bottom:0.6rem">
+          <div style="flex:1"><strong>${prod.title}</strong><div class="text-muted">${prod.vendor}</div></div>
+          <div>${it.qty} × ${prod.price.toFixed(2)} ر.س</div>
+          <div><button class="btn small" onclick="removeFromCart('${it.id}')">حذف</button></div>
+        </div>`;
+      }).join("");
+      const subtotal = items.reduce((s,i)=> s + ((PRODUCTS.find(p=>p.id===i.id)?.price || 0) * i.qty), 0);
+      area.innerHTML = rows + `<hr><div style="text-align:left">المجموع الفرعي: <strong>${subtotal.toFixed(2)} ر.س</strong></div>`;
+    }
+
+    document.getElementById("apply-coupon").addEventListener("click", ()=>{
+      const code = document.getElementById("coupon-input").value;
+      const res = applyCoupon(code);
+      if(res.applied){
+        // يمكنك تعديل طريقة حساب السعر النهائي عند الانتهاء
+        renderCart();
+      }
+    });
+
+    document.addEventListener("DOMContentLoaded", ()=> {
+      renderCart();
+      if(typeof updateCartCount === "function") updateCartCount();
+    });
+  </script>
+</body>
+</html>

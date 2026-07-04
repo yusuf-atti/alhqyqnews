@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>أدوات الذكاء الاصطناعي — ابتكر</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <header class="site-header container header-inner">
+    <a class="brand" href="index.html">ابتكر</a>
+    <a href="dashboard.html" class="btn small">لوحة التحكم</a>
+  </header>
+
+  <main class="container">
+    <h2>أدوات مساعدة بالذكاء الاصطناعي</h2>
+
+    <section class="glass">
+      <h3>اقتراح أسماء للعلامة التجارية</h3>
+      <input id="ai-brand-key" placeholder="ادخل وصف قصير للمنتج أو الفكرة (مثلاً: مربي طبيعي/حرف يدوية)"/>
+      <button id="ai-brand-btn" class="btn">اقتراح أسماء</button>
+      <div id="ai-brand-result"></div>
+    </section>
+
+    <section class="glass">
+      <h3>كتابة وصف احترافي للمنتج</h3>
+      <textarea id="ai-desc-key" placeholder="أدخل مميزات المنتج باختصار"></textarea>
+      <button id="ai-desc-btn" class="btn">إنشاء وصف</button>
+      <div id="ai-desc-result"></div>
+    </section>
+
+    <section class="glass">
+      <h3>اقتراح سعر البيع وحساب هامش الربح</h3>
+      <label>تكلفة الإنتاج (ر.س)<input id="ai-cost" type="number" value="30"></label>
+      <label>نسبة الربح المرغوبة (%)<input id="ai-margin" type="number" value="50"></label>
+      <button id="ai-price-btn" class="btn">اقتراح سعر</button>
+      <div id="ai-price-result"></div>
+    </section>
+
+    <section class="glass">
+      <h3>خطة تسويق قصيرة</h3>
+      <input id="ai-marketing-key" placeholder="نوع المنتج والجمهور المستهدف">
+      <button id="ai-marketing-btn" class="btn">إنشاء خطة</button>
+      <div id="ai-marketing-result"></div>
+    </section>
+  </main>
+
+  <footer class="site-footer container">© 2026 Ibtakir</footer>
+
+  <script>
+    // وظائف AI محلية تعتمد على قواعد بسيطة لتوليد محتوى تجريبي.
+    function suggestBrandNames(seed){
+      seed = (seed||"").trim();
+      const base = seed.split(" ")[0] || "ابتكر";
+      return [
+        `${base} الأصلي`,
+        `بيت ${base}`,
+        `${base} بلمسة محلية`,
+        `${base} × جودة`,
+        `${base} الذهبي`
+      ];
+    }
+    function createDescription(features){
+      return `وصف احترافي: ${features}. منتج مصنوع يدوياً بجودة عالية ومراعاة للتفاصيل، مناسب للهدايا والاستخدام اليومي. يأتي من أسر منتجة تضمن أصالة المكونات والاهتمام بالتغليف.`;
+    }
+    function suggestPrice(cost, marginPercent){
+      const target = cost * (1 + marginPercent/100);
+      const rounded = Math.round(target/5)*5;
+      const profit = rounded - cost;
+      return {price:rounded, profit, margin: (profit/rounded*100).toFixed(1)};
+    }
+    function marketingPlan(seed){
+      return `خطة تسويق قصيرة لــ ${seed}:
+- تحديد الجمهور: مهتمون بالمنتجات الحرفية والهدايا.
+- منصات: إنستغرام، سناب، مجموعات واتساب محلية.
+- محتوى: صور عالية الجودة، فيديوهات تصنيع قصيرة، شهادات العملاء.
+- عروض: كوبونات إطلاق، شحن مجاني لأول طلب.`;
+    }
+
+    document.getElementById("ai-brand-btn").addEventListener("click", ()=>{
+      const seed = document.getElementById("ai-brand-key").value;
+      const names = suggestBrandNames(seed).map(n=>`<div class="glass" style="margin:6px;padding:8px">${n} <button class="btn small" onclick="copyText('${escape(n)}')">نسخ</button></div>`).join("");
+      document.getElementById("ai-brand-result").innerHTML = names;
+    });
+
+    document.getElementById("ai-desc-btn").addEventListener("click", ()=>{
+      const f = document.getElementById("ai-desc-key").value;
+      document.getElementById("ai-desc-result").innerHTML = `<div class="glass">${createDescription(f)} <button class="btn small" onclick="copyText('${escape(createDescription(f))}')">نسخ</button></div>`;
+    });
+
+    document.getElementById("ai-price-btn").addEventListener("click", ()=>{
+      const cost = Number(document.getElementById("ai-cost").value||0);
+      const margin = Number(document.getElementById("ai-margin").value||0);
+      const r = suggestPrice(cost, margin);
+      document.getElementById("ai-price-result").innerHTML = `<div class="glass">سعر مقترح: <strong>${r.price} ر.س</strong> — هامش ربح: ${r.margin}% (ربح ${r.profit} ر.س)</div>`;
+    });
+
+    document.getElementById("ai-marketing-btn").addEventListener("click", ()=>{
+      const k = document.getElementById("ai-marketing-key").value;
+      document.getElementById("ai-marketing-result").innerHTML = `<div class="glass">${marketingPlan(k)}</div>`;
+    });
+
+    function copyText(s){
+      try{
+        const txt = unescape(s);
+        navigator.clipboard?.writeText(txt);
+        alert("تم نسخ النص");
+      }catch(e){ alert("نسخ غير متاح"); }
+    }
+  </script>
+</body>
+</html>
